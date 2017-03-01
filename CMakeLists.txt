@@ -51,12 +51,20 @@ add_executable(polesRegister_fuser src/polesRegister_fuser.cpp)
 target_link_libraries(polesRegister_fuser ndt_fuser ${Boost_LIBRARIES}
 	${OpenCV_LIBS} ${PCL_LIBRARIES})
 
+add_executable(rsd_register_fuser src/rsd_register_fuser.cpp)
+target_link_libraries(rsd_register_fuser ndt_fuser ${Boost_LIBRARIES}
+	${OpenCV_LIBS} ${PCL_LIBRARIES})
+
 add_executable(smoothness src/smoothness.cpp)
 target_link_libraries(smoothness ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
 add_executable(polesRegister src/polesRegister.cpp)
 target_link_libraries(polesRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
+	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
+
+add_executable(rsdRegister src/rsdRegister.cpp)
+target_link_libraries(rsdRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
 add_executable(polesRegister_ndt src/polesRegister_ndt.cpp)
