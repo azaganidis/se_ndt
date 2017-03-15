@@ -1,0 +1,362 @@
+--- ndt_matcher_d2d.cpp	2016-07-11 16:18:32.073810639 +0100
++++ ndt_matcher_d2d_loam.cpp	2016-10-03 13:57:52.918311637 +0100
+@@ -12,6 +12,20 @@
+ 
+ //#define DO_DEBUG_PROC
+ 
++inline void clearNextNDT(std::vector<std::vector<NDTCell*> > &nextNDT)
++{
++    while(nextNDT.size())
++    {
++		while(nextNDT.back().size())
++		{
++			delete nextNDT.back().back();
++			nextNDT.back().pop_back();
++		}
++		nextNDT.pop_back();
++	}
++	nextNDT.clear();
++}
++
+ void NDTMatcherD2D::init(bool _isIrregularGrid,
+         bool useDefaultGridResolutions, std::vector<double> _resolutions)
+ {
+@@ -47,8 +61,8 @@
+ 
+ }
+ 
+-bool NDTMatcherD2D::match( pcl::PointCloud<pcl::PointXYZ>& target,
+-        pcl::PointCloud<pcl::PointXYZ>& source,
++bool NDTMatcherD2D::match( std::vector<pcl::PointCloud<pcl::PointXYZ> >& target,
++        std::vector<pcl::PointCloud<pcl::PointXYZ> >& source,
+         Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>& T ,
+         bool useInitialGuess)
+ {
+@@ -60,12 +74,12 @@
+     gettimeofday(&tv_start0,NULL);
+ 
+     //initial guess
+-    pcl::PointCloud<pcl::PointXYZ> sourceCloud = source;
+     Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> Temp, Tinit;
+     Tinit.setIdentity();
+     if(useInitialGuess)
+     {
+-        lslgeneric::transformPointCloudInPlace(T,sourceCloud);
++		for(int i=0;i<source.size();i++)
++			lslgeneric::transformPointCloudInPlace(T,source[i]);
+ 	Tinit = T;
+     }
+ 
+@@ -103,13 +117,19 @@
+             LazyGrid prototypeTarget(current_resolution);
+ 
+             gettimeofday(&tv_start,NULL);
+-            NDTMap targetNDT( &prototypeTarget );
+-            targetNDT.loadPointCloud( target );
+-            targetNDT.computeNDTCells();
+-
+-            NDTMap sourceNDT( &prototypeSource );
+-            sourceNDT.loadPointCloud( sourceCloud );
+-            sourceNDT.computeNDTCells();
++			std::vector<NDTMap> targetNDT(target.size(), &prototypeTarget );
++			for(int i=0;i<target.size();i++)
++			{
++				targetNDT[i].loadPointCloud( target[i] );
++				targetNDT[i].computeNDTCells();
++			}
++
++			std::vector<NDTMap> sourceNDT(source.size(), &prototypeSource );
++			for(int i=0;i<source.size();i++)
++			{
++				sourceNDT[i].loadPointCloud( source[i]);
++				sourceNDT[i].computeNDTCells();
++			}
+             gettimeofday(&tv_end,NULL);
+ 
+             time_load += (tv_end.tv_sec-tv_start.tv_sec)*1000.+(tv_end.tv_usec-tv_start.tv_usec)/1000.;
+@@ -117,7 +137,8 @@
+ 
+             gettimeofday(&tv_start,NULL);
+             ret = this->match( targetNDT, sourceNDT, Temp );
+-            lslgeneric::transformPointCloudInPlace(Temp,sourceCloud);
++			for(int i=0;i<source.size();i++)
++				lslgeneric::transformPointCloudInPlace(Temp,source[i]);
+             gettimeofday(&tv_end,NULL);
+ 
+             time_match += (tv_end.tv_sec-tv_start.tv_sec)*1000.+(tv_end.tv_usec-tv_start.tv_usec)/1000.;
+@@ -147,8 +168,8 @@
+     return ret;
+ }
+ 
+-bool NDTMatcherD2D::match( NDTMap& targetNDT,
+-        NDTMap& sourceNDT,
++bool NDTMatcherD2D::match( std::vector<NDTMap>& targetNDT,
++        std::vector<NDTMap>& sourceNDT,
+         Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>& T ,
+         bool useInitialGuess)
+ {
+@@ -176,7 +197,9 @@
+ 
+ 
+     Eigen::Array<double,6,1> weights;
+-    std::vector<NDTCell*> nextNDT = sourceNDT.pseudoTransformNDT(T);
++	std::vector<std::vector<NDTCell*> > nextNDT;
++	for (int i=0;i<sourceNDT.size();i++)
++    	nextNDT.push_back(sourceNDT[i].pseudoTransformNDT(T));
+ 
+     //std::cout<<"pose(:,"<<1<<") = ["<<T.translation().transpose()<<" "<<T.rotation().eulerAngles(0,1,2).transpose()<<"]';\n";
+     while(!convergence)
+@@ -216,17 +239,13 @@
+ 		Lam = evals.asDiagonal();
+ 		Hessian = evecs*Lam*(evecs.transpose());
+ 	    } else {
+-		if(score_here > score_best) 
+-		{
+-		    T = Tbest;
+-		}
+-		//de-alloc nextNDT
+-		for(unsigned int i=0; i<nextNDT.size(); i++)
+-		{
+-		    if(nextNDT[i]!=NULL)
+-			delete nextNDT[i];
+-		}
+-		return true;
++			if(score_here > score_best) 
++			{
++				T = Tbest;
++			}
++			//de-alloc nextNDT
++			clearNextNDT(nextNDT);
++			return true;
+ 	    }
+ //            std::cerr<<"regularizing\n";
+         }
+@@ -243,11 +262,7 @@
+ 		T = Tbest;
+ 	    }
+             //de-alloc nextNDT
+-            for(unsigned int i=0; i<nextNDT.size(); i++)
+-            {
+-                if(nextNDT[i]!=NULL)
+-                    delete nextNDT[i];
+-            }
++			clearNextNDT(nextNDT);
+ //	    std::cout<<"itr "<<itr_ctr<<" dScore "<< 0 <<std::endl;
+             return true;
+         }
+@@ -310,11 +325,7 @@
+ //		std::cout<<"crap iterations, best was "<<score_best<<" last was "<<score_here<<std::endl;
+ 		T = Tbest;
+ 	    }
+-            for(unsigned int i=0; i<nextNDT.size(); i++)
+-            {
+-                if(nextNDT[i]!=NULL)
+-                    delete nextNDT[i];
+-            }
++			clearNextNDT(nextNDT);
+ //	    std::cout<<"itr "<<itr_ctr<<" dScore "<< 0 <<std::endl;
+             return true;
+         }
+@@ -385,16 +396,17 @@
+ //	std::cout<<"incr(:,"<<itr_ctr+1<<") = ["<<pose_increment_v.transpose()<<"]';\n";
+ //	std::cout<<"pose(:,"<<itr_ctr+2<<") = ["<<T.translation().transpose()<<" "<<T.rotation().eulerAngles(0,1,2).transpose()<<"]';\n";
+ 
+-        for(unsigned int i=0; i<nextNDT.size(); i++)
+-        {
+-	    //TRANSFORM
+-	    Eigen::Vector3d meanC = nextNDT[i]->getMean();
+-	    Eigen::Matrix3d covC = nextNDT[i]->getCov();
+-	    meanC = TR*meanC;
+-	    covC = TR.rotation()*covC*TR.rotation().transpose();
+-	    nextNDT[i]->setMean(meanC);
+-	    nextNDT[i]->setCov(covC);
+-        }
++		for(unsigned int nS=0;nS<nextNDT.size();nS++)
++			for(unsigned int i=0; i<nextNDT[nS].size(); i++)
++			{
++				//TRANSFORM
++				Eigen::Vector3d meanC = nextNDT[nS][i]->getMean();
++				Eigen::Matrix3d covC = nextNDT[nS][i]->getCov();
++				meanC = TR*meanC;
++				covC = TR.rotation()*covC*TR.rotation().transpose();
++				nextNDT[nS][i]->setMean(meanC);
++				nextNDT[nS][i]->setCov(covC);
++			}
+ 
+         if(itr_ctr>0)
+         {
+@@ -420,11 +432,7 @@
+ //	std::cout<<"crap iterations, best was "<<score_best<<" last was "<<score_here<<std::endl;
+ 	T = Tbest;
+     }
+-    for(unsigned int i=0; i<nextNDT.size(); i++)
+-    {
+-	if(nextNDT[i]!=NULL)
+-	    delete nextNDT[i];
+-    }
++	clearNextNDT(nextNDT);
+ 
+ //    std::cout<<"incr(:,"<<itr_ctr+1<<") = [0 0 0 0 0 0]';\n";
+ //    std::cout<<"grad(:,"<<itr_ctr+1<<") = [0 0 0 0 0 0]';\n";
+@@ -1027,8 +1035,8 @@
+ 
+ //compute the score gradient of a point cloud + transformation to an NDT
+ double NDTMatcherD2D::derivativesNDT(
+-    const std::vector<NDTCell*> &sourceNDT,
+-    const NDTMap &targetNDT,
++    const std::vector<std::vector<NDTCell*> > &sourceNDTMany,
++    const std::vector<NDTMap> &targetNDTMany,
+     Eigen::MatrixXd &score_gradient,
+     Eigen::MatrixXd &Hessian,
+     bool computeHessian
+@@ -1064,6 +1072,10 @@
+     #pragma omp parallel num_threads(n_threads)
+     {
+         #pragma omp for
++		for(int nS=0;nS<sourceNDTMany.size();nS++)
++		{
++			std::vector<NDTCell*> sourceNDT = sourceNDTMany[nS];
++			NDTMap targetNDT = targetNDTMany[nS];
+         for(unsigned int i=0; i<sourceNDT.size(); i++)
+         {
+ 	    if(sourceNDT[i] == NULL) continue;
+@@ -1140,6 +1152,7 @@
+             score_here_omp(0,thread_id) += score_here_loc;
+ 
+         }
++		}
+     } //end pragma block
+     //std::cout<<"sgomp: "<<score_gradient_omp<<std::endl;
+     //std::cout<<"somp: "<<score_here_omp<<std::endl;
+@@ -1162,6 +1175,11 @@
+     NDTCell *cell;
+     bool exists = false;
+     double det = 0;
++
++	for(int nS=0;nS<sourceNDTMany.size();nS++)
++	{
++		std::vector<NDTCell*> sourceNDT = sourceNDTMany[nN];
++		NDTMap targetNDT = targetNDTMany[nN];
+     for(unsigned int i=0; i<sourceNDT.size(); i++)
+     {
+         meanMoving = sourceNDT[i]->getMean();
+@@ -1215,6 +1233,7 @@
+             }
+         }
+     }
++	}
+ #endif
+     /*
+     if(computeHessian) {
+@@ -1268,8 +1287,8 @@
+ //perform line search to find the best descent rate (More&Thuente)
+ double NDTMatcherD2D::lineSearchMT(
+     Eigen::Matrix<double,6,1> &increment,
+-    std::vector<NDTCell*> &sourceNDT,
+-    NDTMap &targetNDT
++    std::vector<std::vector<NDTCell*> > &sourceNDT,
++    std::vector<NDTMap> &targetNDT
+ )
+ {
+ 
+@@ -1285,7 +1304,7 @@
+     double xtol = 0.01; //window of uncertainty around the optimal step
+ 
+     //my temporary variables
+-    std::vector<NDTCell*> sourceNDTHere;
++	std::vector<std::vector<NDTCell*> > sourceNDTHere;
+     double score_init = 0.0;
+ 
+     Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ps;
+@@ -1330,11 +1349,10 @@
+ 
+         if (dginit >= 0.0)
+         {
+-            for(unsigned int i=0; i<sourceNDTHere.size(); i++)
+-            {
+-                if(sourceNDTHere[i]!=NULL)
+-                    delete sourceNDTHere[i];
+-            }
++            for(unsigned int j=0; j<sourceNDTHere.size(); j++)
++				for(unsigned int i=0; i<sourceNDTHere[j].size(); i++)
++					if(sourceNDTHere[j][i]!=NULL)
++						delete sourceNDTHere[j][i];
+             return recoverystep;
+         }
+     }
+@@ -1421,27 +1439,36 @@
+              Eigen::AngleAxisd(pincr(4),Eigen::Vector3d::UnitY())*
+              Eigen::AngleAxisd(pincr(5),Eigen::Vector3d::UnitZ());
+ 
+-        for(unsigned int i=0; i<sourceNDTHere.size(); i++)
+-        {
+-            if(sourceNDTHere[i]!=NULL)
+-                delete sourceNDTHere[i];
+-        }
+-        sourceNDTHere.clear();
+-        for(unsigned int i=0; i<sourceNDT.size(); i++)
+-        {
+-            NDTCell *cell = sourceNDT[i];
+-            if(cell!=NULL)
+-            {
+-                Eigen::Vector3d mean = cell->getMean();
+-                Eigen::Matrix3d cov = cell->getCov();
+-                mean = ps*mean;
+-                cov = ps.rotation()*cov*ps.rotation().transpose();
+-                NDTCell* nd = (NDTCell*)cell->copy();
+-                nd->setMean(mean);
+-                nd->setCov(cov);
+-                sourceNDTHere.push_back(nd);
+-            }
+-        }
++		for(unsigned int j=0; j<sourceNDTHere.size(); j++)
++		{
++			for(unsigned int i=0; i<sourceNDTHere[j].size(); i++)
++			{
++				if(sourceNDTHere[j][i]!=NULL)
++					delete sourceNDTHere[j][i];
++			}
++			sourceNDTHere[j].clear();
++		}
++		sourceNDTHere.clear();
++
++		for(unsigned int j=0;j<sourceNDT.size();j++)
++		{
++			sourceNDTHere.push_back(std::vector<NDTCell*>());
++			for(unsigned int i=0; i<sourceNDT[j].size(); i++)
++			{
++				NDTCell *cell = sourceNDT[j][i];
++				if(cell!=NULL)
++				{
++					Eigen::Vector3d mean = cell->getMean();
++					Eigen::Matrix3d cov = cell->getCov();
++					mean = ps*mean;
++					cov = ps.rotation()*cov*ps.rotation().transpose();
++					NDTCell* nd = (NDTCell*)cell->copy();
++					nd->setMean(mean);
++					nd->setCov(cov);
++					sourceNDTHere[j].push_back(nd);
++				}
++			}
++		}
+ 
+         double f = 0.0;
+         score_gradient_here.setZero();
+@@ -1527,11 +1554,12 @@
+ 
+             // Returning the line search flag
+             //cout<<"LineSearch::"<<message<<" info "<<info<<endl;
+-            for(unsigned int i=0; i<sourceNDTHere.size(); i++)
+-            {
+-                if(sourceNDTHere[i]!=NULL)
+-                    delete sourceNDTHere[i];
+-            }
++			for(unsigned int j=0; j<sourceNDTHere.size(); j++)
++				for(unsigned int i=0; i<sourceNDTHere[j].size(); i++)
++				{
++					if(sourceNDTHere[j][i]!=NULL)
++						delete sourceNDTHere[j][i];
++				}
+ //      std::cout<<"nfev = "<<nfev<<std::endl;
+             return stp;
+ 

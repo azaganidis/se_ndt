@@ -1,0 +1,50 @@
+<package>
+  <name>ndt_registration</name>
+  <version>1.0.30</version>
+  <description>Contains a new implementation of 3D NDT registration. 
+    Used to find the relative positions of two point clouds.</description>
+  <maintainer email="todor.stoyanov@oru.se">Todor Stoyanov</maintainer>
+  <maintainer email="jari.p.saarinen@gmail.com">Jari Saarinen</maintainer>
+  <maintainer email="henrik.andreasson@oru.se">Henrik Andreasson</maintainer>
+  <maintainer email="tomasz.kucner@oru.se">Tomasz Kucner</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/ndt_registration</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <author>Todor Stoyanov</author>
+  <author>Jari Saarinen</author>
+  <author>Henrik Andreasson</author>
+
+  <!-- Dependencies which this package needs to build itself. -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Dependencies needed to compile this package. -->
+  <!--<build_depend>common_rosdeps</build_depend>-->
+  <build_depend>ndt_map</build_depend>
+  <build_depend>pcl_ros</build_depend>
+  <build_depend>libpcl-all-dev</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>tf_conversions</build_depend>
+
+  <!-- Dependencies needed after this package is compiled. -->
+  <!--<run_depend>common_rosdeps</run_depend>-->
+  <run_depend>ndt_map</run_depend>
+  <run_depend>pcl_ros</run_depend>
+  <run_depend>libpcl-all-dev</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>tf_conversions</run_depend>
+
+  <!-- Dependencies needed only for running tests. -->
+  <!-- <test_depend>common_rosdeps</test_depend> -->
+  <!-- <test_depend>ndt_map</test_depend> -->
+  <!-- <test_depend>pcl</test_depend> -->
+  <!-- <test_depend>tf</test_depend> -->
+  <!-- <test_depend>tf_conversions</test_depend> -->
+
+<!--<export>
+    <cpp lflags="-lgsl -lgslcblas -L${prefix}/lib" cflags="-I${prefix}/include -fopenmp"/>
+</export>
+-->
+</package>

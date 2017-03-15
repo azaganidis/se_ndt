@@ -1,0 +1,10 @@
+<launch>
+	<group ns="debug">
+	       <node pkg="pointcloud_vrml" name="pointcloud_vrml" 
+	       type="vrml_reader" 
+	       args="/home/dev/basement.wrl"/>
+	       
+	       <node pkg="ndt_registration" name="ndt_reg" 
+	       launch-prefix="xterm -e gdb --args " type="ndt_registration_test" />
+	</group>
+</launch>
