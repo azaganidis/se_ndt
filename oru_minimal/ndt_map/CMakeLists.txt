@@ -8,12 +8,11 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0")
 project(ndt_map)
 # Load catkin and all dependencies required for this package
 
-find_package(cmake_modules REQUIRED )
 find_package(Eigen3 REQUIRED )
 
 set (${PROJECT_NAME}_LIB_SRCS
 	src/ndt_cell.cpp
-	src/ndt_map.cpp
+	#	src/ndt_map.cpp
 	src/cell_vector.cpp
 	src/lazy_grid.cpp
 	src/ndt_map_hmt.cpp
@@ -21,7 +20,7 @@ set (${PROJECT_NAME}_LIB_SRCS
 #	src/oc_tree.cpp
 #	src/adaptive_oc_tree.cpp
     )
-add_library(${PROJECT_NAME} ${${PROJECT_NAME}_LIB_SRCS})
+#add_library(${PROJECT_NAME} ${${PROJECT_NAME}_LIB_SRCS})
 #add_executable(jffSaveTest test/jffLazyGridTest_saving.cc)
 #add_executable(jffLoadTest test/jffLazyGridTest_loading.cc)
 #add_executable(histTest test/test_ndt_histogram.cc)
@@ -46,7 +45,7 @@ add_definitions(${EIGEN_DEFINITIONS})
 #make a node that listens to point clouds and makes ndts
 
 #target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
-target_link_libraries(histTest ${PROJECT_NAME})
+#target_link_libraries(histTest ${PROJECT_NAME})
 #target_link_libraries(jffSaveTest ${catkin_LIBRARIES})
 #target_link_libraries(jffLoadTest ${catkin_LIBRARIES})
 #target_link_libraries(test_map_topic ${PROJECT_NAME} )
@@ -54,8 +53,7 @@ target_link_libraries(histTest ${PROJECT_NAME})
 #target_link_libraries(ndt_builder ${PROJECT_NAME} )
 #target_link_libraries(test_occ_map_topic ${PROJECT_NAME} )
 
-add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_generate_messages_cpp)
-target_link_libraries(${PROJECT_NAME} )
+#target_link_libraries(${PROJECT_NAME} )
 
 #add_executable(likelihood_test test/ndtLikelihoodTester.cc)
 #target_link_libraries(likelihood_test ${PROJECT_NAME}  pointcloud_vrml)
@@ -63,14 +61,4 @@ target_link_libraries(${PROJECT_NAME} )
 #add_executable(batchTestHist test/batchTesterHistogramFPFH.cc)
 #target_link_libraries(batchTestHist ${PROJECT_NAME} pointcloud_vrml)
 ## Generate added messages and services with any dependencies listed here
-
-install(TARGETS ${PROJECT_NAME}
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-       )
-
-install(DIRECTORY include/${PROJECT_NAME}/
-	DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-       )
 

@@ -1,71 +1,46 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(se_ndt)
+find_package(OpenMP REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(PCL REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
-find_package(ndt_map)
-if( NOT ndt_map_FOUND)
-	set(ndt_map_SOURCE_DIR "${PROJECT_SOURCE_DIR}/perception_oru_minimal/ndt_map/")
-	add_subdirectory("ndt_map")
-	find_package(ndt_map REQUIRED)
+#find_package(ndt_map)
+#find_package(ndt_registration)
+if( NOT ndt_map_FOUND OR NOT ndt_registration_FOUND)
 endif()
-find_package(ndt_registration)
-if( NOT ndt_registration_FOUND)
-	set(ndt_registration_SOURCE_DIR
-		"${PROJECT_SOURCE_DIR}/perception_oru_minimal/ndt_registration/")
-	add_subdirectory("ndt_registration")
-	find_package(ndt_registration REQUIRED)
-endif()
-find_package(catkin REQUIRED COMPONENTS
-  geometry_msgs
-  nav_msgs
-  roscpp
-  rospy
-  sensor_msgs
-  std_msgs
-  pcl_ros
-  tf
-  geodesy
-  rosbag
-)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 #find_package(PCL REQUIRED COMPONENTS common io)
-find_package(OpenCV REQUIRED)
-find_package(Eigen3 REQUIRED)
 
 include_directories(
   include
-	${catkin_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIRS}
+	${PROJECT_SOURCE_DIR}/oru_minimal/include
+	${PCL_INCLUDE_DIRS}
 	${ndt_map_INCLUDE_DIRS}
 	${ndt_registration_INCLUDE_DIRS}
-#	${EIGEN3_INCLUDE_DIR}
+	${EIGEN3_INCLUDE_DIR}
 	${PCL_INCLUDE_DIRS})
 link_directories ( ${Boost_LIBRARY_DIRS} )
-catkin_package(
-  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy std_msgs rosbag
-  pcl_ros
-  INCLUDE_DIRS include
-)
-#include(pcl_find_sse.cmake)
-#PCL_CHECK_FOR_SSE()
+include(pcl_find_sse.cmake)
+PCL_CHECK_FOR_SSE()
 #find_package(Boost REQUIRED)
 
 set (${PROJECT_NAME}_LIB_SRCS
+	oru_minimal/src/ndt_map.cpp
+	oru_minimal/src/lazy_grid.cpp
+	oru_minimal/src/ndt_matcher_d2d.cpp
+	oru_minimal/src/ndt_cell.cpp
+	oru_minimal/src/cell_vector.cpp
 	src/ndt_matcher_d2d_se.cpp
 	src/ndt_matcher_p2d_se.cpp
 	)
 
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_LIB_SRCS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
-
-add_executable(ETH_d_ci src/ETH_d_ci.cpp)
-target_link_libraries(ETH_d_ci ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-	${ndt_registration_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
 add_executable(smoothness src/smoothness.cpp)
 target_link_libraries(smoothness ${PROJECT_NAME} ${ndt_map_LIBRARIES}
@@ -78,42 +53,6 @@ target_link_libraries(polesRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 add_executable(polesRegister_ndt src/polesRegister_ndt.cpp)
 target_link_libraries(polesRegister_ndt ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-add_executable(plot_path src/plot_path.cpp)
-target_link_libraries(plot_path ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-add_executable(playCloud src/playCloud.cpp)
-target_link_libraries(playCloud ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-	${catkin_LIBRARIES} ${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-#add_executable(multimap_NDT  src/multimap_NDT.cpp)
-#target_link_libraries(multimap_NDT ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-#	${ndt_registration_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-#add_executable(multimap_NDT_fuser  src/multimap_NDT_fuser.cpp)
-#message(FATAL_ERROR "BOOOST ${Boost_LIBRARIES} ${Boost_LIBRARY_DIRS}")
-
-#add_executable(ETH_d_ci src/ETH_d_ci.cpp)
-#target_link_libraries(ETH_d_ci  ${Boost_LIBRARIES} ${PCL_LIBRARIES}
-#	${catkin_LIBRARIES} -lboost_serialization)
-
-#add_executable(evaluate src/evaluate.cpp)
-#target_link_libraries(evaluate ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES} -lboost_serialization)
-
-#add_executable(NDT_OM_ORU src/NDT-OM_ORU.cpp)
-#target_link_libraries(NDT_OM_ORU ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-#add_executable(NDT_ORU src/NDT_ORU.cpp)
-#target_link_libraries(NDT_ORU ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-#target_link_libraries(multimap_NDT_fuser ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-#add_executable(multimap_NDT_P2D  src/multimap_NDT_P2D.cpp)
-#target_link_libraries(multimap_NDT_P2D ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-#add_executable(cornerness src/cornerness.cpp)
-#target_link_libraries(cornerness ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## Uncomment this if the package has a setup.py. This macro ensures

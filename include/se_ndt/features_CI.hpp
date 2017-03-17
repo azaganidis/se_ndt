@@ -5,7 +5,6 @@
 #include <ctime>
 
 #include <opencv/cv.h>
-#include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/filters/voxel_grid.h>
@@ -19,10 +18,7 @@
 #include <pcl/keypoints/narf_keypoint.h>
 #include <pcl/filters/random_sample.h>
 #include <pcl/console/parse.h>
-#include <tf/transform_datatypes.h>
-#include <tf/transform_broadcaster.h>
 #include <ndt_registration/ndt_matcher_d2d.h>
-#include <ndt_registration/ndt_matcher_d2dl.h>
 #include <se_ndt/se_ndt.hpp>
 #include <se_ndt/ndt_matcher_d2d_se.h>
 #include <omp.h>
@@ -388,9 +384,6 @@ class matchCI{
 		lslgeneric::NDTMap ***mapReference;
 		string base_name;
 		ofstream out_file;
-			ros::NodeHandle* nh;
-			ros::Publisher *pub;
-			ros::Publisher *pub2;
 
 		matchCI(string directory,bool activate,float remove_percent=0.5)
 		{
@@ -400,16 +393,7 @@ class matchCI{
 			removeP=remove_percent;
 			int argc=1;
 			char **argv;
-			ros::init(argc,argv,"NDTCI");
-			nh = new ros::NodeHandle;
-			pub=new ros::Publisher[num_inputs];
-			pub2=new ros::Publisher[num_inputs];
 			string s1="reference",s2="reading";
-			for(int i=0;i<num_inputs;i++)
-			{
-				pub[i] = nh->advertise<sensor_msgs::PointCloud2> (s1+to_string(i), 1);
-				pub2[i] = nh->advertise<sensor_msgs::PointCloud2> (s2+to_string(i), 1);
-			}
 			base_name=directory;
 			out_file.open(directory+"results.csv");
 			out_file<<endl;
@@ -452,14 +436,6 @@ class matchCI{
 			updateMap(mapReference[2],laserCloudIn,2);
 			reg_timer.stop_ref();
 
-			for(int i=0;i<num_inputs;i++)
-			{
-				sensor_msgs::PointCloud2 l_msg;
-				pcl::toROSMsg(*laserCloudIn[i],l_msg);
-				l_msg.header.frame_id="/world";
-				l_msg.header.stamp=ros::Time::now();
-				pub[i].publish(l_msg);
-			}
 		}
 		getline(strstr,word, ',');
 		word.erase(0,1);
@@ -478,14 +454,6 @@ class matchCI{
 			updateMap(mapReading[2],laserCloudIn,2);
 			reg_timer.stop_read();
 
-			for(int i=0;i<num_inputs;i++)
-			{
-				sensor_msgs::PointCloud2 l_msg;
-				pcl::toROSMsg(*laserCloudIn[i],l_msg);
-				l_msg.header.frame_id="/world";
-				l_msg.header.stamp=ros::Time::now();
-				pub2[i].publish(l_msg);
-			}
 		}
 		for(int i=0;i<4;i++)
 			for(int j=0;j<4;j++)

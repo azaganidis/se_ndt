@@ -3,7 +3,6 @@
 #include <ndt_map/ndt_map.h>
 #include <ndt_map/lazy_grid.h>
 #include <ndt_map/ndt_cell.h>
-#include <ndt_map/ndt_conversions.h>
 using namespace std;
 size_t* sort_pointcloud(vector<double> &in,float disregard)
 {
