@@ -6,18 +6,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(ndt_map)
-if( NOT ndt_map_FOUND)
-	set(ndt_map_SOURCE_DIR "${PROJECT_SOURCE_DIR}/perception_oru_minimal/ndt_map/")
-	add_subdirectory("ndt_map")
-	find_package(ndt_map REQUIRED)
-endif()
 find_package(ndt_registration)
-if( NOT ndt_registration_FOUND)
-	set(ndt_registration_SOURCE_DIR
-		"${PROJECT_SOURCE_DIR}/perception_oru_minimal/ndt_registration/")
-	add_subdirectory("ndt_registration")
-	find_package(ndt_registration REQUIRED)
-endif()
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   nav_msgs
@@ -63,10 +52,6 @@ set (${PROJECT_NAME}_LIB_SRCS
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_LIB_SRCS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
-add_executable(ETH_d_ci src/ETH_d_ci.cpp)
-target_link_libraries(ETH_d_ci ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-	${ndt_registration_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
 add_executable(smoothness src/smoothness.cpp)
 target_link_libraries(smoothness ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
@@ -78,46 +63,6 @@ target_link_libraries(polesRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 add_executable(polesRegister_ndt src/polesRegister_ndt.cpp)
 target_link_libraries(polesRegister_ndt ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-add_executable(polesRegister_ndt_r src/polesRegister_ndt_r.cpp)
-target_link_libraries(polesRegister_ndt_r ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-add_executable(plot_path src/plot_path.cpp)
-target_link_libraries(plot_path ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-add_executable(playCloud src/playCloud.cpp)
-target_link_libraries(playCloud ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-	${catkin_LIBRARIES} ${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-#add_executable(multimap_NDT  src/multimap_NDT.cpp)
-#target_link_libraries(multimap_NDT ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-#	${ndt_registration_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-#add_executable(multimap_NDT_fuser  src/multimap_NDT_fuser.cpp)
-#message(FATAL_ERROR "BOOOST ${Boost_LIBRARIES} ${Boost_LIBRARY_DIRS}")
-
-#add_executable(ETH_d_ci src/ETH_d_ci.cpp)
-#target_link_libraries(ETH_d_ci  ${Boost_LIBRARIES} ${PCL_LIBRARIES}
-#	${catkin_LIBRARIES} -lboost_serialization)
-
-#add_executable(evaluate src/evaluate.cpp)
-#target_link_libraries(evaluate ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES} -lboost_serialization)
-
-#add_executable(NDT_OM_ORU src/NDT-OM_ORU.cpp)
-#target_link_libraries(NDT_OM_ORU ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-#add_executable(NDT_ORU src/NDT_ORU.cpp)
-#target_link_libraries(NDT_ORU ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-#target_link_libraries(multimap_NDT_fuser ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-#add_executable(multimap_NDT_P2D  src/multimap_NDT_P2D.cpp)
-#target_link_libraries(multimap_NDT_P2D ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
-
-#add_executable(cornerness src/cornerness.cpp)
-#target_link_libraries(cornerness ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## Uncomment this if the package has a setup.py. This macro ensures
