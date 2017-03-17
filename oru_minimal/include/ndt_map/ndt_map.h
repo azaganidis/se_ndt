@@ -43,7 +43,7 @@
 #include <set>
 #include <cstdlib>
 
-#include <cv.h>
+#include <opencv/cv.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
