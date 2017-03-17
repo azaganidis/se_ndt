@@ -35,7 +35,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS} -g -O0")
 
 set (${PROJECT_NAME}_LIB_SRCS
 	src/ndt_matcher_d2d.cpp
-	src/ndt_matcher_p2d_l.cpp
 	src/ndt_matcher_d2d_2d.cpp	
 	src/ndt_matcher_d2d_feature.cpp  
 	src/ndt_matcher_p2d.cpp

@@ -4,7 +4,10 @@
 #include <ndt_map/lazy_grid.h>
 #include <ndt_map/ndt_cell.h>
 #include <ndt_map/ndt_conversions.h>
+#include <se_ndt/ndt_matcher_d2d_se.h>
+#include <se_ndt/ndt_matcher_p2d_se.h>
 using namespace std;
+typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;
 size_t* sort_pointcloud(vector<double> &in,float disregard)
 {
 	vector<size_t> idx(in.size());
@@ -19,7 +22,7 @@ size_t* sort_pointcloud(vector<double> &in,float disregard)
 		  idx2[i]=j++;
 	return idx2;
 }
-inline size_t index_selector(size_t **I,int p,int num,std::vector<size_t> Tails,size_t number_points)
+inline size_t index_selector(size_t **I,int p,int num,std::vector<int> Tails,size_t number_points)
 {
 	size_t minI=0,minA=I[0][p];
 	size_t maxI=0,maxA=I[0][p];
@@ -37,11 +40,11 @@ inline bool checkInLimits(size_t **in,int p,int num,int cu,int cl)
 			return true;
 	return false;
 }
-vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn,initializer_list<vector<double> >& attributes_,initializer_list<size_t > distribution_tails_,initializer_list<float> disregard_, float rejectPerc)
+vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn,initializer_list<vector<double> >& attributes_,initializer_list<int > distribution_tails_,initializer_list<float> disregard_, float rejectPerc)
 {
 	vector<vector<double> > attributes(attributes_);
 	vector<float> disregard(disregard_);
-	vector<size_t> distribution_tails(distribution_tails_);
+	vector<int> distribution_tails(distribution_tails_);
 	int cloudSize = laserCloudIn->points.size();
 	int num_attributes=attributes.size();
 	size_t *sorted_indexes[num_attributes];
@@ -88,7 +91,7 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::Poi
 
 	return laserCloud;
 }
-inline size_t count_tails(vector<size_t>& distribution_tails)
+inline size_t count_tails(vector<int>& distribution_tails)
 {
 	size_t number_tails1=count(distribution_tails.begin(),distribution_tails.end(),1);
 	size_t number_tails2=count(distribution_tails.begin(),distribution_tails.end(),2);
@@ -96,9 +99,9 @@ inline size_t count_tails(vector<size_t>& distribution_tails)
 	return number_tails1+number_tails2+2*number_tails3;
 }
 
-lslgeneric::NDTMap **initMap(initializer_list<size_t > distribution_tails_,initializer_list<float> resolutions_, initializer_list<float>size_)
+lslgeneric::NDTMap **initMap(initializer_list<int> distribution_tails_,initializer_list<float> resolutions_, initializer_list<float>size_)
 {
-	vector<size_t> distribution_tails(distribution_tails_);
+	vector<int> distribution_tails(distribution_tails_);
 	vector<float> size(size_),resolutions(resolutions_);
 	size_t number_tails=count_tails(distribution_tails);
 	if(number_tails!=resolutions.size()&&resolutions.size()!=1)

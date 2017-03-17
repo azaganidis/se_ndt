@@ -79,6 +79,10 @@ add_executable(polesRegister_ndt src/polesRegister_ndt.cpp)
 target_link_libraries(polesRegister_ndt ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
+add_executable(polesRegister_ndt_r src/polesRegister_ndt_r.cpp)
+target_link_libraries(polesRegister_ndt_r ${PROJECT_NAME} ${ndt_map_LIBRARIES}
+	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
+
 add_executable(plot_path src/plot_path.cpp)
 target_link_libraries(plot_path ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
