@@ -6,6 +6,7 @@
 #include <boost/program_options.hpp>
 //#include <se_ndt/features_CI.hpp>
 #include <se_ndt/se_ndt.hpp>
+#include <se_ndt/ndt_matcher_d2d_se.h>
 
 using namespace std;
 namespace po = boost::program_options;
