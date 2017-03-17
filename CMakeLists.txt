@@ -8,16 +8,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 find_package(ndt_map)
 find_package(ndt_registration)
 find_package(catkin REQUIRED COMPONENTS
-  geometry_msgs
-  nav_msgs
-  roscpp
-  rospy
-  sensor_msgs
-  std_msgs
-  pcl_ros
-  tf
-  geodesy
-  rosbag
 )
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 ## System dependencies are found with CMake's conventions
