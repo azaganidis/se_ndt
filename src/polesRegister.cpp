@@ -7,6 +7,7 @@
 //#include <se_ndt/features_CI.hpp>
 #include <se_ndt/se_ndt.hpp>
 #include <se_ndt/ndt_matcher_d2d_se.h>
+#include <pcl/common/io.h>
 
 using namespace std;
 namespace po = boost::program_options;
@@ -50,8 +51,11 @@ int main(int argc, char** argv)
 	string poles_dir=string(argv[3]);
 	string fname1=string(argv[4]);
 	string fname2=string(argv[5]);
-	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud1=getCloud2(point_cloud_dir+'/'+fname1);
-	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud2=getCloud2(point_cloud_dir+'/'+fname2);
+	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud3=getCloud2(point_cloud_dir+'/'+fname1);
+	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud4=getCloud2(point_cloud_dir+'/'+fname2);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,cloud2;
+	pcl::copyPointCloud(*cloud3,*cloud1);
+	pcl::copyPointCloud(*cloud4,*cloud2);
 	std::vector<double> smoothness1=getMeasure(smoothness_dir+'/'+fname1);
 	std::vector<double> poles1=getMeasure(poles_dir+'/'+fname1);
 	std::vector<double> smoothness2=getMeasure(smoothness_dir+'/'+fname2);
@@ -84,15 +88,15 @@ int main(int argc, char** argv)
 
 		auto attrs={smoothness1,poles1};
 		std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud1=getSegments(cloud1,attrs,tails,{-1,0},removeP);
-		updateMap(mapReference[0],laserCloud1, number_tails);
-		updateMap(mapReference[1],laserCloud1, number_tails);
-		updateMap(mapReference[2],laserCloud1, number_tails);
+		loadMap(mapReference[0],laserCloud1, number_tails);
+		loadMap(mapReference[1],laserCloud1, number_tails);
+		loadMap(mapReference[2],laserCloud1, number_tails);
 
 		auto attrs2={smoothness2,poles2};
 		std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud2=getSegments(cloud2,attrs2,tails,{-1,0},removeP);
-		updateMap(mapReading[0],laserCloud2, number_tails);
-		updateMap(mapReading[1],laserCloud2, number_tails);
-		updateMap(mapReading[2],laserCloud2, number_tails);
+		loadMap(mapReading[0],laserCloud2, number_tails);
+		loadMap(mapReading[1],laserCloud2, number_tails);
+		loadMap(mapReading[2],laserCloud2, number_tails);
 
 		ET T;
 		T.setIdentity();

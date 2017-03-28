@@ -156,6 +156,10 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
 	for (int i=0;i<NumInputs;i++)
     	nextNDT[i]= sourceNDT[i]->pseudoTransformNDT(T);
 
+	std::vector<NDTCell*> *current=new std::vector<NDTCell*>[NumInputs]();
+	for (int i=0;i<NumInputs;i++)
+    	current[i]= targetNDT[i]->pseudoTransformNDT(T);
+
     //std::cout<<"pose(:,"<<1<<") = ["<<T.translation().transpose()<<" "<<T.rotation().eulerAngles(0,1,2).transpose()<<"]';\n";
     while(!convergence)
     {

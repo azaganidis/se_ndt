@@ -12,7 +12,7 @@ if( NOT ndt_map_FOUND OR NOT ndt_registration_FOUND)
 endif()
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS program_options system)
 #find_package(PCL REQUIRED COMPONENTS common io)
 
 include_directories(
@@ -33,14 +33,23 @@ set (${PROJECT_NAME}_LIB_SRCS
 	oru_minimal/src/ndt_map.cpp
 	oru_minimal/src/lazy_grid.cpp
 	oru_minimal/src/ndt_matcher_d2d.cpp
+	oru_minimal/src/ndt_matcher_d2d_2d.cpp
 	oru_minimal/src/ndt_cell.cpp
 	oru_minimal/src/cell_vector.cpp
 	src/ndt_matcher_d2d_se.cpp
 	src/ndt_matcher_p2d_se.cpp
+	src/se_ndt.cpp
 	)
 
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_LIB_SRCS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+
+add_library(ndt_fuser src/ndt_fuser_hmt_se.cpp)
+target_link_libraries(ndt_fuser ${PROJECT_NAME})
+
+add_executable(polesRegister_fuser src/polesRegister_fuser.cpp)
+target_link_libraries(polesRegister_fuser ndt_fuser ${Boost_LIBRARIES}
+	${OpenCV_LIBS} ${PCL_LIBRARIES})
 
 add_executable(smoothness src/smoothness.cpp)
 target_link_libraries(smoothness ${PROJECT_NAME} ${ndt_map_LIBRARIES}
