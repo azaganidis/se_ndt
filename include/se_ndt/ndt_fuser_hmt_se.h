@@ -50,9 +50,16 @@ class NDTFuserHMT_SE{
 	~NDTFuserHMT_SE()
 	{
 		for(unsigned int i=0;i<resolutions.size();i++)
+		{
 			for(auto j=0;j<NumInputs;j++)
+			{
 				delete map[i][j];
-	    delete map;
+				delete mapLocal[i][j];
+			}
+			delete[] map[i];
+			delete[] mapLocal[i];
+		}
+	    delete[] map;
 #ifndef NO_NDT_VIZ
 	    delete viewer;
 #endif

@@ -156,10 +156,6 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
 	for (int i=0;i<NumInputs;i++)
     	nextNDT[i]= sourceNDT[i]->pseudoTransformNDT(T);
 
-	std::vector<NDTCell*> *current=new std::vector<NDTCell*>[NumInputs]();
-	for (int i=0;i<NumInputs;i++)
-    	current[i]= targetNDT[i]->pseudoTransformNDT(T);
-
     //std::cout<<"pose(:,"<<1<<") = ["<<T.translation().transpose()<<" "<<T.rotation().eulerAngles(0,1,2).transpose()<<"]';\n";
     while(!convergence)
     {
@@ -204,6 +200,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
 			}
 			//de-alloc nextNDT
 			for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
+			delete[] nextNDT;
 			return true;
 	    }
 //            std::cerr<<"regularizing\n";
@@ -222,6 +219,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
 	    }
             //de-alloc nextNDT
 			for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
+			delete[] nextNDT;
 //	    std::cout<<"itr "<<itr_ctr<<" dScore "<< 0 <<std::endl;
             return true;
         }
@@ -285,6 +283,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
 		T = Tbest;
 	    }
 			for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
+			delete[] nextNDT;
 //	    std::cout<<"itr "<<itr_ctr<<" dScore "<< 0 <<std::endl;
             return true;
         }
@@ -392,6 +391,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
 	T = Tbest;
     }
 	for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
+			delete[] nextNDT;
 
 //    std::cout<<"incr(:,"<<itr_ctr+1<<") = [0 0 0 0 0 0]';\n";
 //    std::cout<<"grad(:,"<<itr_ctr+1<<") = [0 0 0 0 0 0]';\n";

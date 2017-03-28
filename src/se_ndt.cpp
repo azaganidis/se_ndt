@@ -56,17 +56,20 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::Poi
 		{
 			look_up[2*i]= num_tails;
 			num_tails++;
-		}
+		}else look_up[2*i]=-1;
 		if(distribution_tails[i]&2)
 		{
 			look_up[2*i+1]=num_tails;
 			num_tails++;
-		}
+		}else look_up[2*i+1]=-1;
 	}
 	///////
 	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud;
 	for(int i=0;i<num_tails;i++)
-		laserCloud.emplace_back(new pcl::PointCloud<pcl::PointXYZ>);
+	{
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudT(new pcl::PointCloud<pcl::PointXYZ>);
+		laserCloud.push_back(cloudT);
+	}
 	for(int i=0;i<cloudSize;i++)
 	{
 		if(!checkInLimits(sorted_indexes,i,num_attributes,cut_off_u,cut_off_l)) continue;
@@ -76,15 +79,16 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::Poi
 		point.z=laserCloudIn->points[i].z;
 		//point.intensity=laserCloudIn->points[i].intensity;
 		int index=look_up[index_selector(sorted_indexes, i,num_attributes,distribution_tails,cloudSize)];
-		laserCloud[index]->points.push_back(point);
+		if(index!=-1)
+			laserCloud[index]->points.push_back(point);
 	}
 	for(auto i=0;i<num_attributes;i++)
-		delete sorted_indexes[i];
+		delete[] sorted_indexes[i];
 
 
 	return laserCloud;
 }
-inline size_t count_tails(vector<int>& distribution_tails)
+size_t count_tails(vector<int>& distribution_tails)
 {
 	size_t number_tails1=count(distribution_tails.begin(),distribution_tails.end(),1);
 	size_t number_tails2=count(distribution_tails.begin(),distribution_tails.end(),2);
@@ -102,6 +106,7 @@ lslgeneric::NDTMap **initMap(initializer_list<int> distribution_tails_,initializ
 	if(size.size()!=3)
 	{
 		float max_size=*max_element(size.begin(),size.end());
+		size.resize(3);
 		size[0]=max_size;
 		size[1]=max_size;
 		size[2]=max_size;

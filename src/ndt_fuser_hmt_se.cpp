@@ -2,13 +2,6 @@
 using namespace std;
 
 namespace lslgeneric {
-	int number_in_from_tails(std::vector<int> tails)
-	{
-		int i=0;
-		for (auto a:tails)
-			i+=(a&1>0?1:0)+(a&2>0?1:0);
-		return i;
-	}
 NDTFuserHMT_SE::NDTFuserHMT_SE(Eigen::Affine3d a,initializer_list<float> b,initializer_list<int> c,initializer_list<float> d,initializer_list<int> e,initializer_list<float> ig,float removeP,int max_iter):Tnow(a),resolutions(b),resolutions_order(c),size(d),tails(e),ignore(ig),removeProbability(removeP)
 {
 	//unimplemented
@@ -24,24 +17,28 @@ NDTFuserHMT_SE::NDTFuserHMT_SE(Eigen::Affine3d a,initializer_list<float> b,initi
 	checkConsistency = false;
 	    translation_fuse_delta = 0.0;
 	    rotation_fuse_delta = 0.0;
-	    max_translation_norm = 1.;
-	    max_rotation_norm = M_PI/4;
+	    max_translation_norm = 1.0;
+	    max_rotation_norm = M_PI;
 	localMapSize<<sensor_range,sensor_range,*(size.begin()+2);
     bool step_control=true;
 	    hmt_map_dir="map";
 	fuseIncomplete=false;
-	NumInputs=number_in_from_tails(tails);
+	vector<int> tails_t(tails);
+	NumInputs=count_tails(tails_t);
 
 		matcher.NumInputs=NumInputs;
 		matcher.ITR_MAX =max_iter;
 		matcher.step_control=step_control;
 	    matcher2D.ITR_MAX = max_iter;
 	    matcher2D.step_control=step_control;
-
+		fAddTimes =NULL;
+		fRegTimes=NULL;
+/*
 	    char fname[1000];
 	    snprintf(fname,999,"%s_addTime.txt",prefix.c_str());
 	    fAddTimes = fopen(fname,"w");
-	    std::cout<<"MAP: resolution: "<<resolutions.at(0)<<" size "<<*(size.begin()+0)<<" "<<*(size.begin()+1)<<" "<<*(size.begin()+2)<<" sr "<<sensor_range<<std::endl;
+		*/
+	    //std::cout<<"MAP: resolution: "<<resolutions.at(0)<<" size "<<*(size.begin()+0)<<" "<<*(size.begin()+1)<<" "<<*(size.begin()+2)<<" sr "<<sensor_range<<std::endl;
 
 #ifndef NO_NDT_VIZ
         if(visualize_){
@@ -122,11 +119,12 @@ Eigen::Affine3d NDTFuserHMT_SE::update(Eigen::Affine3d Tmotion, pcl::PointCloud<
 	Eigen::Affine3d Tinit = Tnow * Tmotion;
 	t2 = getDoubleTime();
 	bool matcher_res=true;
-	for(auto i:resolutions_order)
-	{
-		matcher.current_resolution=resolutions.at(i);
-		matcher_res&=matcher.match(map[i],mapLocal[i],Tinit,true);
-	}
+	if(!firstRun)
+		for(auto i:resolutions_order)
+		{
+			matcher.current_resolution=resolutions.at(i);
+			matcher_res&=matcher.match(map[i],mapLocal[i],Tinit,true);
+		}
 	if(matcher_res || fuseIncomplete)
 	{
 	t3 = getDoubleTime();
@@ -158,7 +156,11 @@ Eigen::Affine3d NDTFuserHMT_SE::update(Eigen::Affine3d Tmotion, pcl::PointCloud<
 
 		for(unsigned int i=0;i<resolutions.size();i++)
 			for(int j=0;j<NumInputs;j++)
-				map[i][j]->addPointCloudMeanUpdate(spose.translation(),*cloud,localMapSize, 1e5, 1250, *(size.begin()+2)/2, 0.06);
+			{
+				map[i][j]->addPointCloudMeanUpdate(spose.translation(),*laserCloud[j],localMapSize, 1e5, 1250, *(size.begin()+2)/2, 0.06);
+//		map[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE, 1e5, 1250, spose.translation(), 0.06);
+				map[i][j]->computeNDTCells();
+			}
 		t5 = getDoubleTime();
 		//map->addPointCloudMeanUpdate(spose.translation(),cloud,localMapSize, 1e5, 25, 2*map_size_z, 0.06);
 		//map->addPointCloud(spose.translation(),cloud, 0.06, 25);

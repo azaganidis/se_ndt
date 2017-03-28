@@ -72,7 +72,7 @@ int main(int argc, char** argv)
 
 	Eigen::Affine3d T;
 	T.setIdentity();
-	lslgeneric::NDTFuserHMT_SE matcher (T,{0.5,1,2},{1,2,1,0},{50,50,50},{3,3},{-1,0},0.9,10);
+	lslgeneric::NDTFuserHMT_SE matcher (T,{1.5,0.5},{0,1},{100,100,100},{3,3},{-1,0},0.90,5);
 	for(int i=0;i<num_files;i++)
 	{
 		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud3=getCloud2(pointcloud_files[i]);
