@@ -4,7 +4,6 @@
 #include <fstream>
 #include <unistd.h>
 #include <boost/program_options.hpp>
-//#include <se_ndt/features_CI.hpp>
 #include <se_ndt/ndt_fuser_hmt_se.h>
 #include <pcl/common/io.h>
 
@@ -73,6 +72,7 @@ int main(int argc, char** argv)
 	Eigen::Affine3d T;
 	T.setIdentity();
 	lslgeneric::NDTFuserHMT_SE matcher (T,{1.5,0.5},{0,1},{100,100,100},{3,3},{-1,0},0.90,5);
+	//lslgeneric::NDTFuserHMT_SE matcher (the_initial_pose,{the_resolutions},{the_order_with which_the_resolutions_are_used},{the_size_of_the_map},{the_tail_segments},{ignore_values},reject_percentage,number_of_iterations);
 	for(int i=0;i<num_files;i++)
 	{
 		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud3=getCloud2(pointcloud_files[i]);
