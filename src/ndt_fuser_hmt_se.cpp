@@ -146,7 +146,8 @@ Eigen::Affine3d NDTFuserHMT_SE::update(Eigen::Affine3d Tmotion, pcl::PointCloud<
 		Tnow = Tinit;
 		//std::cout<<Tinit.translation().norm()<<std::endl;
 		//Tnow = Tnow * Tmotion;
-		lslgeneric::transformPointCloudInPlace(Tnow, *cloud);
+		for(int j=0;j<NumInputs;j++)
+			lslgeneric::transformPointCloudInPlace(Tnow, *laserCloud[j]);
 		Eigen::Affine3d spose = Tnow*sensor_pose;
 		Eigen::Affine3d diff_fuse = Tlast_fuse.inverse()*Tnow;
 		if(diff_fuse.translation().norm() > translation_fuse_delta ||
@@ -203,5 +204,66 @@ Eigen::Affine3d NDTFuserHMT_SE::update(Eigen::Affine3d Tmotion, pcl::PointCloud<
 	}
 
 	return Tnow;
-    }
 }
+Eigen::Affine3d NDTFuserHMT_SE::match(Eigen::Affine3d Tmotion, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,initializer_list<vector<double> > attributes)
+{
+	Todom = Todom * Tmotion; //we track this only for display purposes!
+	lslgeneric::transformPointCloudInPlace(sensor_pose, *cloud);
+	laserCloud_c.clear();
+	laserCloud_c=getSegments(cloud,attributes,tails,ignore,removeProbability);
+	for(int i=0;i<resolutions.size();i++)
+		loadMap(mapLocal[i],laserCloud_c,NumInputs);
+	Eigen::Affine3d Tinit = Tnow * Tmotion;
+	bool matcher_res=true;
+	if(!firstRun)
+		for(auto i:resolutions_order)
+		{
+			matcher.current_resolution=resolutions.at(i);
+			matcher_res&=matcher.match(map[i],mapLocal[i],Tinit,true);
+		}
+	if(matcher_res || fuseIncomplete)
+	{
+		Eigen::Affine3d diff = (Tnow * Tmotion).inverse() * Tinit;
+
+		if((diff.translation().norm() > max_translation_norm || 
+				diff.rotation().eulerAngles(0,1,2).norm() > max_rotation_norm) && checkConsistency)
+		{
+			fprintf(stderr,"****  NDTFuserHMT_L -- ALMOST DEFINATELY A REGISTRATION FAILURE *****\n");
+			Tnow = Tnow * Tmotion;
+		}
+		else
+		{
+			Tnow = Tinit;
+			for(int j=0;j<NumInputs;j++)
+				lslgeneric::transformPointCloudInPlace(Tnow, *laserCloud_c[j]);
+			Eigen::Affine3d diff_fuse = Tlast_fuse.inverse()*Tnow;
+			if(diff_fuse.translation().norm() > translation_fuse_delta ||
+				diff_fuse.rotation().eulerAngles(0,1,2).norm() > rotation_fuse_delta ||firstRun)
+			{
+				firstRun=false;
+				canUpdate=true;
+			}
+		}
+	}
+	else
+		Tnow = Tnow * Tmotion;
+	return Tnow;
+}
+bool NDTFuserHMT_SE::updateMap()
+{
+	if(!canUpdate)return false;
+	Eigen::Affine3d spose = Tnow*sensor_pose;
+	for(unsigned int i=0;i<resolutions.size();i++)
+		for(int j=0;j<NumInputs;j++)
+		{
+			map[i][j]->addPointCloudMeanUpdate(spose.translation(),*laserCloud_c[j],localMapSize, 1e5, 1250, *(size.begin()+2)/2, 0.06);
+//		map[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE, 1e5, 1250, spose.translation(), 0.06);
+			map[i][j]->computeNDTCells();
+		}
+	Tlast_fuse = Tnow;
+	ctr++;
+	canUpdate=false;
+	return true;
+}
+}
+

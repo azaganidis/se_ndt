@@ -36,7 +36,8 @@ class NDTFuserHMT_SE{
 		double max_translation_norm, max_rotation_norm;
 		double sensor_range;
 		float removeProbability;
-		bool fuseIncomplete, beHMT;
+		bool fuseIncomplete, beHMT,canUpdate;
+		std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud_c;
 		int ctr;
 		std::string prefix;
 		std::string hmt_map_dir;
@@ -113,6 +114,8 @@ class NDTFuserHMT_SE{
 	 *
 	 */
 	Eigen::Affine3d update(Eigen::Affine3d Tmotion, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,initializer_list<vector<double> > attributes);
+	Eigen::Affine3d match(Eigen::Affine3d Tmotion, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,initializer_list<vector<double> > attributes);
+	bool updateMap();
     private:
 
 	double translation_fuse_delta, rotation_fuse_delta;
