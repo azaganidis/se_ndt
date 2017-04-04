@@ -131,3 +131,87 @@ void loadMap(lslgeneric::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>
 		map[i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
 	}
 }
+Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> score_gradient)
+{
+        Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double,6,6> > Sol (Hessian);
+        Eigen::Matrix<double,6,1> evals = Sol.eigenvalues().real();
+        double minCoeff = evals.minCoeff();
+        double maxCoeff = evals.maxCoeff();
+        if(minCoeff < 0)  //|| evals.minCoeff()) // < 10e-5*evals.maxCoeff()) 
+		{
+			Eigen::Matrix<double,6,6> evecs = Sol.eigenvectors().real();
+			double regularizer = score_gradient.norm();
+			regularizer = regularizer + minCoeff > 0 ? regularizer : 0.001*maxCoeff - minCoeff;
+			//double regularizer = 0.001*maxCoeff - minCoeff;
+			Eigen::Matrix<double,6,1> reg;
+			//ugly
+			reg<<regularizer,regularizer,regularizer,regularizer,regularizer,regularizer;
+			evals += reg;
+			Eigen::Matrix<double,6,6> Lam;
+			Lam = evals.asDiagonal();
+			Hessian = evecs*Lam*(evecs.transpose());
+		}
+		return Hessian;
+}
+NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initializer_list<float> d,initializer_list<int> e,initializer_list<float> ig,float removeP,int max_iter):resolutions(b),resolutions_order(c),size(d),tails(e),ignore(ig),removeProbability(removeP)
+{
+	vector<int> tails_t(tails);
+	NumInputs=count_tails(tails_t);
+	firstRun=true;
+
+		matcher.NumInputs=NumInputs;
+		matcher.ITR_MAX =max_iter;
+		matcher.step_control=true;
+
+	map=new lslgeneric::NDTMap ** [resolutions.size()];
+	mapLocal=new lslgeneric::NDTMap ** [resolutions.size()];
+	for(auto i=0;i<resolutions.size();i++)
+	{
+		map[i]=initMap(tails,{resolutions.at(i)},size);
+		mapLocal[i]=initMap(tails,{resolutions.at(i)},size);
+	}
+}
+Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2,initializer_list<vector<double> > attributes)
+{
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud1=getSegments(cloud1,attributes,tails,ignore,removeProbability);
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud2=getSegments(cloud2,attributes,tails,ignore,removeProbability);
+	for(int i=0;i<resolutions.size();i++)
+	{
+		loadMap(map[i],laserCloud1,NumInputs);
+		loadMap(mapLocal[i],laserCloud2,NumInputs);
+	}
+	for(auto i:resolutions_order)
+	{
+		matcher.current_resolution=resolutions.at(i);
+		matcher.match(map[i],mapLocal[i],Tinit,true);
+	}
+	//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
+	return Tinit;
+}
+Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes)
+{
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegments(cloud,attributes,tails,ignore,removeProbability);
+	for(int i=0;i<resolutions.size();i++)
+		loadMap(mapLocal[i],laserCloud,NumInputs);
+	if(!firstRun)
+	{
+		for(auto i:resolutions_order)
+		{
+			matcher.current_resolution=resolutions.at(i);
+			matcher.match(map[i],mapLocal[i],Tinit,true);
+		}
+		//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
+	}
+	else firstRun=false;
+	lslgeneric::NDTMap ***mapT;
+	mapT=map;
+	map=mapLocal;
+	mapLocal=mapT;
+	return Tinit;
+}
+Eigen::Affine3d NDTMatch_SE::match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes)
+{
+	Eigen::Affine3d T;
+	T.setIdentity();
+	return this->match(T,cloud,attributes);
+}

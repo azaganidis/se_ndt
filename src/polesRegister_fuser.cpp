@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 
 	Eigen::Affine3d T;
 	T.setIdentity();
-	lslgeneric::NDTFuserHMT_SE matcher (T,{1.5,0.5},{0,1},{100,100,100},{3,3},{-1,0},0.90,5);
+	lslgeneric::NDTFuserHMT_SE matcher (T,{0.5,1.0,2.0},{1,2,1,0},{100,100,100},{3,3},{-1,0},0.90,5);
 	//lslgeneric::NDTFuserHMT_SE matcher (the_initial_pose,{the_resolutions},{the_order_with which_the_resolutions_are_used},{the_size_of_the_map},{the_tail_segments},{ignore_values},reject_percentage,number_of_iterations);
 	for(int i=0;i<num_files;i++)
 	{

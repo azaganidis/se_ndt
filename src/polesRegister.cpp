@@ -4,9 +4,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <boost/program_options.hpp>
-//#include <se_ndt/features_CI.hpp>
-#include <se_ndt/se_ndt.hpp>
-#include <se_ndt/ndt_matcher_d2d_se.h>
+#include <se_ndt/ndt_fuser_hmt_se.h>
 #include <pcl/common/io.h>
 
 using namespace std;
@@ -46,72 +44,52 @@ vector<double>  getMeasure(string filename)
 
 int main(int argc, char** argv)
 {
-	string point_cloud_dir=string(argv[1]);
-	string smoothness_dir=string(argv[2]);
-	string poles_dir=string(argv[3]);
-	string fname1=string(argv[4]);
-	string fname2=string(argv[5]);
-	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud3=getCloud2(point_cloud_dir+'/'+fname1);
-	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud4=getCloud2(point_cloud_dir+'/'+fname2);
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,cloud2;
-	pcl::copyPointCloud(*cloud3,*cloud1);
-	pcl::copyPointCloud(*cloud4,*cloud2);
-	std::vector<double> smoothness1=getMeasure(smoothness_dir+'/'+fname1);
-	std::vector<double> poles1=getMeasure(poles_dir+'/'+fname1);
-	std::vector<double> smoothness2=getMeasure(smoothness_dir+'/'+fname2);
-	std::vector<double> poles2=getMeasure(poles_dir+'/'+fname2);
-	size_t num_res=3;
-	float size_x=50;
-	float size_y=50;
-	float size_z=50;
-	double removeP=0.90;
-		lslgeneric::NDTMatcherD2D_SE matcher;
-		lslgeneric::NDTMap ***mapReading;
-		lslgeneric::NDTMap ***mapReference;
-		mapReading=new lslgeneric::NDTMap ** [num_res];
-		mapReference=new lslgeneric::NDTMap ** [num_res];
+	po::options_description desc("Allowed options");
+    desc.add_options()
+	("help", "produce help message")
+	 ("pointclouds", po::value<std::vector<string> >()->multitoken(), "Point cloud files")
+	 ("smoothness", po::value<std::vector<string> >()->multitoken(), "Smoothness files")
+	 ("poles", po::value<std::vector<string> >()->multitoken(), "Pole files");
 
-		auto tails={3,3};
-		int number_tails=4;
-
-		matcher.NumInputs=number_tails;
-		matcher.ITR_MAX =10;
-		matcher.step_control=true;
-
-		mapReading[0]=initMap(tails,{0.5},{size_x,size_y,size_z});
-		mapReading[1]=initMap(tails,{1.0},{size_x,size_y,size_z});
-		mapReading[2]=initMap(tails,{2.0},{size_x,size_y,size_z});
-		mapReference[0]=initMap(tails,{0.5},{size_x,size_y,size_z});
-		mapReference[1]=initMap(tails,{1.0},{size_x,size_y,size_z});
-		mapReference[2]=initMap(tails,{2.0},{size_x,size_y,size_z});
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
+	vector<string> smoothness_files;
+	vector<string> pole_files;
+	vector<string> pointcloud_files;
+	if (!vm["smoothness"].empty() && (smoothness_files= vm["smoothness"].as<vector<string> >()).size() >= 2) {
+		///cout<<"success smoothness read";
+	}else {cout<<"smoothness read failure";};
+	if (!vm["pointclouds"].empty() && (pointcloud_files= vm["pointclouds"].as<vector<string> >()).size() >= 2) {
+		///cout<<"success pointcloud read";
+	}else {cout<<"pointclouds read failure";};
+	if (!vm["poles"].empty() && (pole_files= vm["poles"].as<vector<string> >()).size() >= 2) {
+		///cout<<"success poles read";
+	}else {cout<<"poles read failure";};
+	int num_files=min(pole_files.size(),min(smoothness_files.size(),pointcloud_files.size()));
 
 
-		auto attrs={smoothness1,poles1};
-		std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud1=getSegments(cloud1,attrs,tails,{-1,0},removeP);
-		loadMap(mapReference[0],laserCloud1, number_tails);
-		loadMap(mapReference[1],laserCloud1, number_tails);
-		loadMap(mapReference[2],laserCloud1, number_tails);
+	Eigen::Affine3d T;
+	Eigen::Affine3d Tt;
+	T.setIdentity();
+	Tt.setIdentity();
+	NDTMatch_SE matcher ({0.5,1.0,2.0},{1,2,1,0},{100,100,100},{3,3},{-1,0},0.90,5);
+	//lslgeneric::NDTFuserHMT_SE matcher (the_initial_pose,{the_resolutions},{the_order_with which_the_resolutions_are_used},{the_size_of_the_map},{the_tail_segments},{ignore_values},reject_percentage,number_of_iterations);
+	for(int i=0;i<num_files;i++)
+	{
+		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud3=getCloud2(pointcloud_files[i]);
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1(new pcl::PointCloud<pcl::PointXYZ>);
+		pcl::copyPointCloud(*cloud3,*cloud1);
+		std::vector<double> smoothness1=getMeasure(smoothness_files[i]);
+		std::vector<double> poles1=getMeasure(pole_files[i]);
+		Tt=matcher.match(cloud1,{smoothness1,poles1});
+		T=T*Tt;
 
-		auto attrs2={smoothness2,poles2};
-		std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud2=getSegments(cloud2,attrs2,tails,{-1,0},removeP);
-		loadMap(mapReading[0],laserCloud2, number_tails);
-		loadMap(mapReading[1],laserCloud2, number_tails);
-		loadMap(mapReading[2],laserCloud2, number_tails);
-
-		ET T;
-		T.setIdentity();
-		matcher.current_resolution=1;
-		matcher.match(mapReference[1],mapReading[1],T,true);
-		matcher.current_resolution=2;
-		matcher.match(mapReference[2],mapReading[2],T,true);
-		matcher.current_resolution=1;
-		matcher.match(mapReference[1],mapReading[1],T,true);
-		matcher.current_resolution=0.5;
-		matcher.match(mapReference[0],mapReading[0],T,true);
 		for(int i=0;i<4;i++)
 			for(int j=0;j<4;j++)
 				cout<<T(i,j)<<", ";
 		cout<<endl;
+	}
 
 	return 0;
 }

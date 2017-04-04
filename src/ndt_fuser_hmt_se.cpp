@@ -82,6 +82,7 @@ NDTFuserHMT_SE::NDTFuserHMT_SE(Eigen::Affine3d a,initializer_list<float> b,initi
 	}
 }
 
+
     /**
      *
      *
@@ -125,6 +126,7 @@ Eigen::Affine3d NDTFuserHMT_SE::update(Eigen::Affine3d Tmotion, pcl::PointCloud<
 			matcher.current_resolution=resolutions.at(i);
 			matcher_res&=matcher.match(map[i],mapLocal[i],Tinit,true);
 		}
+	//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
 	if(matcher_res || fuseIncomplete)
 	{
 	t3 = getDoubleTime();
