@@ -29,7 +29,7 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename)
 	}
     return laserCloud;
 }
-
+//call with: smoothness name_of_pointcloud_file.csv 
 int main(int argc, char** argv)
 {
 	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud=getCloud2(string(argv[1]));
