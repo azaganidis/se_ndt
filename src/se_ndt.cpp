@@ -1,11 +1,12 @@
 #include <se_ndt/se_ndt.hpp>
+#include <numeric>
 using namespace std;
 typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;
 size_t* sort_pointcloud(vector<double> &in,float disregard)
 {
 	vector<size_t> idx(in.size());
 	size_t *idx2 = new size_t[in.size()];
-	iota(idx.begin(),idx.end(),0);
+	std::iota(idx.begin(),idx.end(),0);
 	sort(idx.begin(), idx.end(),[&in](size_t i1,size_t i2){return in[i1]<in[i2];});
 	std::vector<size_t>::iterator up= std::upper_bound (idx.begin(), idx.end(), disregard,[&in](double v,size_t i1){return in[i1]>v;}); //                   
 	size_t mid = (idx.end()-up)/2;
