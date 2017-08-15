@@ -116,13 +116,13 @@ class NDTFuserHMT_SE{
 	Eigen::Affine3d update(Eigen::Affine3d Tmotion, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,initializer_list<vector<double> > attributes);
 	Eigen::Affine3d match(Eigen::Affine3d Tmotion, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,initializer_list<vector<double> > attributes);
 	bool updateMap();
+	lslgeneric::NDTMatcherD2D_SE matcher;
     private:
 
 	double translation_fuse_delta, rotation_fuse_delta;
 	bool visualize,firstRun;
 
 	Eigen::Affine3d sensor_pose;
-	lslgeneric::NDTMatcherD2D_SE matcher;
 	lslgeneric::NDTMatcherD2D_2D matcher2D;
 	Eigen::Vector3d localMapSize;
 

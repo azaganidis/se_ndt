@@ -35,10 +35,10 @@ class NDTMatch_SE{
 		Eigen::Affine3d match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2, initializer_list<vector<double> > attributes);
 		Eigen::Affine3d match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes);
 		Eigen::Affine3d match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes);
+		lslgeneric::NDTMatcherD2D_SE matcher;
     private:
 		bool firstRun;
 
-		lslgeneric::NDTMatcherD2D_SE matcher;
 		Eigen::Vector3d localMapSize;
 };
 typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;

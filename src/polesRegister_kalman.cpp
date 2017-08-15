@@ -70,8 +70,10 @@ int main(int argc, char** argv)
 
 
 	Eigen::Affine3d T;
+	Eigen::Affine3d Tt;
 	T.setIdentity();
-	lslgeneric::NDTFuserHMT_SE matcher (T,{0.5,1.0,2.0},{1,2,1,0},{100,100,100},{3,3},{-1,0},0.90,5);
+	Tt.setIdentity();
+	NDTMatch_SE matcher ({0.5,1.0,2.0},{1,2,1,0},{100,100,100},{3,3},{-1,0},0.90,5);
 	//lslgeneric::NDTFuserHMT_SE matcher (the_initial_pose,{the_resolutions},{the_order_with which_the_resolutions_are_used},{the_size_of_the_map},{the_tail_segments},{ignore_values},reject_percentage,number_of_iterations);
 	for(int i=0;i<num_files;i++)
 	{
@@ -80,12 +82,9 @@ int main(int argc, char** argv)
 		pcl::copyPointCloud(*cloud3,*cloud1);
 		std::vector<double> smoothness1=getMeasure(smoothness_files[i]);
 		std::vector<double> poles1=getMeasure(pole_files[i]);
-		Eigen::Affine3d T_pred;
-		T_pred.setIdentity();
-		//T=matcher.update(T_pred,cloud1,{smoothness1,poles1});
-		T=matcher.match(T_pred,cloud1,{smoothness1,poles1});
-		cout<<getHes(matcher.matcher.HessianF,matcher.matcher.score_gradientF)<<endl;
-		matcher.updateMap();
+		Tt=matcher.match(cloud1,{smoothness1,poles1});
+		T=T*Tt;
+
 		for(int i=0;i<4;i++)
 			for(int j=0;j<4;j++)
 				cout<<T(i,j)<<", ";

@@ -1,4 +1,5 @@
 #include <se_ndt/se_ndt.hpp>
+#include <numeric>
 using namespace std;
 typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;
 size_t* sort_pointcloud(vector<double> &in,float disregard)
