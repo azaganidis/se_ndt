@@ -53,27 +53,9 @@ namespace lslgeneric
 class NDTMatcherD2D_SE: public NDTMatcherD2D
 {
 public:
+	Eigen::Matrix<double,6,6> HessianF;
+	Eigen::Matrix<double,6,1> score_gradientF;
 	int NumInputs;
-    /**
-     * Register multiple point clouds. This method builds an NDT
-     * representation of the "fixed" point cloud and uses that for
-     * registering the "moving" point cloud.
-     * \param  fixed
-     *   Reference data. NDT structure is built for this point cloud.
-     * \param  moving
-     *   The output transformation registers this point cloud to \c fixed.
-     * \param  T
-     *   This is an input/output parameter. The initial value of \c T
-     *   gives the initial pose estimate of \c moving. When the
-     *   algorithm terminates, \c T holds the registration result.
-     */
-    bool match( pcl::PointCloud<pcl::PointXYZ> *target,
-                pcl::PointCloud<pcl::PointXYZ> *source,
-                Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>& T,
-                bool useInitialGuess = false
-				);
-
-
     /**
      * Registers multiple point clouds to multiple NDT structures.
      * \param  fixed

@@ -11,117 +11,6 @@
 namespace lslgeneric
 {
 
-
-bool NDTMatcherD2D_SE::match( pcl::PointCloud<pcl::PointXYZ> *target,
-        pcl::PointCloud<pcl::PointXYZ> *source,
-        Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>& T ,
-        bool useInitialGuess
-	)
-{
-
-    struct timeval tv_start, tv_end;
-    struct timeval tv_start0, tv_end0;
-    double time_load =0, time_match=0, time_combined=0;
-
-    gettimeofday(&tv_start0,NULL);
-
-    //initial guess
-    Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> Temp, Tinit;
-    Tinit.setIdentity();
-    if(useInitialGuess)
-    {
-		for(int i=0;i<NumInputs;i++)
-			lslgeneric::transformPointCloudInPlace(T,source[i]);
-	Tinit = T;
-    }
-
-    T.setIdentity();
-    bool ret = false;
-
-#if 0
-    if(isIrregularGrid)
-    {
-
-        OctTree<PointTarget> pr1;
-        NDTMap<PointTarget> targetNDT( &pr1 );
-        targetNDT.loadPointCloud( target );
-        targetNDT.computeNDTCells();
-
-        OctTree<PointSource> pr2;
-        NDTMap<PointSource> sourceNDT( &pr2 );
-        sourceNDT.loadPointCloud( source );
-        sourceNDT.computeNDTCells();
-
-        ret = this->match( targetNDT, sourceNDT, T );
-
-    }
-    else
-#endif
-    {
-
-        //iterative regular grid
-        for(int r_ctr = resolutions.size()-1; r_ctr >=0;  r_ctr--)
-        {
-
-            current_resolution = resolutions[r_ctr];
-
-            LazyGrid prototypeSource(current_resolution);
-            LazyGrid prototypeTarget(current_resolution);
-
-            gettimeofday(&tv_start,NULL);
-			NDTMap *targetNDT[NUM_MAX];
-			for(int i=0;i<NumInputs;i++)
-			{
-				targetNDT[i]= new NDTMap(&prototypeTarget);
-				targetNDT[i]->loadPointCloud( target[i] );
-				targetNDT[i]->computeNDTCells();
-			}
-
-			NDTMap *sourceNDT[NUM_MAX];
-			for(int i=0;i<NumInputs;i++)
-			{
-				sourceNDT[i]= new NDTMap(&prototypeSource);
-				sourceNDT[i]->loadPointCloud( source[i]);
-				sourceNDT[i]->computeNDTCells();
-			}
-            gettimeofday(&tv_end,NULL);
-
-            time_load += (tv_end.tv_sec-tv_start.tv_sec)*1000.+(tv_end.tv_usec-tv_start.tv_usec)/1000.;
-            Temp.setIdentity();
-
-            gettimeofday(&tv_start,NULL);
-            ret = this->match( targetNDT, sourceNDT, Temp);
-			for(int i=0;i<NumInputs;i++)
-				lslgeneric::transformPointCloudInPlace(Temp,source[i]);
-            gettimeofday(&tv_end,NULL);
-
-            time_match += (tv_end.tv_sec-tv_start.tv_sec)*1000.+(tv_end.tv_usec-tv_start.tv_usec)/1000.;
-
-            //transform moving
-            T = Temp*T; //ORIGINAL
-            //T = T*Temp;
-
-#ifdef DO_DEBUG_PROC
-            std::cout<<"RESOLUTION: "<<current_resolution<<std::endl;
-            std::cout<<"rotation   : "<<Temp.rotation().eulerAngles(0,1,2).transpose()<<std::endl;
-            std::cout<<"translation: "<<Temp.translation().transpose()<<std::endl;
-            std::cout<<"--------------------------------------------------------\nOverall Transform:\n";
-            std::cout<<"rotation   : "<<T.rotation().eulerAngles(0,1,2).transpose()<<std::endl;
-            std::cout<<"translation: "<<T.translation().transpose()<<std::endl;
-
-#endif
-        }
-    }
-    if(useInitialGuess)
-    {
-	T = T*Tinit;
-    }
-    gettimeofday(&tv_end0,NULL);
-    time_combined = (tv_end0.tv_sec-tv_start0.tv_sec)*1000.+(tv_end0.tv_usec-tv_start0.tv_usec)/1000.;
-    //std::cout<<"load: "<<time_load<<" match "<<time_match<<" combined "<<time_combined<<std::endl;
-    return ret;
-}
-
 bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
         NDTMap **sourceNDT,
         Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>& T ,
@@ -200,6 +89,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
 			}
 			//de-alloc nextNDT
 			for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
+			delete[] nextNDT;
 			return true;
 	    }
 //            std::cerr<<"regularizing\n";
@@ -218,6 +108,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
 	    }
             //de-alloc nextNDT
 			for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
+			delete[] nextNDT;
 //	    std::cout<<"itr "<<itr_ctr<<" dScore "<< 0 <<std::endl;
             return true;
         }
@@ -281,6 +172,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
 		T = Tbest;
 	    }
 			for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
+			delete[] nextNDT;
 //	    std::cout<<"itr "<<itr_ctr<<" dScore "<< 0 <<std::endl;
             return true;
         }
@@ -381,13 +273,15 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
 //    std::cout<<"itr "<<itr_ctr<<" dScore "<< pose_increment_v.norm()<<std::endl;
     //std::vector<NDTCell<PointSource>*> nextNDT = sourceNDT.pseudoTransformNDT(T);
     score_gradient.setZero();
-    double score_here = derivativesNDT(nextNDT,targetNDT,score_gradient,Hessian,false);
+    double score_here = derivativesNDT(nextNDT,targetNDT,score_gradient,Hessian,true);
     if(score_here > score_best) 
     {
 //	std::cout<<"crap iterations, best was "<<score_best<<" last was "<<score_here<<std::endl;
 	T = Tbest;
     }
+	//std::cout<<std::endl<<"<h "<<std::endl<<Hessian.inverse()<<std::endl<<" /h>"<<std::endl;
 	for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
+			delete[] nextNDT;
 
 //    std::cout<<"incr(:,"<<itr_ctr+1<<") = [0 0 0 0 0 0]';\n";
 //    std::cout<<"grad(:,"<<itr_ctr+1<<") = [0 0 0 0 0 0]';\n";
@@ -533,6 +427,8 @@ double NDTMatcherD2D_SE::derivativesNDT(
         {
             Hessian += Hessian_omp.block(0,n_dimensions*i,n_dimensions,n_dimensions);
         }
+		HessianF=Hessian;
+		score_gradientF=score_gradient;
     }
 #else
     pcl::PointXYZ point;

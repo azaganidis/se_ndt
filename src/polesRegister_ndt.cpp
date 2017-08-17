@@ -14,6 +14,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr  getCloudXYZ(string filename)
 	ifstream infile(filename); // for example
 	string line = "";
 	pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloud(new pcl::PointCloud<pcl::PointXYZ>);
+	getline(infile, line);
 	while (getline(infile, line)){
 		stringstream strstr(line);
 		string word = "";
@@ -31,25 +32,38 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr  getCloudXYZ(string filename)
 }
 int main(int argc, char** argv)
 {
-	string point_cloud_dir=string(argv[1]);
-	string fname1=string(argv[2]);
-	string fname2=string(argv[3]);
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1=getCloudXYZ(point_cloud_dir+'/'+fname1);
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2=getCloudXYZ(point_cloud_dir+'/'+fname2);
-	size_t num_res=4;
-	float size_x=50;
-	float size_y=50;
-	float size_z=50;
+	po::options_description desc("Allowed options");
+    desc.add_options()
+	("help", "produce help message")
+	 ("pointclouds", po::value<std::vector<string> >()->multitoken(), "Point cloud files");
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
+	vector<string> pointcloud_files;
+	if (!vm["pointclouds"].empty() && (pointcloud_files= vm["pointclouds"].as<vector<string> >()).size() >= 2) {
+		///cout<<"success pointcloud read";
+	}else {cout<<"pointclouds read failure";};
+	int num_files=pointcloud_files.size();
+	Eigen::Affine3d T;
+	T.setIdentity();
+
 		lslgeneric::NDTMatcherD2D matcher(false,false,{1,2,1,0.5});
 		matcher.ITR_MAX =5;
 		matcher.step_control=true;
-		ET T;
-		T.setIdentity();
-		matcher.match(*cloud1,*cloud2,T,false);
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudp=getCloudXYZ(pointcloud_files[0]);
+	for(int i=1;i<num_files;i++)
+	{
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudc=getCloudXYZ(pointcloud_files[i]);
+		Eigen::Affine3d T_pred;
+		T_pred.setIdentity();
+		matcher.match(*cloudp,*cloudc,T_pred,false);
+		T=T_pred*T;
 		for(int i=0;i<4;i++)
 			for(int j=0;j<4;j++)
-				cout<<T(i,j)<<", ";
+				cout<<T_pred(i,j)<<", ";
 		cout<<endl;
+		cloudp=cloudc;
+	}
 
 	return 0;
 }

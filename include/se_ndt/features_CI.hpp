@@ -20,6 +20,11 @@
 
 #include <pcl/filters/extract_indices.h>
 
+
+#include <pcl/io/pcd_io.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/features/rsd.h>
+
 using namespace std;
 
 int occluded(pcl::PointXYZI a, pcl::PointXYZI b, float d)
@@ -35,6 +40,51 @@ int occluded(pcl::PointXYZI a, pcl::PointXYZI b, float d)
 			return 1;
 	}
 	return 0;
+}
+std::vector<double> getRSD(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, float a,float b, float c,float d)
+{
+	int cloudSize =cloud->points.size();
+	std::vector<double> rsd_v(cloudSize,-1);
+	// Object for storing the normals.
+	pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
+	// Object for storing the RSD descriptors for each point.
+	pcl::PointCloud<pcl::PrincipalRadiiRSD>::Ptr descriptors(new pcl::PointCloud<pcl::PrincipalRadiiRSD>());
+
+	pcl::NormalEstimation<pcl::PointXYZI, pcl::Normal> normalEstimation;
+	normalEstimation.setInputCloud(cloud);
+	normalEstimation.setKSearch(a);
+	pcl::search::KdTree<pcl::PointXYZI>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZI>);
+	normalEstimation.setSearchMethod(kdtree);
+	normalEstimation.compute(*normals);
+
+	// RSD estimation object.
+	pcl::RSDEstimation<pcl::PointXYZI, pcl::Normal, pcl::PrincipalRadiiRSD> rsd;
+	rsd.setInputCloud(cloud);
+	rsd.setInputNormals(normals);
+	rsd.setSearchMethod(kdtree);
+	// Search radius, to look for neighbors. Note: the value given here has to be
+	// larger than the radius used to estimate the normals.
+	rsd.setRadiusSearch(b);
+	// Plane radius. Any radius larger than this is considered infinite (a plane).
+	rsd.setPlaneRadius(c);
+	// Do we want to save the full distance-angle histograms?
+	rsd.setSaveHistograms(false);
+
+	rsd.compute(*descriptors);
+	if(d==0)
+		for(int i=0;i<cloudSize;i++)
+			rsd_v[i]=descriptors->points[i].r_min;
+	if(d==1)
+		for(int i=0;i<cloudSize;i++)
+			rsd_v[i]=descriptors->points[i].r_max;
+	if(d==2)
+		for(int i=0;i<cloudSize;i++)
+			rsd_v[i]=descriptors->points[i].r_max/descriptors->points[i].r_min;
+	if(d==3)
+		for(int i=0;i<cloudSize;i++)
+			rsd_v[i]=descriptors->points[i].r_min/descriptors->points[i].r_max;
+
+	return rsd_v;
 }
 std::vector<double> getCornerness2(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn,int K)
 {

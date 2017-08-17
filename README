@@ -1,0 +1,3 @@
+run fuser with 
+
+polesRegister_fuser --pointclouds point_clouds/{6000..7500}.csv --smoothness smoothness1/{6000..7500}.csv --poles poleness/{6000..7500}.csv 
