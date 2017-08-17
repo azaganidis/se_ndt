@@ -49,20 +49,20 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::Poi
 	int cut_off_u=(1+rejectPerc)/2*cloudSize;
 	////////
 	//Create look-up
-	size_t look_up[2*num_attributes];
+	int look_up[2*num_attributes];
 	size_t num_tails=0;
 	for(int i=0;i<num_attributes;i++)
 	{
 		if(distribution_tails[i]&1)
 		{
-			look_up[2*i]= num_tails;
+			look_up[i]= num_tails;
 			num_tails++;
-		}else look_up[2*i]=-1;
+		}else look_up[i]=-1;
 		if(distribution_tails[i]&2)
 		{
-			look_up[2*i+1]=num_tails;
+			look_up[i+num_attributes]=num_tails;
 			num_tails++;
-		}else look_up[2*i+1]=-1;
+		}else look_up[i+num_attributes]=-1;
 	}
 	///////
 	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud;
