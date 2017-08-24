@@ -10,6 +10,7 @@ using namespace std;
 Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> score_gradient);
 class NDTMatch_SE{
  public:
+		vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloudIn,initializer_list<vector<double> >& attributes_,initializer_list<int > distribution_tails_,initializer_list<float> disregard_, float rejectPerc);
 		unsigned int NumInputs;
 		lslgeneric::NDTMap ***map;		 ///< da map
 		lslgeneric::NDTMap ***mapLocal;		 ///< da map
@@ -18,6 +19,7 @@ class NDTMatch_SE{
 		initializer_list<int> resolutions_order,tails;
 		float removeProbability;
 		NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initializer_list<float> d,initializer_list<int> e,initializer_list<float> ig,float removeP,int max_iter);
+		NDTMatch_SE(){};
 		~NDTMatch_SE()
 		{
 			for(unsigned int i=0;i<resolutions.size();i++)
@@ -38,15 +40,16 @@ class NDTMatch_SE{
 		lslgeneric::NDTMatcherD2D_SE matcher;
     private:
 		bool firstRun;
+		std::vector<int> semantic_labels;
 
 		Eigen::Vector3d localMapSize;
 };
 typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;
 size_t count_tails(vector<int>& distribution_tails);
 size_t* sort_pointcloud(vector<double> &in,float disregard);
+Eigen::Affine3d readTransform(istream &infile);
 inline size_t index_selector(size_t **I,int p,int num,std::vector<int> Tails,size_t number_points);
 inline bool checkInLimits(size_t **in,int p,int num,int cu,int cl);
-vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloudIn,initializer_list<vector<double> >& attributes_,initializer_list<int > distribution_tails_,initializer_list<float> disregard_, float rejectPerc);
-lslgeneric::NDTMap **initMap(initializer_list<int> distribution_tails_,initializer_list<float> resolutions_, initializer_list<float>size_);
+lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_);
 void loadMap(lslgeneric::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,size_t number_tails,float sensor_range=100);
 #endif/*SE_NDT*/

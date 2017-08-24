@@ -73,10 +73,10 @@ std::vector<double> getRSD(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, float a,f
 	rsd.compute(*descriptors);
 	if(d==0)
 		for(int i=0;i<cloudSize;i++)
-			rsd_v[i]=descriptors->points[i].r_min;
+			rsd_v[i]=descriptors->points[i].r_min;//Recomended 6 0.1 4 
 	if(d==1)
 		for(int i=0;i<cloudSize;i++)
-			rsd_v[i]=descriptors->points[i].r_max;
+			rsd_v[i]=descriptors->points[i].r_max;//Recomended 6 0.1 50
 	if(d==2)
 		for(int i=0;i<cloudSize;i++)
 			rsd_v[i]=descriptors->points[i].r_max/descriptors->points[i].r_min;
@@ -145,27 +145,27 @@ std::vector<double> getCornerness2(pcl::PointCloud<pcl::PointXYZI>::Ptr laserClo
 	}
 	return cornerness;
 }
-std::vector<double> getCornerness(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn,int K)
+std::vector<double> getCornerness(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn,float R)
 {
 	int cloudSize = laserCloudIn->points.size();
 	pcl::KdTreeFLANN<pcl::PointXYZI> kdtree;
 	kdtree.setInputCloud (laserCloudIn);
 	std::vector<double> cornerness(cloudSize,-1);
 	int rem=0;
-#define n_threads 8
+#define n_threads 12
     #pragma omp parallel num_threads(n_threads)
 	{
         #pragma omp for
 		for(int i=0;i<cloudSize;i++)
 		{
-			std::vector<int> pointIdxKNNSearch(K);
-			std::vector<float> pointDistance(K);
+			std::vector<int> pointIdxKNNSearch(10);
+			std::vector<float> pointDistance(10);
 			////////////
 //			std::vector<int> pointIdxKNNSearchOO(2);
 //			std::vector<float> pointDistanceOO(2);
 			///////////
 			std::vector<float> diffXYZ (3,0);
-			if(kdtree.radiusSearch(laserCloudIn->points[i],0.2,pointIdxKNNSearch,pointDistance)>0)
+			if(kdtree.radiusSearch(laserCloudIn->points[i],R,pointIdxKNNSearch,pointDistance)>0)
 			{
 				//////////
 				/*

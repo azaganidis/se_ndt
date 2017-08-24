@@ -2,6 +2,32 @@
 #include <numeric>
 using namespace std;
 typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;
+
+Eigen::Affine3d readTransform(istream &infile)
+{
+	string line = "";
+	Eigen::Affine3d T;
+	T.setIdentity();
+	for(int i=0;i<4;i++)
+	{
+		for(int j=0;j<4;j++)
+		{
+			string word="";
+			char c=' ';
+			while(c!='.'&&c!='-'&&(c<'0'||c>'9'))
+			{
+				c=infile.get();
+			}
+			while(c=='e'||c=='.'||c=='-'||(c>='0'&&c<='9'))
+			{
+				word+=c;
+				c=infile.get();
+			}
+			T(i,j)=stof(word);
+		}
+	}
+    return T;
+}
 size_t* sort_pointcloud(vector<double> &in,float disregard)
 {
 	vector<size_t> idx(in.size());
@@ -22,19 +48,23 @@ inline size_t index_selector(size_t **I,int p,int num,std::vector<int> Tails,siz
 	size_t maxI=0,maxA=I[0][p];
 	for(auto i=0;i<num;i++)
 	{
-		if(*(Tails.begin()+i)&1)if(I[i][p]<=minA) { minA=I[i][p];minI=i; }
-		if(*(Tails.begin()+i)&2)if(I[i][p]>=maxA) { maxA=I[i][p];maxI=i; }
+		if(*(Tails.begin()+i)<4)
+		{
+			if(*(Tails.begin()+i)&1)if(I[i][p]<=minA) { minA=I[i][p];minI=i; }
+			if(*(Tails.begin()+i)&2)if(I[i][p]>=maxA) { maxA=I[i][p];maxI=i; }
+		}
 	}
 	return number_points-maxA<minA?maxI+num:minI;
 }
 inline bool checkInLimits(size_t **in,int p,int num,int cu,int cl)
 {
 	for(int i=0;i<num;i++)
-		if(in[i][p]>cu||in[i][p]<cl)
-			return true;
+		if(in[i]!=NULL)
+			if(in[i][p]>cu||in[i][p]<cl)
+				return true;
 	return false;
 }
-vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloudIn,initializer_list<vector<double> >& attributes_,initializer_list<int > distribution_tails_,initializer_list<float> disregard_, float rejectPerc)
+vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloudIn,initializer_list<vector<double> >& attributes_,initializer_list<int > distribution_tails_,initializer_list<float> disregard_, float rejectPerc)
 {
 	vector<vector<double> > attributes(attributes_);
 	vector<float> disregard(disregard_);
@@ -43,7 +73,11 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::Poi
 	int num_attributes=attributes.size();
 	size_t *sorted_indexes[num_attributes];
 	for(auto i=0;i< num_attributes;i++)
-		sorted_indexes[i]=sort_pointcloud(attributes.at(i),disregard.at(i));
+	{
+		if(distribution_tails[i]<4)
+			sorted_indexes[i]=sort_pointcloud(attributes.at(i),disregard.at(i));
+		else sorted_indexes[i]=NULL;
+	}
 
 	int cut_off_l=(1-rejectPerc)/2*cloudSize;
 	int cut_off_u=(1+rejectPerc)/2*cloudSize;
@@ -53,33 +87,74 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::Poi
 	size_t num_tails=0;
 	for(int i=0;i<num_attributes;i++)
 	{
-		if(distribution_tails[i]&1)
+		if(distribution_tails[i]<4)
 		{
-			look_up[i]= num_tails;
-			num_tails++;
-		}else look_up[i]=-1;
-		if(distribution_tails[i]&2)
+			if(distribution_tails[i]==1||distribution_tails[i]==3)
+			{
+				look_up[i]= num_tails;
+				num_tails++;
+			}else look_up[i]=-1;
+			if(distribution_tails[i]==2)
+			{
+				look_up[i+num_attributes]=num_tails;
+				num_tails++;
+			}else look_up[i+num_attributes]=-1;
+		}
+		else if(distribution_tails[i]==101)
 		{
-			look_up[i+num_attributes]=num_tails;
+			look_up[i]=num_tails;
 			num_tails++;
-		}else look_up[i+num_attributes]=-1;
+			look_up[i+num_attributes]=-1;
+		}
+		else look_up[i]=-1;
 	}
 	///////
 	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud;
-	for(int i=0;i<num_tails;i++)
+	for(int i=0;i<num_tails+semantic_labels.size();i++)
 	{
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudT(new pcl::PointCloud<pcl::PointXYZ>);
 		laserCloud.push_back(cloudT);
 	}
 	for(int i=0;i<cloudSize;i++)
 	{
-		if(!checkInLimits(sorted_indexes,i,num_attributes,cut_off_u,cut_off_l)) continue;
+		int index=-1;
+		for(auto j=0;j< num_attributes;j++)
+		{
+			if(distribution_tails.at(j)==101)
+			{
+				if(attributes.at(j).at(i)==disregard.at(j))
+				{
+					index=look_up[j];
+					continue;
+				}
+			}
+			else if (distribution_tails.at(j)==117&&attributes.at(j).at(i)!=disregard.at(j))
+			{
+				std::vector<int>::iterator my_iter;
+				int sem_val=attributes.at(j).at(i);
+				my_iter=find(semantic_labels.begin(),semantic_labels.end(),sem_val);
+				if(semantic_labels.end()==my_iter)
+				{
+					pcl::PointCloud<pcl::PointXYZ>::Ptr cloudT(new pcl::PointCloud<pcl::PointXYZ>);
+					laserCloud.push_back(cloudT);
+					semantic_labels.push_back(sem_val);
+					my_iter=semantic_labels.end()-1;
+				}
+				int nummm=distance(semantic_labels.begin(),my_iter);
+				index=num_tails+distance(semantic_labels.begin(),my_iter);
+				if(index>=NumInputs)cerr<<"too many labels"<<endl;
+				continue;
+			}
+		}
+
+
+		if(index==-1&&!checkInLimits(sorted_indexes,i,num_attributes,cut_off_u,cut_off_l)) continue;
 		pcl::PointXYZ point;
 		point.x=laserCloudIn->points[i].x;
 		point.y=laserCloudIn->points[i].y;
 		point.z=laserCloudIn->points[i].z;
 		//point.intensity=laserCloudIn->points[i].intensity;
-		int index=look_up[index_selector(sorted_indexes, i,num_attributes,distribution_tails,cloudSize)];
+		if(index==-1)index=look_up[index_selector(sorted_indexes, i,num_attributes,distribution_tails,cloudSize)];
 		if(index!=-1)
 			laserCloud[index]->points.push_back(point);
 	}
@@ -91,17 +166,14 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::Poi
 }
 size_t count_tails(vector<int>& distribution_tails)
 {
-	size_t number_tails1=count(distribution_tails.begin(),distribution_tails.end(),1);
-	size_t number_tails2=count(distribution_tails.begin(),distribution_tails.end(),2);
+	size_t number_tails0=count(distribution_tails.begin(),distribution_tails.end(),0);
 	size_t number_tails3=count(distribution_tails.begin(),distribution_tails.end(),3);
-	return number_tails1+number_tails2+2*number_tails3;
+	return distribution_tails.size()+number_tails3-number_tails0;
 }
 
-lslgeneric::NDTMap **initMap(initializer_list<int> distribution_tails_,initializer_list<float> resolutions_, initializer_list<float>size_)
+lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_)
 {
-	vector<int> distribution_tails(distribution_tails_);
 	vector<float> size(size_),resolutions(resolutions_);
-	size_t number_tails=count_tails(distribution_tails);
 	if(number_tails!=resolutions.size()&&resolutions.size()!=1)
 		cerr<<"Number of resolutions different than number of segments. Taking resolution index modulus."<<endl;
 	if(size.size()!=3)
@@ -126,7 +198,7 @@ lslgeneric::NDTMap **initMap(initializer_list<int> distribution_tails_,initializ
 }
 void loadMap(lslgeneric::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,size_t number_tails,float sensor_range)
 {
-	for(size_t i=0;i<number_tails;i++)
+	for(size_t i=0;i<input_clouds.size();i++)
 	{
 		map[i]->loadPointCloud(*input_clouds[i],sensor_range);
 		map[i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
@@ -157,7 +229,7 @@ Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix
 NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initializer_list<float> d,initializer_list<int> e,initializer_list<float> ig,float removeP,int max_iter):resolutions(b),resolutions_order(c),size(d),tails(e),ignore(ig),removeProbability(removeP)
 {
 	vector<int> tails_t(tails);
-	NumInputs=count_tails(tails_t);
+	NumInputs=count_tails(tails_t)+70*std::count(tails_t.begin(),tails_t.end(),117);
 	firstRun=true;
 
 		matcher.NumInputs=NumInputs;
@@ -168,8 +240,8 @@ NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initi
 	mapLocal=new lslgeneric::NDTMap ** [resolutions.size()];
 	for(auto i=0;i<resolutions.size();i++)
 	{
-		map[i]=initMap(tails,{resolutions.at(i)},size);
-		mapLocal[i]=initMap(tails,{resolutions.at(i)},size);
+		map[i]=initMap(NumInputs,{resolutions.at(i)},size);
+		mapLocal[i]=initMap(NumInputs,{resolutions.at(i)},size);
 	}
 }
 Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2,initializer_list<vector<double> > attributes)

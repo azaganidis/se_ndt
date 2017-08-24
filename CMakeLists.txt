@@ -10,7 +10,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 #find_package(ndt_registration)
 if( NOT ndt_map_FOUND OR NOT ndt_registration_FOUND)
 endif()
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+#set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS program_options system)
 #find_package(PCL REQUIRED COMPONENTS common io)
@@ -65,6 +65,18 @@ target_link_libraries(polesRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 
 add_executable(rsdRegister src/rsdRegister.cpp)
 target_link_libraries(rsdRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
+	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
+
+add_executable(rsdRegister2 src/rsdRegister2.cpp)
+target_link_libraries(rsdRegister2 ${PROJECT_NAME} ${ndt_map_LIBRARIES}
+	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
+
+add_executable(semanticRegister src/semanticRegister.cpp)
+target_link_libraries(semanticRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
+	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
+
+add_executable(rsdRegister3 src/rsdRegister3.cpp)
+target_link_libraries(rsdRegister3 ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
 add_executable(polesRegister_ndt src/polesRegister_ndt.cpp)

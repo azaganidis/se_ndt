@@ -23,7 +23,7 @@ namespace lslgeneric {
   * camera postion.
   * \author Jari, Todor
   */
-class NDTFuserHMT_SE{
+class NDTFuserHMT_SE : NDTMatch_SE{
     public:
 		unsigned int NumInputs;
 		Eigen::Affine3d Tnow, Tlast_fuse, Todom; ///< current pose

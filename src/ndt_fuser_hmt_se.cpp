@@ -24,7 +24,7 @@ NDTFuserHMT_SE::NDTFuserHMT_SE(Eigen::Affine3d a,initializer_list<float> b,initi
 	    hmt_map_dir="map";
 	fuseIncomplete=false;
 	vector<int> tails_t(tails);
-	NumInputs=count_tails(tails_t);
+	NumInputs=count_tails(tails_t)+70*std::count(tails_t.begin(),tails_t.end(),117);
 
 		matcher.NumInputs=NumInputs;
 		matcher.ITR_MAX =max_iter;
@@ -61,8 +61,8 @@ NDTFuserHMT_SE::NDTFuserHMT_SE(Eigen::Affine3d a,initializer_list<float> b,initi
 	mapLocal=new lslgeneric::NDTMap ** [resolutions.size()];
 	for(auto i=0;i<resolutions.size();i++)
 	{
-		map[i]=initMap(tails,{resolutions.at(i)},size);
-		mapLocal[i]=initMap(tails,{resolutions.at(i)},size);
+		map[i]=initMap(NumInputs,{resolutions.at(i)},size);
+		mapLocal[i]=initMap(NumInputs,{resolutions.at(i)},size);
 	}
 		//}
 	Tlast_fuse = Tnow;

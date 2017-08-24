@@ -56,11 +56,13 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr
 
 int main(int argc, char** argv)
 {
+	string transforms;
 	po::options_description desc("Allowed options");
 	desc.add_options()
 	("help", "produce help message")
 	("skip", "skip point cloud first line")
 	("nc", "Do not concatenate transforms")
+	 ("transforms", po::value<std::string >(&transforms), "File with initial transforms")
 	 ("pointclouds", po::value<std::vector<string> >()->multitoken(), "Point cloud files")
 	 ("b", po::value<std::vector<float> >()->multitoken(), "Bounding box--Atention! not working yet!")
 	 ("sem1", po::value<std::vector<string> >()->multitoken(), "First semantic input files");
@@ -73,6 +75,11 @@ int main(int argc, char** argv)
 	vector<string> rsd_max_files;
 	vector<string> pointcloud_files;
 	vector<float> box;
+
+	bool trans=false;
+	ifstream in_trans;
+	if(vm.count("transforms")) { in_trans.open(transforms, ifstream::in); trans=true; }
+
 	bool skip=false;
 	if(vm.count("skip"))
 		skip=true;
@@ -100,13 +107,18 @@ int main(int argc, char** argv)
 	T.setIdentity();
 	Tt.setIdentity();
 	//NDTMatch_SE matcher ({0.5,0.1,0.05},{0,1,0,1,2},{25,25,10},{3},{-1},0.60,25);
-	NDTMatch_SE matcher ({1,2},{1,0},{80,80,20},{2},{-1},0.90,5);
+	NDTMatch_SE matcher ({0.1,1,2},{2,1,0},{20,20,20},{'u'},{0},0.01,25);
 	//lslgeneric::NDTFuserHMT_SE matcher (the_initial_pose,{the_resolutions},{the_order_with which_the_resolutions_are_used},{the_size_of_the_map},{the_tail_segments},{ignore_values},reject_percentage,number_of_iterations);
 	for(int i=0;i<num_files;i++)
 	{
 		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud3=h_box?cropIt(getCloud2(pointcloud_files[i],skip),box):getCloud2(pointcloud_files[i],skip);
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::copyPointCloud(*cloud3,*cloud1);
+
+		if(trans){
+			Eigen::Affine3d T=readTransform(in_trans);
+			pcl::transformPointCloud(*cloud1,*cloud1,T);
+		}
 		std::vector<double> rsd_min=getMeasure(rsd_min_files[i]);
 		Tt=matcher.match(cloud1,{rsd_min});
 		T=T*Tt;

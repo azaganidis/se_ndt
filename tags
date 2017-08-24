@@ -1,0 +1,798 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	0.0.0	//
+B	oru_minimal/include/ndt_map/ndt_cell.h	/^    float R,G,B; 			\/\/\/RGB values [0..1] - Special implementations for PointXYZRGB & PointXYZ/;"	m	class:lslgeneric::NDTCell	typeref:typename:float
+Bin	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    double Bin(int n,double p,int r)$/;"	f	struct:TEventData	typeref:typename:double
+CELL_UPDATE_MODE_COVARIANCE_INTERSECTION	oru_minimal/include/ndt_map/ndt_cell.h	/^#define CELL_UPDATE_MODE_COVARIANCE_INTERSECTION /;"	d
+CELL_UPDATE_MODE_ERROR_REFINEMENT	oru_minimal/include/ndt_map/ndt_cell.h	/^#define CELL_UPDATE_MODE_ERROR_REFINEMENT	/;"	d
+CELL_UPDATE_MODE_SAMPLE_VARIANCE	oru_minimal/include/ndt_map/ndt_cell.h	/^#define CELL_UPDATE_MODE_SAMPLE_VARIANCE /;"	d
+CELL_UPDATE_MODE_SAMPLE_VARIANCE_SURFACE_ESTIMATION	oru_minimal/include/ndt_map/ndt_cell.h	/^#define CELL_UPDATE_MODE_SAMPLE_VARIANCE_SURFACE_ESTIMATION /;"	d
+CELL_UPDATE_MODE_STUDENT_T	oru_minimal/include/ndt_map/ndt_cell.h	/^#define CELL_UPDATE_MODE_STUDENT_T /;"	d
+CEVENT_COUNTER_DATA_H	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^#define CEVENT_COUNTER_DATA_H$/;"	d
+CellClass	oru_minimal/include/ndt_map/ndt_cell.h	/^    enum CellClass {HORIZONTAL=0, VERTICAL, INCLINED, ROUGH, UNKNOWN};$/;"	g	class:lslgeneric::NDTCell
+CellPtrVector	oru_minimal/include/ndt_map/spatial_index.h	/^    typedef std::vector<NDTCell*> CellPtrVector;$/;"	t	class:lslgeneric::SpatialIndex	typeref:typename:std::vector<NDTCell * >
+CellVector	oru_minimal/include/ndt_map/cell_vector.h	/^class CellVector : public SpatialIndex$/;"	c	namespace:lslgeneric
+CellVector	oru_minimal/src/cell_vector.cpp	/^CellVector::CellVector():mp(new pcl::PointCloud<pcl::PointXYZ>())$/;"	f	class:lslgeneric::CellVector
+CellVector	oru_minimal/src/cell_vector.cpp	/^CellVector::CellVector(NDTCell* cellPrototype):mp(new pcl::PointCloud<pcl::PointXYZ>())$/;"	f	class:lslgeneric::CellVector
+CellVector	oru_minimal/src/cell_vector.cpp	/^CellVector::CellVector(const CellVector& other)$/;"	f	class:lslgeneric::CellVector
+CellVectorItr	oru_minimal/include/ndt_map/spatial_index.h	/^    typedef typename CellPtrVector::iterator CellVectorItr;$/;"	t	class:lslgeneric::SpatialIndex	typeref:typename:CellPtrVector::iterator
+D1	oru_minimal/include/ndt_map/ndt_histogram.h	/^    double D1, D2;$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:double
+D2	oru_minimal/include/ndt_map/ndt_histogram.h	/^    double D1, D2;$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:double
+DELTA_SCORE	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    double DELTA_SCORE;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:double
+DELTA_SCORE	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    double DELTA_SCORE;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:double
+DEPTH_CAMERA	oru_minimal/include/ndt_map/depth_camera.h	/^#define DEPTH_CAMERA$/;"	d
+DepthCamera	oru_minimal/include/ndt_map/depth_camera.h	/^    DepthCamera (const DepthCamera &other)$/;"	f	class:lslgeneric::DepthCamera
+DepthCamera	oru_minimal/include/ndt_map/depth_camera.h	/^    DepthCamera (double &_fx, double &_fy, double &_cx, double &_cy, std::vector<double> &_dista/;"	f	class:lslgeneric::DepthCamera
+DepthCamera	oru_minimal/include/ndt_map/depth_camera.h	/^    DepthCamera() { }$/;"	f	class:lslgeneric::DepthCamera
+DepthCamera	oru_minimal/include/ndt_map/depth_camera.h	/^class DepthCamera$/;"	c	namespace:lslgeneric
+ET	include/se_ndt/features_CI.hpp	/^typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;$/;"	t	typeref:typename:Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>
+ET	include/se_ndt/se_ndt.hpp	/^typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;$/;"	t	typeref:typename:Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>
+ET	src/polesRegister_ndt.cpp	/^typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;$/;"	t	typeref:typename:Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>	file:
+ET	src/se_ndt.cpp	/^typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;$/;"	t	typeref:typename:Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>	file:
+EVAL_FACTOR	oru_minimal/include/ndt_map/ndt_cell.h	/^    static double EVAL_FACTOR;													\/\/ ???$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+EVAL_FACTOR	oru_minimal/src/ndt_cell.cpp	/^double NDTCell::EVAL_FACTOR;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+EVAL_ROUGH_THR	oru_minimal/include/ndt_map/ndt_cell.h	/^    static double EVAL_ROUGH_THR;		\/\/ = 0.1;								\/\/ ???$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+EVAL_ROUGH_THR	oru_minimal/src/ndt_cell.cpp	/^double NDTCell::EVAL_ROUGH_THR;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+EVEC_INCLINED_THR	oru_minimal/include/ndt_map/ndt_cell.h	/^    static double EVEC_INCLINED_THR; 	\/\/ = cos(8*M_PI\/18);\/\/10 degree slope;	\/\/ ???$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+EVEC_INCLINED_THR	oru_minimal/src/ndt_cell.cpp	/^double NDTCell::EVEC_INCLINED_THR;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+EVENTMAP_FREE	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^#define EVENTMAP_FREE /;"	d
+EVENTMAP_NUMBER_OF_EVENTS_STORED	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^#define EVENTMAP_NUMBER_OF_EVENTS_STORED /;"	d
+EVENTMAP_OBSERVATION_LIMIT	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^#define EVENTMAP_OBSERVATION_LIMIT /;"	d
+EVENTMAP_OCCU	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^#define EVENTMAP_OCCU /;"	d
+EVENTMAP_UNKNOWN	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^#define EVENTMAP_UNKNOWN /;"	d
+EVENTMAP_USE_RECENCY_FILTERING	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^#define EVENTMAP_USE_RECENCY_FILTERING$/;"	d
+G	oru_minimal/include/ndt_map/ndt_cell.h	/^    float R,G,B; 			\/\/\/RGB values [0..1] - Special implementations for PointXYZRGB & PointXYZ/;"	m	class:lslgeneric::NDTCell	typeref:typename:float
+HORIZONTAL	oru_minimal/include/ndt_map/ndt_cell.h	/^    enum CellClass {HORIZONTAL=0, VERTICAL, INCLINED, ROUGH, UNKNOWN};$/;"	e	enum:lslgeneric::NDTCell::CellClass
+HessianF	include/se_ndt/ndt_matcher_d2d_se.h	/^	Eigen::Matrix<double,6,6> HessianF;$/;"	m	class:lslgeneric::NDTMatcherD2D_SE	typeref:typename:Eigen::Matrix<double,6,6>
+Hest	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,18,6> Hest;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,18,6>
+Hest	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    Eigen::Matrix<double,9,3> Hest;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:Eigen::Matrix<double,9,3>
+Hest	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Matrix<double,18,6> Hest;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Matrix<double,18,6>
+INCLINED	oru_minimal/include/ndt_map/ndt_cell.h	/^    enum CellClass {HORIZONTAL=0, VERTICAL, INCLINED, ROUGH, UNKNOWN};$/;"	e	enum:lslgeneric::NDTCell::CellClass
+ITR_MAX	include/se_ndt/ndt_matcher_p2d_se.h	/^    int ITR_MAX;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:int
+ITR_MAX	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    int ITR_MAX;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:int
+ITR_MAX	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    int ITR_MAX;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:int
+ITR_MAX	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    int ITR_MAX;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:int
+JFFERR	oru_minimal/include/ndt_map/ndt_cell.h	/^#define JFFERR(/;"	d
+JFFERR	oru_minimal/src/lazy_grid.cpp	/^#define JFFERR(/;"	d	file:
+Jest	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,3,6> Jest;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,3,6>
+Jest	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    Eigen::Matrix<double,3,3> Jest;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:Eigen::Matrix<double,3,3>
+Jest	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Matrix<double,3,6> Jest;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Matrix<double,3,6>
+JtBJ	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,6,6> JtBJ, xtBZBJ, xtBH, xtBZBZBx, xtBZhBx;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,6,6>
+JtBJ	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    Eigen::Matrix<double,3,3> JtBJ, xtBZBJ, xtBH, xtBZBZBx, xtBZhBx;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:Eigen::Matrix<double,3,3>
+L	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    double L()$/;"	f	struct:TEventData	typeref:typename:double
+LSL_CELL_VECTOR_HH	oru_minimal/include/ndt_map/cell_vector.h	/^#define LSL_CELL_VECTOR_HH$/;"	d
+LSL_LAZZY_GRID_HH	oru_minimal/include/ndt_map/lazy_grid.h	/^#define LSL_LAZZY_GRID_HH$/;"	d
+LSL_POINT_CLOUD_UTILS	oru_minimal/include/ndt_map/pointcloud_utils.h	/^#define LSL_POINT_CLOUD_UTILS$/;"	d
+LazyGrid	oru_minimal/include/ndt_map/lazy_grid.h	/^class LazyGrid : public SpatialIndex$/;"	c	namespace:lslgeneric
+LazyGrid	oru_minimal/src/lazy_grid.cpp	/^LazyGrid::LazyGrid(LazyGrid *prot)$/;"	f	class:lslgeneric::LazyGrid
+LazyGrid	oru_minimal/src/lazy_grid.cpp	/^LazyGrid::LazyGrid(double _sizeXmeters, double _sizeYmeters, double _sizeZmeters,$/;"	f	class:lslgeneric::LazyGrid
+LazyGrid	oru_minimal/src/lazy_grid.cpp	/^LazyGrid::LazyGrid(double cellSize) $/;"	f	class:lslgeneric::LazyGrid
+MoreThuente	include/se_ndt/ndt_matcher_p2d_se.h	/^    struct MoreThuente$/;"	s	class:lslgeneric::NDTMatcherP2D_SE
+MoreThuente	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    struct MoreThuente$/;"	s	class:lslgeneric::NDTMatcherD2D
+MoreThuente	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    struct MoreThuente$/;"	s	class:lslgeneric::NDTMatcherD2D_2D
+MoreThuente	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    struct MoreThuente$/;"	s	class:lslgeneric::NDTMatcherP2D
+N	oru_minimal/include/ndt_map/ndt_cell.h	/^    unsigned int N; 	\/\/\/Number of points used for Normal distribution estimation so far$/;"	m	class:lslgeneric::NDTCell	typeref:typename:unsigned int
+NDTCell	oru_minimal/include/ndt_map/ndt_cell.h	/^    NDTCell()$/;"	f	class:lslgeneric::NDTCell
+NDTCell	oru_minimal/include/ndt_map/ndt_cell.h	/^    NDTCell(const NDTCell& other)$/;"	f	class:lslgeneric::NDTCell
+NDTCell	oru_minimal/include/ndt_map/ndt_cell.h	/^    NDTCell(pcl::PointXYZ &center, double &xsize, double &ysize, double &zsize)$/;"	f	class:lslgeneric::NDTCell
+NDTCell	oru_minimal/include/ndt_map/ndt_cell.h	/^class NDTCell \/\/: public Cell<PointT>$/;"	c	namespace:lslgeneric
+NDTFuserHMT_SE	include/se_ndt/ndt_fuser_hmt_se.h	/^class NDTFuserHMT_SE : NDTMatch_SE{$/;"	c	namespace:lslgeneric
+NDTFuserHMT_SE	src/ndt_fuser_hmt_se.cpp	/^NDTFuserHMT_SE::NDTFuserHMT_SE(Eigen::Affine3d a,initializer_list<float> b,initializer_list<int>/;"	f	class:lslgeneric::NDTFuserHMT_SE
+NDTHistogram	oru_minimal/include/ndt_map/ndt_histogram.h	/^  class NDTHistogram{$/;"	c	namespace:lslgeneric
+NDTMATCHERFEATUREF2F_HH	oru_minimal/include/ndt_registration/ndt_matcher_d2d_feature.h	/^#define NDTMATCHERFEATUREF2F_HH$/;"	d
+NDTMap	oru_minimal/include/ndt_map/ndt_map.h	/^    NDTMap()$/;"	f	class:lslgeneric::NDTMap
+NDTMap	oru_minimal/include/ndt_map/ndt_map.h	/^    NDTMap(SpatialIndex *idx)$/;"	f	class:lslgeneric::NDTMap
+NDTMap	oru_minimal/include/ndt_map/ndt_map.h	/^    NDTMap(SpatialIndex *idx, float cenx, float ceny, float cenz, float sizex, float sizey, floa/;"	f	class:lslgeneric::NDTMap
+NDTMap	oru_minimal/include/ndt_map/ndt_map.h	/^    NDTMap(const NDTMap& other)$/;"	f	class:lslgeneric::NDTMap
+NDTMap	oru_minimal/include/ndt_map/ndt_map.h	/^class NDTMap$/;"	c	namespace:lslgeneric
+NDTMapHMT	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    NDTMapHMT(const NDTMapHMT& other)$/;"	f	class:lslgeneric::NDTMapHMT
+NDTMapHMT	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    NDTMapHMT(double resolution_, float cenx, float ceny, float cenz, float sizex, float sizey, /;"	f	class:lslgeneric::NDTMapHMT
+NDTMapHMT	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^class NDTMapHMT : public NDTMap$/;"	c	namespace:lslgeneric
+NDTMatch_SE	include/se_ndt/se_ndt.hpp	/^class NDTMatch_SE{$/;"	c
+NDTMatch_SE	src/se_ndt.cpp	/^NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initializer_list<floa/;"	f	class:NDTMatch_SE
+NDTMatcherD2D	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    NDTMatcherD2D()$/;"	f	class:lslgeneric::NDTMatcherD2D
+NDTMatcherD2D	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    NDTMatcherD2D(bool _isIrregularGrid,$/;"	f	class:lslgeneric::NDTMatcherD2D
+NDTMatcherD2D	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    NDTMatcherD2D(const NDTMatcherD2D& other)$/;"	f	class:lslgeneric::NDTMatcherD2D
+NDTMatcherD2D	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^class NDTMatcherD2D$/;"	c	namespace:lslgeneric
+NDTMatcherD2D_2D	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    NDTMatcherD2D_2D()$/;"	f	class:lslgeneric::NDTMatcherD2D_2D
+NDTMatcherD2D_2D	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    NDTMatcherD2D_2D(bool _isIrregularGrid,$/;"	f	class:lslgeneric::NDTMatcherD2D_2D
+NDTMatcherD2D_2D	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    NDTMatcherD2D_2D(const NDTMatcherD2D_2D& other)$/;"	f	class:lslgeneric::NDTMatcherD2D_2D
+NDTMatcherD2D_2D	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^class NDTMatcherD2D_2D$/;"	c	namespace:lslgeneric
+NDTMatcherD2D_SE	include/se_ndt/ndt_matcher_d2d_se.h	/^class NDTMatcherD2D_SE: public NDTMatcherD2D$/;"	c	namespace:lslgeneric
+NDTMatcherFeatureD2D	oru_minimal/include/ndt_registration/ndt_matcher_d2d_feature.h	/^    NDTMatcherFeatureD2D(const std::vector<std::pair<int, int> > &corr, double trimFactor = 1.) /;"	f	class:lslgeneric::NDTMatcherFeatureD2D
+NDTMatcherFeatureD2D	oru_minimal/include/ndt_registration/ndt_matcher_d2d_feature.h	/^class NDTMatcherFeatureD2D : public lslgeneric::NDTMatcherD2D$/;"	c	namespace:lslgeneric
+NDTMatcherP2D	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    NDTMatcherP2D()$/;"	f	class:lslgeneric::NDTMatcherP2D
+NDTMatcherP2D	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    NDTMatcherP2D(const NDTMatcherP2D& other)$/;"	f	class:lslgeneric::NDTMatcherP2D
+NDTMatcherP2D	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    NDTMatcherP2D(std::vector<double> _resolutions)$/;"	f	class:lslgeneric::NDTMatcherP2D
+NDTMatcherP2D	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^class NDTMatcherP2D$/;"	c	namespace:lslgeneric
+NDTMatcherP2D_SE	include/se_ndt/ndt_matcher_p2d_se.h	/^    NDTMatcherP2D_SE()$/;"	f	class:lslgeneric::NDTMatcherP2D_SE
+NDTMatcherP2D_SE	include/se_ndt/ndt_matcher_p2d_se.h	/^class NDTMatcherP2D_SE	$/;"	c	namespace:lslgeneric
+NDT_CELL_HH	oru_minimal/include/ndt_map/ndt_cell.h	/^#define NDT_CELL_HH$/;"	d
+NDT_FUSER_HMT_SE_HH	include/se_ndt/ndt_fuser_hmt_se.h	/^#define NDT_FUSER_HMT_SE_HH$/;"	d
+NDT_HISTOGRAM_HH	oru_minimal/include/ndt_map/ndt_histogram.h	/^#define NDT_HISTOGRAM_HH$/;"	d
+NDT_MAP_HH	oru_minimal/include/ndt_map/ndt_map.h	/^#define NDT_MAP_HH$/;"	d
+NDT_MAP_HMT_HH	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^#define NDT_MAP_HMT_HH$/;"	d
+NDT_MATCHER_D2D_2D_HH	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^#define NDT_MATCHER_D2D_2D_HH$/;"	d
+NDT_MATCHER_D2D_HH	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^#define NDT_MATCHER_D2D_HH$/;"	d
+NDT_MATCHER_D2D_SE_HH	include/se_ndt/ndt_matcher_d2d_se.h	/^#define NDT_MATCHER_D2D_SE_HH$/;"	d
+NDT_MATCHER_HH	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^#define NDT_MATCHER_HH$/;"	d
+NDT_MATCHER_P2D_SE_HH	include/se_ndt/ndt_matcher_p2d_se.h	/^#define NDT_MATCHER_P2D_SE_HH$/;"	d
+NO_NDT_VIZ	include/se_ndt/ndt_fuser_hmt_se.h	/^#define NO_NDT_VIZ /;"	d
+NUMBER_OF_ACTIVE_CELLS	include/se_ndt/ndt_matcher_p2d_se.h	/^    int NUMBER_OF_ACTIVE_CELLS;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:int
+NUMBER_OF_ACTIVE_CELLS	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    int NUMBER_OF_ACTIVE_CELLS;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:int
+NUMBER_OF_ACTIVE_CELLS	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    int NUMBER_OF_ACTIVE_CELLS;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:int
+NUMBER_OF_ACTIVE_CELLS	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    int NUMBER_OF_ACTIVE_CELLS;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:int
+NUMBER_OF_POINTS	include/se_ndt/ndt_matcher_p2d_se.h	/^    int NUMBER_OF_POINTS;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:int
+NUMBER_OF_POINTS	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    int NUMBER_OF_POINTS;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:int
+NUMBER_OF_POINTS	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    int NUMBER_OF_POINTS;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:int
+NUMBER_OF_POINTS	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    int NUMBER_OF_POINTS;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:int
+NUM_MAX	src/ndt_matcher_d2d_se.cpp	/^#define NUM_MAX /;"	d	file:
+NUM_MAX	src/ndt_matcher_p2d_se.cpp	/^#define NUM_MAX /;"	d	file:
+N_FLAT_BINS	oru_minimal/include/ndt_map/ndt_histogram.h	/^    int N_FLAT_BINS;$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:int
+N_LINE_BINS	oru_minimal/include/ndt_map/ndt_histogram.h	/^    int N_LINE_BINS;$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:int
+N_SPHERE_BINS	oru_minimal/include/ndt_map/ndt_histogram.h	/^    int N_SPHERE_BINS;$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:int
+N_THREADS_2D	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^#define N_THREADS_2D /;"	d	file:
+NumInputs	include/se_ndt/ndt_fuser_hmt_se.h	/^		unsigned int NumInputs;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:unsigned int
+NumInputs	include/se_ndt/ndt_matcher_d2d_se.h	/^	int NumInputs;$/;"	m	class:lslgeneric::NDTMatcherD2D_SE	typeref:typename:int
+NumInputs	include/se_ndt/ndt_matcher_p2d_se.h	/^	int NumInputs;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:int
+NumInputs	include/se_ndt/se_ndt.hpp	/^		unsigned int NumInputs;$/;"	m	class:NDTMatch_SE	typeref:typename:unsigned int
+Q	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,6,1> xtBJ, xtBZBx, Q;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,6,1>
+Q	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    Eigen::Matrix<double,3,1> xtBJ, xtBZBx, Q;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:Eigen::Matrix<double,3,1>
+R	oru_minimal/include/ndt_map/ndt_cell.h	/^    float R,G,B; 			\/\/\/RGB values [0..1] - Special implementations for PointXYZRGB & PointXYZ/;"	m	class:lslgeneric::NDTCell	typeref:typename:float
+REFACTORED	oru_minimal/include/ndt_map/ndt_cell.h	/^#define REFACTORED$/;"	d
+ROUGH	oru_minimal/include/ndt_map/ndt_cell.h	/^    enum CellClass {HORIZONTAL=0, VERTICAL, INCLINED, ROUGH, UNKNOWN};$/;"	e	enum:lslgeneric::NDTCell::CellClass
+Reset	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    void Reset()$/;"	f	struct:TEventData	typeref:typename:void
+SE_NDT	include/se_ndt/se_ndt.hpp	/^#define SE_NDT$/;"	d
+SPATIAL_INDEX_HH	oru_minimal/include/ndt_map/spatial_index.h	/^#define SPATIAL_INDEX_HH$/;"	d
+SpatialIndex	oru_minimal/include/ndt_map/spatial_index.h	/^class SpatialIndex$/;"	c	namespace:lslgeneric
+TEventData	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    TEventData():$/;"	f	struct:TEventData
+TEventData	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    TEventData(const TEventData& copy):$/;"	f	struct:TEventData
+TEventData	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^struct TEventData$/;"	s
+TMP1	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,1,3> TMP1, xtB;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,1,3>
+TMP1	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    Eigen::Matrix<double,1,3> TMP1, xtB;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:Eigen::Matrix<double,1,3>
+Tlast_fuse	include/se_ndt/ndt_fuser_hmt_se.h	/^		Eigen::Affine3d Tnow, Tlast_fuse, Todom; \/\/\/< current pose$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:Eigen::Affine3d
+Tnow	include/se_ndt/ndt_fuser_hmt_se.h	/^		Eigen::Affine3d Tnow, Tlast_fuse, Todom; \/\/\/< current pose$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:Eigen::Affine3d
+Todom	include/se_ndt/ndt_fuser_hmt_se.h	/^		Eigen::Affine3d Tnow, Tlast_fuse, Todom; \/\/\/< current pose$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:Eigen::Affine3d
+UNKNOWN	oru_minimal/include/ndt_map/ndt_cell.h	/^    enum CellClass {HORIZONTAL=0, VERTICAL, INCLINED, ROUGH, UNKNOWN};$/;"	e	enum:lslgeneric::NDTCell::CellClass
+USE_OMP	oru_minimal/src/ndt_matcher_d2d.cpp	/^#define USE_OMP$/;"	d	file:
+USE_OMP	src/ndt_matcher_d2d_se.cpp	/^#define USE_OMP$/;"	d	file:
+USE_OMP_NDT_MATCHER_D2D_2D	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^#define USE_OMP_NDT_MATCHER_D2D_2D$/;"	d	file:
+VERTICAL	oru_minimal/include/ndt_map/ndt_cell.h	/^    enum CellClass {HORIZONTAL=0, VERTICAL, INCLINED, ROUGH, UNKNOWN};$/;"	e	enum:lslgeneric::NDTCell::CellClass
+Voxel_rm_NaN	include/se_ndt/features_CI.hpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr Voxel_rm_NaN(pcl::PointCloud<pcl::PointXYZI>::Ptr laserClou/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+Wforget	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^#define Wforget /;"	d
+ZHest	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,18,18> ZHest;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,18,18>
+ZHest	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    Eigen::Matrix<double,9,9> ZHest;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:Eigen::Matrix<double,9,9>
+Zest	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,3,18> Zest;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,3,18>
+Zest	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    Eigen::Matrix<double,3,9> Zest;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:Eigen::Matrix<double,3,9>
+_JFFVERSION_	oru_minimal/include/ndt_map/ndt_cell.h	/^#define _JFFVERSION_ /;"	d
+__anone412446a0102	src/se_ndt.cpp	/^	sort(idx.begin(), idx.end(),[&in](size_t i1,size_t i2){return in[i1]<in[i2];});$/;"	f	function:sort_pointcloud	file:
+__anone412446a0202	src/se_ndt.cpp	/^	std::vector<size_t>::iterator up= std::upper_bound (idx.begin(), idx.end(), disregard,[&in](dou/;"	f	function:sort_pointcloud	file:
+_camMat	oru_minimal/include/ndt_map/depth_camera.h	/^    cv::Mat _camMat, _dist;$/;"	m	class:lslgeneric::DepthCamera	typeref:typename:cv::Mat
+_corr	oru_minimal/include/ndt_registration/ndt_matcher_d2d_feature.h	/^    const std::vector<std::pair<int, int> > & _corr;$/;"	m	class:lslgeneric::NDTMatcherFeatureD2D	typeref:typename:const std::vector<std::pair<int,int>> &
+_dist	oru_minimal/include/ndt_map/depth_camera.h	/^    cv::Mat _camMat, _dist;$/;"	m	class:lslgeneric::DepthCamera	typeref:typename:cv::Mat
+_goodCorr	oru_minimal/include/ndt_registration/ndt_matcher_d2d_feature.h	/^    std::vector<bool> _goodCorr;$/;"	m	class:lslgeneric::NDTMatcherFeatureD2D	typeref:typename:std::vector<bool>
+_lookupTable	oru_minimal/include/ndt_map/depth_camera.h	/^    cv::Mat _lookupTable;$/;"	m	class:lslgeneric::DepthCamera	typeref:typename:cv::Mat
+_trimFactor	oru_minimal/include/ndt_registration/ndt_matcher_d2d_feature.h	/^    double _trimFactor;$/;"	m	class:lslgeneric::NDTMatcherFeatureD2D	typeref:typename:double
+a2	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+a2	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+a3	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+a3	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+a_entry_event	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    float 		a_entry_event;$/;"	m	struct:TEventData	typeref:typename:float
+a_exit_event	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    float 		a_exit_event; \/\/\/Number of exit events ( OCC 2 EMP)$/;"	m	struct:TEventData	typeref:typename:float
+absmax	oru_minimal/src/ndt_matcher_d2d.cpp	/^double NDTMatcherD2D::MoreThuente::absmax(double a, double b, double c)$/;"	f	class:lslgeneric::NDTMatcherD2D::MoreThuente	typeref:typename:double
+absmax	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^double NDTMatcherD2D_2D::MoreThuente::absmax(double a, double b, double c)$/;"	f	class:lslgeneric::NDTMatcherD2D_2D::MoreThuente	typeref:typename:double
+absmax	oru_minimal/src/ndt_matcher_p2d.cpp	/^double NDTMatcherP2D::MoreThuente::absmax(double a, double b, double c)$/;"	f	class:lslgeneric::NDTMatcherP2D::MoreThuente	typeref:typename:double
+absmax	src/ndt_matcher_p2d_se.cpp	/^double NDTMatcherP2D_SE::MoreThuente::absmax(double a, double b, double c)$/;"	f	class:lslgeneric::NDTMatcherP2D_SE::MoreThuente	typeref:typename:double
+activeCells	oru_minimal/include/ndt_map/cell_vector.h	/^    std::vector<NDTCell*> activeCells;$/;"	m	class:lslgeneric::CellVector	typeref:typename:std::vector<NDTCell * >
+activeCells	oru_minimal/include/ndt_map/lazy_grid.h	/^    std::vector<NDTCell*> activeCells;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:std::vector<NDTCell * >
+addCell	oru_minimal/src/cell_vector.cpp	/^void CellVector::addCell(NDTCell* cell)$/;"	f	class:lslgeneric::CellVector	typeref:typename:void
+addCellPoints	oru_minimal/src/cell_vector.cpp	/^void CellVector::addCellPoints(pcl::PointCloud<pcl::PointXYZ> pc, const std::vector<size_t> &ind/;"	f	class:lslgeneric::CellVector	typeref:typename:void
+addDistributionToCell	oru_minimal/src/ndt_map.cpp	/^void NDTMap::addDistributionToCell(const Eigen::Matrix3d &ucov, const Eigen::Vector3d &umean, un/;"	f	class:lslgeneric::NDTMap	typeref:typename:void
+addDistributionToCell	oru_minimal/src/ndt_map_hmt.cpp	/^void NDTMapHMT::addDistributionToCell(const Eigen::Matrix3d &ucov, const Eigen::Vector3d &umean,/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:void
+addMeasurement	oru_minimal/src/ndt_map.cpp	/^bool NDTMap::addMeasurement(const Eigen::Vector3d &origin, pcl::PointXYZ endpoint, double classi/;"	f	class:lslgeneric::NDTMap	typeref:typename:bool
+addNDTCell	oru_minimal/src/cell_vector.cpp	/^void CellVector::addNDTCell(NDTCell* cell)$/;"	f	class:lslgeneric::CellVector	typeref:typename:void
+addPoint	oru_minimal/include/ndt_map/ndt_cell.h	/^    virtual void addPoint(pcl::PointXYZ &pt)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+addPoint	oru_minimal/src/cell_vector.cpp	/^NDTCell* CellVector::addPoint(const pcl::PointXYZ &point)$/;"	f	class:lslgeneric::CellVector	typeref:typename:NDTCell *
+addPoint	oru_minimal/src/lazy_grid.cpp	/^NDTCell* LazyGrid::addPoint(const pcl::PointXYZ &point_c)$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:NDTCell *
+addPointCloud	oru_minimal/src/ndt_map.cpp	/^void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<pcl::PointXYZ> &/;"	f	class:lslgeneric::NDTMap	typeref:typename:void
+addPointCloud	oru_minimal/src/ndt_map_hmt.cpp	/^void NDTMapHMT::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<pcl::PointXYZ/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:void
+addPointCloudMeanUpdate	oru_minimal/src/ndt_map.cpp	/^void  NDTMap::addPointCloudMeanUpdate(const Eigen::Vector3d &origin, $/;"	f	class:lslgeneric::NDTMap	typeref:typename:void
+addPointCloudMeanUpdate	oru_minimal/src/ndt_map_hmt.cpp	/^void NDTMapHMT::addPointCloudMeanUpdate(const Eigen::Vector3d &origin, $/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:void
+addPointCloudSimple	oru_minimal/src/ndt_map.cpp	/^void NDTMap::addPointCloudSimple(const pcl::PointCloud<pcl::PointXYZ> &pc,double maxz)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:void
+addPoints	oru_minimal/include/ndt_map/ndt_cell.h	/^    virtual void addPoints(pcl::PointCloud<pcl::PointXYZ> &pt)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+averageDirections	oru_minimal/include/ndt_map/ndt_histogram.h	/^    std::vector<Eigen::Vector3d,Eigen::aligned_allocator<Eigen::Vector3d> > averageDirections;$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:std::vector<Eigen::Vector3d,Eigen::aligned_allocator<Eigen::Vector3d>>
+b2	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+b2	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+b3	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+b3	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+b_entry_event	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    float  		b_entry_event; \/\/\/Number of times the cell is perceived as empty$/;"	m	struct:TEventData	typeref:typename:float
+b_exit_event	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    float  		b_exit_event; \/\/\/Number of times the cell is perceived as occupied$/;"	m	struct:TEventData	typeref:typename:float
+beHMT	include/se_ndt/ndt_fuser_hmt_se.h	/^		bool fuseIncomplete, beHMT,canUpdate;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:bool
+begin	oru_minimal/src/cell_vector.cpp	/^typename SpatialIndex::CellVectorItr CellVector::begin()$/;"	f	class:lslgeneric::CellVector	typeref:typename:SpatialIndex::CellVectorItr
+begin	oru_minimal/src/lazy_grid.cpp	/^typename SpatialIndex::CellVectorItr LazyGrid::begin()$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:SpatialIndex::CellVectorItr
+binaryBayesUpdate	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    float binaryBayesUpdate(float Pold, float P)$/;"	f	struct:TEventData	typeref:typename:float
+c2	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+c2	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+c3	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+c3	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+canUpdate	include/se_ndt/ndt_fuser_hmt_se.h	/^		bool fuseIncomplete, beHMT,canUpdate;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:bool
+cellSizeX	oru_minimal/include/ndt_map/lazy_grid.h	/^    double cellSizeX, cellSizeY, cellSizeZ;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:double
+cellSizeY	oru_minimal/include/ndt_map/lazy_grid.h	/^    double cellSizeX, cellSizeY, cellSizeZ;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:double
+cellSizeZ	oru_minimal/include/ndt_map/lazy_grid.h	/^    double cellSizeX, cellSizeY, cellSizeZ;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:double
+centerIsSet	oru_minimal/include/ndt_map/lazy_grid.h	/^    bool centerIsSet, sizeIsSet;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:bool
+centerX	oru_minimal/include/ndt_map/lazy_grid.h	/^    double centerX, centerY, centerZ;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:double
+centerY	oru_minimal/include/ndt_map/lazy_grid.h	/^    double centerX, centerY, centerZ;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:double
+centerZ	oru_minimal/include/ndt_map/lazy_grid.h	/^    double centerX, centerY, centerZ;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:double
+center_	oru_minimal/include/ndt_map/ndt_cell.h	/^    pcl::PointXYZ center_;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:pcl::PointXYZ
+centerx	oru_minimal/include/ndt_map/ndt_map.h	/^    float centerx,centery,centerz;$/;"	m	class:lslgeneric::NDTMap	typeref:typename:float
+centerx	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    float centerx,centery,centerz;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:float
+centery	oru_minimal/include/ndt_map/ndt_map.h	/^    float centerx,centery,centerz;$/;"	m	class:lslgeneric::NDTMap	typeref:typename:float
+centery	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    float centerx,centery,centerz;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:float
+centerz	oru_minimal/include/ndt_map/ndt_map.h	/^    float centerx,centery,centerz;$/;"	m	class:lslgeneric::NDTMap	typeref:typename:float
+centerz	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    float centerx,centery,centerz;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:float
+check	oru_minimal/src/ndt_matcher_p2d.cpp	/^void NDTMatcherP2D::check( pcl::PointCloud<pcl::PointXYZ>& fixed,$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:void
+checkCellforNDT	oru_minimal/src/lazy_grid.cpp	/^bool LazyGrid::checkCellforNDT(int indX, int indY, int indZ, bool checkForGaussian)$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:bool
+checkConsistency	include/se_ndt/ndt_fuser_hmt_se.h	/^		bool checkConsistency;			 \/\/\/perform a check for consistency against initial estimate$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:bool
+checkInLimits	src/se_ndt.cpp	/^inline bool checkInLimits(size_t **in,int p,int num,int cu,int cl)$/;"	f	typeref:typename:bool
+cl_	oru_minimal/include/ndt_map/ndt_cell.h	/^    CellClass cl_;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:CellClass
+classify	oru_minimal/src/ndt_cell.cpp	/^void NDTCell::classify()$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+cleanCellsAboveSize	oru_minimal/src/cell_vector.cpp	/^void CellVector::cleanCellsAboveSize(double size)$/;"	f	class:lslgeneric::CellVector	typeref:typename:void
+clone	oru_minimal/src/cell_vector.cpp	/^SpatialIndex* CellVector::clone() const$/;"	f	class:lslgeneric::CellVector	typeref:typename:SpatialIndex *
+clone	oru_minimal/src/lazy_grid.cpp	/^SpatialIndex* LazyGrid::clone() const$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:SpatialIndex *
+clone	oru_minimal/src/ndt_cell.cpp	/^NDTCell* NDTCell::clone() const$/;"	f	class:lslgeneric::NDTCell	typeref:typename:NDTCell *
+computeDerivatives	oru_minimal/src/ndt_matcher_d2d.cpp	/^void NDTMatcherD2D::computeDerivatives(Eigen::Vector3d &x, Eigen::Matrix3d C1, bool computeHessi/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:void
+computeDerivatives	oru_minimal/src/ndt_matcher_p2d.cpp	/^void NDTMatcherP2D::computeDerivatives(pcl::PointXYZ &pt)$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:void
+computeDerivativesLocal	oru_minimal/src/ndt_matcher_d2d.cpp	/^void NDTMatcherD2D::computeDerivativesLocal(Eigen::Vector3d &x, Eigen::Matrix3d C1,$/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:void
+computeDerivativesLocal	src/ndt_matcher_p2d_se.cpp	/^void NDTMatcherP2D_SE::computeDerivativesLocal(pcl::PointXYZ &pt,$/;"	f	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:void
+computeDerivativesLocal_2d	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^void NDTMatcherD2D_2D::computeDerivativesLocal_2d(Eigen::Vector3d &x, Eigen::Matrix3d C1,$/;"	f	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:void
+computeDerivatives_2d	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^void NDTMatcherD2D_2D::computeDerivatives_2d(Eigen::Vector3d &x, Eigen::Matrix3d C1, bool comput/;"	f	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:void
+computeGaussian	oru_minimal/src/ndt_cell.cpp	/^void NDTCell::computeGaussian(int mode, unsigned int maxnumpoints, float occupancy_limit, Eigen:/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+computeGaussianSimple	oru_minimal/src/ndt_cell.cpp	/^void NDTCell::computeGaussianSimple(){$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+computeMaximumLikelihoodAlongLine	oru_minimal/src/ndt_cell.cpp	/^double NDTCell::computeMaximumLikelihoodAlongLine(const pcl::PointXYZ &p1, const pcl::PointXYZ &/;"	f	class:lslgeneric::NDTCell	typeref:typename:double
+computeNDTCells	oru_minimal/src/ndt_map.cpp	/^void NDTMap::computeNDTCells(int cellupdatemode, unsigned int maxnumpoints, float occupancy_limi/;"	f	class:lslgeneric::NDTMap	typeref:typename:void
+computeNDTCells	oru_minimal/src/ndt_map_hmt.cpp	/^void NDTMapHMT::computeNDTCells(int cellupdatemode, unsigned int maxnumpoints, float occupancy_l/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:void
+computeNDTCellsSimple	oru_minimal/src/ndt_map.cpp	/^void NDTMap::computeNDTCellsSimple()$/;"	f	class:lslgeneric::NDTMap	typeref:typename:void
+computeParamsAtIndex	oru_minimal/include/ndt_map/depth_camera.h	/^    inline size_t computeParamsAtIndex(const cv::Mat &depthImg, cv::KeyPoint &keyPointCenter, si/;"	f	class:lslgeneric::DepthCamera	typeref:typename:size_t
+computePointsAtIndex	oru_minimal/include/ndt_map/depth_camera.h	/^    inline size_t computePointsAtIndex(const cv::Mat &depthImg, cv::KeyPoint &keyPointCenter, si/;"	f	class:lslgeneric::DepthCamera	typeref:typename:size_t
+computeSemiStaticLikelihood	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    float computeSemiStaticLikelihood(int N)$/;"	f	struct:TEventData	typeref:typename:float
+computeShortTermOccupancy	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    float computeShortTermOccupancy()$/;"	f	struct:TEventData	typeref:typename:float
+conflictPoints	oru_minimal/include/ndt_map/ndt_map.h	/^    pcl::PointCloud<pcl::PointXYZ> conflictPoints; \/\/\/< points that were conflicting during u/;"	m	class:lslgeneric::NDTMap	typeref:typename:EIGEN_MAKE_ALIGNED_OPERATOR_NEW pcl::PointCloud<pcl::PointXYZ>
+conflictPoints	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    pcl::PointCloud<pcl::PointXYZ> conflictPoints; \/\/\/< points that were conflicting during u/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:EIGEN_MAKE_ALIGNED_OPERATOR_NEW pcl::PointCloud<pcl::PointXYZ>
+consistency_score	oru_minimal/include/ndt_map/ndt_cell.h	/^    double consistency_score;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+convertDepthImageToPointCloud	oru_minimal/include/ndt_map/depth_camera.h	/^    inline size_t convertDepthImageToPointCloud(const cv::Mat &depthImg, pcl::PointCloud<PointT>/;"	f	class:lslgeneric::DepthCamera	typeref:typename:size_t
+copy	oru_minimal/src/cell_vector.cpp	/^SpatialIndex* CellVector::copy() const$/;"	f	class:lslgeneric::CellVector	typeref:typename:SpatialIndex *
+copy	oru_minimal/src/lazy_grid.cpp	/^SpatialIndex* LazyGrid::copy() const$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:SpatialIndex *
+copy	oru_minimal/src/ndt_cell.cpp	/^NDTCell* NDTCell::copy() const$/;"	f	class:lslgeneric::NDTCell	typeref:typename:NDTCell *
+cost	oru_minimal/include/ndt_map/ndt_cell.h	/^    double cost; 	\/\/\/ ndt_wavefront planner$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+count_tails	src/se_ndt.cpp	/^size_t count_tails(vector<int>& distribution_tails)$/;"	f	typeref:typename:size_t
+cov_	oru_minimal/include/ndt_map/ndt_cell.h	/^    Eigen::Matrix3d cov_;		\/\/\/ Contains the covatiance of the normal distribution$/;"	m	class:lslgeneric::NDTCell	typeref:typename:Eigen::Matrix3d
+covariance	oru_minimal/src/ndt_matcher_d2d.cpp	/^bool NDTMatcherD2D::covariance( NDTMap& targetNDT,$/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:bool
+covariance	oru_minimal/src/ndt_matcher_d2d.cpp	/^bool NDTMatcherD2D::covariance( pcl::PointCloud<pcl::PointXYZ>& target,$/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:bool
+covariance	oru_minimal/src/ndt_matcher_p2d.cpp	/^bool NDTMatcherP2D::covariance( pcl::PointCloud<pcl::PointXYZ>& target,$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:bool
+cropIt	include/se_ndt/features_CI.hpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+cropIt	src/rsdRegister.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud, std/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+cropIt	src/rsdRegister2.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud, std/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+cropIt	src/rsdRegister3.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud, std/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+cropIt	src/semanticRegister.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud, std/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+cstep	oru_minimal/src/ndt_matcher_d2d.cpp	/^int NDTMatcherD2D::MoreThuente::cstep(double& stx, double& fx, double& dx,$/;"	f	class:lslgeneric::NDTMatcherD2D::MoreThuente	typeref:typename:int
+cstep	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^int NDTMatcherD2D_2D::MoreThuente::cstep(double& stx, double& fx, double& dx,$/;"	f	class:lslgeneric::NDTMatcherD2D_2D::MoreThuente	typeref:typename:int
+cstep	oru_minimal/src/ndt_matcher_p2d.cpp	/^int NDTMatcherP2D::MoreThuente::cstep(double& stx, double& fx, double& dx,$/;"	f	class:lslgeneric::NDTMatcherP2D::MoreThuente	typeref:typename:int
+cstep	src/ndt_matcher_p2d_se.cpp	/^int NDTMatcherP2D_SE::MoreThuente::cstep(double& stx, double& fx, double& dx,$/;"	f	class:lslgeneric::NDTMatcherP2D_SE::MoreThuente	typeref:typename:int
+ctr	include/se_ndt/ndt_fuser_hmt_se.h	/^		int ctr;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:int
+current_resolution	include/se_ndt/ndt_matcher_p2d_se.h	/^    double current_resolution;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:double
+current_resolution	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    double current_resolution;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:double
+current_resolution	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    double current_resolution;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:double
+current_resolution	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    double current_resolution;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:double
+cx	oru_minimal/include/ndt_map/depth_camera.h	/^    double fx, fy, cx, cy, ds, scale_;$/;"	m	class:lslgeneric::DepthCamera	typeref:typename:double
+cy	oru_minimal/include/ndt_map/depth_camera.h	/^    double fx, fy, cx, cy, ds, scale_;$/;"	m	class:lslgeneric::DepthCamera	typeref:typename:double
+d1	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+d1	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+d1_	oru_minimal/include/ndt_map/ndt_cell.h	/^    double d1_,d2_;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+d2	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+d2	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+d2_	oru_minimal/include/ndt_map/ndt_cell.h	/^    double d1_,d2_;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+d3	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+d3	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+dRdx	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,3,3> dRdx, dRdy, dRdz;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,3,3>
+dRdxdx	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,3,3> dRdxdx, dRdxdy, dRdxdz, dRdydy, dRdydz, dRdzdz;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,3,3>
+dRdxdy	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,3,3> dRdxdx, dRdxdy, dRdxdz, dRdydy, dRdydz, dRdzdz;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,3,3>
+dRdxdz	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,3,3> dRdxdx, dRdxdy, dRdxdz, dRdydy, dRdydz, dRdzdz;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,3,3>
+dRdy	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,3,3> dRdx, dRdy, dRdz;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,3,3>
+dRdydy	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,3,3> dRdxdx, dRdxdy, dRdxdz, dRdydy, dRdydz, dRdzdz;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,3,3>
+dRdydz	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,3,3> dRdxdx, dRdxdy, dRdxdz, dRdydy, dRdydz, dRdzdz;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,3,3>
+dRdz	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,3,3> dRdx, dRdy, dRdz;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,3,3>
+dRdzdz	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,3,3> dRdxdx, dRdxdy, dRdxdz, dRdydy, dRdydz, dRdzdz;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,3,3>
+dataArray	oru_minimal/include/ndt_map/lazy_grid.h	/^    NDTCell ****dataArray;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:NDTCell ****
+derivativesNDT	oru_minimal/src/ndt_matcher_d2d.cpp	/^double NDTMatcherD2D::derivativesNDT($/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:double
+derivativesNDT	src/ndt_matcher_d2d_se.cpp	/^double NDTMatcherD2D_SE::derivativesNDT($/;"	f	class:lslgeneric::NDTMatcherD2D_SE	typeref:typename:double
+derivativesNDT_2d	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^double NDTMatcherD2D_2D::derivativesNDT_2d($/;"	f	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:double
+derivativesPointCloud	oru_minimal/src/ndt_matcher_p2d.cpp	/^void NDTMatcherP2D::derivativesPointCloud(pcl::PointCloud<pcl::PointXYZ> &source,$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:void
+derivativesPointCloud	src/ndt_matcher_p2d_se.cpp	/^void NDTMatcherP2D_SE::derivativesPointCloud(pcl::PointCloud<pcl::PointXYZ> *source,$/;"	f	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:void
+directions	oru_minimal/include/ndt_map/ndt_histogram.h	/^    std::vector<Eigen::Vector3d,Eigen::aligned_allocator<Eigen::Vector3d> > directions;$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:std::vector<Eigen::Vector3d,Eigen::aligned_allocator<Eigen::Vector3d>>
+dist	oru_minimal/include/ndt_map/depth_camera.h	/^    std::vector<double> dist;$/;"	m	class:lslgeneric::DepthCamera	typeref:typename:std::vector<double>
+dist_histogramBinsFlat	oru_minimal/include/ndt_map/ndt_histogram.h	/^    std::vector<int> dist_histogramBinsFlat[3];$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:std::vector<int>[3]
+dist_histogramBinsLine	oru_minimal/include/ndt_map/ndt_histogram.h	/^    std::vector<int> dist_histogramBinsLine[3];$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:std::vector<int>[3]
+dist_histogramBinsSphere	oru_minimal/include/ndt_map/ndt_histogram.h	/^    std::vector<int> dist_histogramBinsSphere[3];$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:std::vector<int>[3]
+ds	oru_minimal/include/ndt_map/depth_camera.h	/^    double fx, fy, cx, cy, ds, scale_;$/;"	m	class:lslgeneric::DepthCamera	typeref:typename:double
+e1	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+e1	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+e2	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+e2	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+e3	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+e3	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+edata	oru_minimal/include/ndt_map/ndt_cell.h	/^    TEventData edata;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:TEventData
+emptydist	oru_minimal/include/ndt_map/ndt_cell.h	/^    double emptydist;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+emptylik	oru_minimal/include/ndt_map/ndt_cell.h	/^    double emptylik;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+emptyval	oru_minimal/include/ndt_map/ndt_cell.h	/^    int emptyval;			\/\/\/The number of times a cell was observed empty (using ray casting)$/;"	m	class:lslgeneric::NDTCell	typeref:typename:int
+end	oru_minimal/src/cell_vector.cpp	/^typename SpatialIndex::CellVectorItr CellVector::end()$/;"	f	class:lslgeneric::CellVector	typeref:typename:SpatialIndex::CellVectorItr
+end	oru_minimal/src/lazy_grid.cpp	/^typename SpatialIndex::CellVectorItr LazyGrid::end()$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:SpatialIndex::CellVectorItr
+entryL	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    double entryL()$/;"	f	struct:TEventData	typeref:typename:double
+evals_	oru_minimal/include/ndt_map/ndt_cell.h	/^    Eigen::Vector3d evals_; \/\/\/ Eigen values$/;"	m	class:lslgeneric::NDTCell	typeref:typename:Eigen::Vector3d
+evecs_	oru_minimal/include/ndt_map/ndt_cell.h	/^    Eigen::Matrix3d evecs_; \/\/\/ Eigen vectors$/;"	m	class:lslgeneric::NDTCell	typeref:typename:Eigen::Matrix3d
+events	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    uint64_t  events;        \/\/\/ A storage for the last 64 events (as bits)$/;"	m	struct:TEventData	typeref:typename:uint64_t
+exitL	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    double exitL()$/;"	f	struct:TEventData	typeref:typename:double
+f1	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+f1	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+f2	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+f2	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+f3	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+f3	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d a2,a3, b2,b3, c2,c3, d1,d2,d3, e1,e2,e3, f1,f2,f3;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+fAddTimes	include/se_ndt/ndt_fuser_hmt_se.h	/^	FILE *fAddTimes, *fRegTimes;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:FILE *
+fRegTimes	include/se_ndt/ndt_fuser_hmt_se.h	/^	FILE *fAddTimes, *fRegTimes;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:FILE **
+fac	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    double fac(int n)$/;"	f	struct:TEventData	typeref:typename:double
+finalscore	include/se_ndt/ndt_matcher_p2d_se.h	/^    double finalscore;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:double
+finalscore	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    double finalscore;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:double
+finalscore	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    double finalscore;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:double
+finalscore	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    double finalscore;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:double
+firstRun	include/se_ndt/ndt_fuser_hmt_se.h	/^	bool visualize,firstRun;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:bool
+firstRun	include/se_ndt/se_ndt.hpp	/^		bool firstRun;$/;"	m	class:NDTMatch_SE	typeref:typename:bool
+fuseIncomplete	include/se_ndt/ndt_fuser_hmt_se.h	/^		bool fuseIncomplete, beHMT,canUpdate;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:bool
+fx	oru_minimal/include/ndt_map/depth_camera.h	/^    double fx, fy, cx, cy, ds, scale_;$/;"	m	class:lslgeneric::DepthCamera	typeref:typename:double
+fy	oru_minimal/include/ndt_map/depth_camera.h	/^    double fx, fy, cx, cy, ds, scale_;$/;"	m	class:lslgeneric::DepthCamera	typeref:typename:double
+generateScoreDebug	oru_minimal/src/ndt_matcher_p2d.cpp	/^void NDTMatcherP2D::generateScoreDebug(const char* out, pcl::PointCloud<pcl::PointXYZ>& fixed,$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:void
+geomDist	oru_minimal/include/ndt_map/impl/pointcloud_utils.hpp	/^double geomDist(PointT p1, PointT p2)$/;"	f	namespace:lslgeneric	typeref:typename:double
+getAllCells	oru_minimal/src/ndt_map.cpp	/^std::vector<lslgeneric::NDTCell*> NDTMap::getAllCells() const$/;"	f	class:lslgeneric::NDTMap	typeref:typename:std::vector<lslgeneric::NDTCell * >
+getAllCells	oru_minimal/src/ndt_map_hmt.cpp	/^std::vector<lslgeneric::NDTCell*> NDTMapHMT::getAllCells() const$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:std::vector<lslgeneric::NDTCell * >
+getAllInitializedCells	oru_minimal/src/ndt_map.cpp	/^std::vector<lslgeneric::NDTCell*> NDTMap::getAllInitializedCells()$/;"	f	class:lslgeneric::NDTMap	typeref:typename:std::vector<lslgeneric::NDTCell * >
+getAllInitializedCells	oru_minimal/src/ndt_map_hmt.cpp	/^std::vector<lslgeneric::NDTCell*> NDTMapHMT::getAllInitializedCells()$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:std::vector<lslgeneric::NDTCell * >
+getBit	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    bool getBit(int ind)$/;"	f	struct:TEventData	typeref:typename:bool
+getCameraMatrix	oru_minimal/include/ndt_map/depth_camera.h	/^    inline cv::Mat getCameraMatrix(double fx, double fy, double cx, double cy)$/;"	f	class:lslgeneric::DepthCamera	typeref:typename:cv::Mat
+getCellAt	oru_minimal/include/ndt_map/lazy_grid.h	/^    virtual inline void getCellAt(const pcl::PointXYZ& pt, NDTCell* &cell){$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+getCellAt	oru_minimal/include/ndt_map/lazy_grid.h	/^    virtual inline void getCellAt(int indX, int indY, int indZ, NDTCell* &cell){$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+getCellAtPoint	oru_minimal/src/ndt_map.cpp	/^bool NDTMap::getCellAtPoint(const pcl::PointXYZ &refPoint, NDTCell *&cell)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:bool
+getCellAtPoint	oru_minimal/src/ndt_map_hmt.cpp	/^bool NDTMapHMT::getCellAtPoint(const pcl::PointXYZ &refPoint, NDTCell *&cell)$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:bool
+getCellForPoint	oru_minimal/src/cell_vector.cpp	/^NDTCell* CellVector::getCellForPoint(const pcl::PointXYZ &point)$/;"	f	class:lslgeneric::CellVector	typeref:typename:NDTCell *
+getCellForPoint	oru_minimal/src/lazy_grid.cpp	/^NDTCell* LazyGrid::getCellForPoint(const pcl::PointXYZ &point)$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:NDTCell *
+getCellForPoint	oru_minimal/src/ndt_map.cpp	/^bool NDTMap::getCellForPoint(const pcl::PointXYZ &pt, NDTCell* &out_cell, bool checkForGaussian)/;"	f	class:lslgeneric::NDTMap	typeref:typename:bool
+getCellForPoint	oru_minimal/src/ndt_map_hmt.cpp	/^bool NDTMapHMT::getCellForPoint(const pcl::PointXYZ &pt, NDTCell* &out_cell, bool checkForGaussi/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:bool
+getCellIdx	oru_minimal/src/cell_vector.cpp	/^NDTCell* CellVector::getCellIdx(unsigned int idx) const$/;"	f	class:lslgeneric::CellVector	typeref:typename:NDTCell *
+getCellIdx	oru_minimal/src/ndt_map.cpp	/^NDTCell* NDTMap::getCellIdx(unsigned int idx) const$/;"	f	class:lslgeneric::NDTMap	typeref:typename:NDTCell *
+getCellSize	oru_minimal/src/lazy_grid.cpp	/^void LazyGrid::getCellSize(double &cx, double &cy, double &cz)$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+getCellSizeInMeters	oru_minimal/include/ndt_map/ndt_map.h	/^    bool getCellSizeInMeters(double &cx, double &cy, double &cz)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:bool
+getCellsForPoint	oru_minimal/src/ndt_map.cpp	/^std::vector<NDTCell*> NDTMap::getCellsForPoint(const pcl::PointXYZ pt, int n_neigh, bool checkFo/;"	f	class:lslgeneric::NDTMap	typeref:typename:std::vector<NDTCell * >
+getCellsForPoint	oru_minimal/src/ndt_map_hmt.cpp	/^std::vector<NDTCell*> NDTMapHMT::getCellsForPoint(const pcl::PointXYZ pt, int n_neigh, bool chec/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:std::vector<NDTCell * >
+getCenter	oru_minimal/include/ndt_map/ndt_cell.h	/^    inline pcl::PointXYZ getCenter() const$/;"	f	class:lslgeneric::NDTCell	typeref:typename:pcl::PointXYZ
+getCenter	oru_minimal/src/lazy_grid.cpp	/^void LazyGrid::getCenter(double &cx, double &cy, double &cz)$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+getCentroid	oru_minimal/include/ndt_map/ndt_map.h	/^    virtual bool getCentroid(double &cx, double &cy, double &cz)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:bool
+getCentroid	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    virtual bool getCentroid(double &cx, double &cy, double &cz)$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:bool
+getClass	oru_minimal/include/ndt_map/ndt_cell.h	/^    inline CellClass getClass() const$/;"	f	class:lslgeneric::NDTCell	typeref:typename:CellClass
+getClosestCells	oru_minimal/src/lazy_grid.cpp	/^std::vector<NDTCell*> LazyGrid::getClosestCells(const pcl::PointXYZ &pt)$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:std::vector<NDTCell * >
+getClosestNDTCell	oru_minimal/src/cell_vector.cpp	/^NDTCell* CellVector::getClosestNDTCell(const pcl::PointXYZ &point)$/;"	f	class:lslgeneric::CellVector	typeref:typename:NDTCell *
+getClosestNDTCell	oru_minimal/src/lazy_grid.cpp	/^NDTCell* LazyGrid::getClosestNDTCell(const pcl::PointXYZ &point, bool checkForGaussian)$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:NDTCell *
+getClosestNDTCells	oru_minimal/src/cell_vector.cpp	/^std::vector<NDTCell*> CellVector::getClosestNDTCells(const pcl::PointXYZ &point, double &radius)$/;"	f	class:lslgeneric::CellVector	typeref:typename:std::vector<NDTCell * >
+getClosestNDTCells	oru_minimal/src/lazy_grid.cpp	/^std::vector<NDTCell*> LazyGrid::getClosestNDTCells(const pcl::PointXYZ &point, int &n_neigh, boo/;"	f	class:lslgeneric::LazyGrid	typeref:typename:std::vector<NDTCell * >
+getCloud	include/se_ndt/features_CI.hpp	/^pcl::PointCloud<pcl::PointXYZ>  getCloud(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZ>
+getCloud2	src/polesRegister.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloud2	src/polesRegister_fuser.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename,bool skip=false)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloud2	src/polesRegister_kalman.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloud2	src/rsdRegister.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename, bool skip=false)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloud2	src/rsdRegister2.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename, bool skip=false)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloud2	src/rsdRegister3.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename, bool skip=false)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloud2	src/rsd_register_fuser.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloud2	src/semanticRegister.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename, bool skip=false)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloud2	src/smoothness.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloudI	include/se_ndt/features_CI.hpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloudI(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloudXYZ	src/polesRegister_ndt.cpp	/^pcl::PointCloud<pcl::PointXYZ>::Ptr  getCloudXYZ(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZ>::Ptr
+getCornerness	include/se_ndt/features_CI.hpp	/^std::vector<double> getCornerness(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn,float R)$/;"	f	typeref:typename:std::vector<double>
+getCornerness2	include/se_ndt/features_CI.hpp	/^std::vector<double> getCornerness2(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn,int K)$/;"	f	typeref:typename:std::vector<double>
+getCov	oru_minimal/include/ndt_map/ndt_cell.h	/^    inline Eigen::Matrix3d getCov() const$/;"	f	class:lslgeneric::NDTCell	typeref:typename:Eigen::Matrix3d
+getDataArrayPtr	oru_minimal/include/ndt_map/lazy_grid.h	/^    NDTCell ****getDataArrayPtr()$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:NDTCell ****
+getDepth	oru_minimal/src/ndt_map.cpp	/^double NDTMap::getDepth(Eigen::Vector3d origin, Eigen::Vector3d dir, double maxDepth){$/;"	f	class:lslgeneric::NDTMap	typeref:typename:double
+getDepthSmooth	oru_minimal/src/ndt_map.cpp	/^double NDTMap::getDepthSmooth(Eigen::Vector3d origin,$/;"	f	class:lslgeneric::NDTMap	typeref:typename:double
+getDiagonal	oru_minimal/include/ndt_map/ndt_cell.h	/^    virtual double getDiagonal() const$/;"	f	class:lslgeneric::NDTCell	typeref:typename:double
+getDimensions	oru_minimal/include/ndt_map/ndt_cell.h	/^    inline void getDimensions(double &xs, double &ys, double &zs) const$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+getDistVector	oru_minimal/include/ndt_map/depth_camera.h	/^    inline cv::Mat getDistVector(double d0, double d1, double d2, double d3, double d4)$/;"	f	class:lslgeneric::DepthCamera	typeref:typename:cv::Mat
+getDoubleTime	include/se_ndt/ndt_fuser_hmt_se.h	/^	double getDoubleTime()$/;"	f	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:double
+getDynamicLikelihood	oru_minimal/include/ndt_map/ndt_cell.h	/^    float getDynamicLikelihood(unsigned int N)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:float
+getEmptyval	oru_minimal/include/ndt_map/ndt_cell.h	/^    int getEmptyval()$/;"	f	class:lslgeneric::NDTCell	typeref:typename:int
+getEntryN	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    int getEntryN()$/;"	f	struct:TEventData	typeref:typename:int
+getEvals	oru_minimal/include/ndt_map/ndt_cell.h	/^    inline Eigen::Vector3d getEvals() const$/;"	f	class:lslgeneric::NDTCell	typeref:typename:Eigen::Vector3d
+getEvecs	oru_minimal/include/ndt_map/ndt_cell.h	/^    inline Eigen::Matrix3d getEvecs() const$/;"	f	class:lslgeneric::NDTCell	typeref:typename:Eigen::Matrix3d
+getEventData	oru_minimal/include/ndt_map/ndt_cell.h	/^    TEventData getEventData()$/;"	f	class:lslgeneric::NDTCell	typeref:typename:TEventData
+getExitN	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    int getExitN()$/;"	f	struct:TEventData	typeref:typename:int
+getFreeStaticLikelihood	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    float getFreeStaticLikelihood()$/;"	f	struct:TEventData	typeref:typename:float
+getGridSize	oru_minimal/include/ndt_map/ndt_map.h	/^    bool getGridSize(int &cx, int &cy, int &cz)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:bool
+getGridSize	oru_minimal/src/lazy_grid.cpp	/^void LazyGrid::getGridSize(int &cx, int &cy, int &cz)$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+getGridSizeInMeters	oru_minimal/include/ndt_map/ndt_map.h	/^    bool getGridSizeInMeters(double &cx, double &cy, double &cz)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:bool
+getGridSizeInMeters	oru_minimal/src/lazy_grid.cpp	/^void LazyGrid::getGridSizeInMeters(double &cx, double &cy, double &cz)$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+getHes	src/se_ndt.cpp	/^Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> sco/;"	f	typeref:typename:Eigen::Matrix<double,6,6>
+getIndexForPoint	oru_minimal/src/lazy_grid.cpp	/^void LazyGrid::getIndexForPoint(const pcl::PointXYZ& point, int &indX, int &indY, int &indZ)$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+getInitializedCellsForPoint	oru_minimal/src/ndt_map.cpp	/^std::vector<NDTCell*> NDTMap::getInitializedCellsForPoint(const pcl::PointXYZ pt) const$/;"	f	class:lslgeneric::NDTMap	typeref:typename:std::vector<NDTCell * >
+getInitializedCellsForPoint	oru_minimal/src/ndt_map_hmt.cpp	/^std::vector<NDTCell*> NDTMapHMT::getInitializedCellsForPoint(const pcl::PointXYZ pt) const$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:std::vector<NDTCell * >
+getInverseCov	oru_minimal/include/ndt_map/ndt_cell.h	/^    inline Eigen::Matrix3d getInverseCov() const$/;"	f	class:lslgeneric::NDTCell	typeref:typename:Eigen::Matrix3d
+getLikelihood	oru_minimal/src/ndt_cell.cpp	/^double NDTCell::getLikelihood(const pcl::PointXYZ &pt) const$/;"	f	class:lslgeneric::NDTCell	typeref:typename:double
+getLikelihoodForPoint	oru_minimal/src/ndt_map.cpp	/^double NDTMap::getLikelihoodForPoint(pcl::PointXYZ pt)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:double
+getLikelihoodForPoint	oru_minimal/src/ndt_map_hmt.cpp	/^double NDTMapHMT::getLikelihoodForPoint(pcl::PointXYZ pt)$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:double
+getMean	oru_minimal/include/ndt_map/ndt_cell.h	/^    inline Eigen::Vector3d getMean() const$/;"	f	class:lslgeneric::NDTCell	typeref:typename:Eigen::Vector3d
+getMeasure	src/polesRegister.cpp	/^vector<double>  getMeasure(string filename)$/;"	f	typeref:typename:vector<double>
+getMeasure	src/polesRegister_fuser.cpp	/^vector<double>  getMeasure(string filename)$/;"	f	typeref:typename:vector<double>
+getMeasure	src/polesRegister_kalman.cpp	/^vector<double>  getMeasure(string filename)$/;"	f	typeref:typename:vector<double>
+getMeasure	src/rsdRegister.cpp	/^vector<double>  getMeasure(string filename)$/;"	f	typeref:typename:vector<double>
+getMeasure	src/rsdRegister2.cpp	/^vector<double>  getMeasure(string filename)$/;"	f	typeref:typename:vector<double>
+getMeasure	src/rsdRegister3.cpp	/^vector<double>  getMeasure(string filename)$/;"	f	typeref:typename:vector<double>
+getMeasure	src/rsd_register_fuser.cpp	/^vector<double>  getMeasure(string filename)$/;"	f	typeref:typename:vector<double>
+getMeasure	src/semanticRegister.cpp	/^vector<double>  getMeasure(string filename)$/;"	f	typeref:typename:vector<double>
+getMyIndex	oru_minimal/include/ndt_map/ndt_map.h	/^    inline SpatialIndex* getMyIndex() const$/;"	f	class:lslgeneric::NDTMap	typeref:typename:SpatialIndex *
+getMyIndexInt	oru_minimal/src/ndt_map.cpp	/^int NDTMap::getMyIndexInt() const$/;"	f	class:lslgeneric::NDTMap	typeref:typename:int
+getMyIndexStr	oru_minimal/src/ndt_map.cpp	/^std::string NDTMap::getMyIndexStr() const$/;"	f	class:lslgeneric::NDTMap	typeref:typename:std::string
+getN	oru_minimal/include/ndt_map/ndt_cell.h	/^    int getN()$/;"	f	class:lslgeneric::NDTCell	typeref:typename:int
+getNDTCellAt	oru_minimal/include/ndt_map/lazy_grid.h	/^    virtual inline void getNDTCellAt(const pcl::PointXYZ& pt, NDTCell* &cell){$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+getNDTCellAt	oru_minimal/include/ndt_map/lazy_grid.h	/^    virtual inline void getNDTCellAt(int indX, int indY, int indZ, NDTCell* &cell){$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+getNeighbors	oru_minimal/src/cell_vector.cpp	/^void CellVector::getNeighbors(const pcl::PointXYZ &point, const double &radius, std::vector<NDTC/;"	f	class:lslgeneric::CellVector	typeref:typename:void
+getNeighbors	oru_minimal/src/lazy_grid.cpp	/^void LazyGrid::getNeighbors(const pcl::PointXYZ &point, const double &radius, std::vector<NDTCel/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+getObservations	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    int getObservations()$/;"	f	struct:TEventData	typeref:typename:int
+getOccStaticLikelihood	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    float getOccStaticLikelihood()$/;"	f	struct:TEventData	typeref:typename:float
+getOccupancy	oru_minimal/include/ndt_map/ndt_cell.h	/^    float getOccupancy()$/;"	f	class:lslgeneric::NDTCell	typeref:typename:float
+getOccupancyNow	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    float getOccupancyNow()$/;"	f	struct:TEventData	typeref:typename:float
+getOccupancyRescaled	oru_minimal/include/ndt_map/ndt_cell.h	/^    float getOccupancyRescaled()$/;"	f	class:lslgeneric::NDTCell	typeref:typename:float
+getPose	include/se_ndt/features_CI.hpp	/^std::vector<Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> > getPose(string filename)$/;"	f	typeref:typename:std::vector<Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>>
+getProtoType	oru_minimal/include/ndt_map/lazy_grid.h	/^    NDTCell* getProtoType()$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:NDTCell *
+getRGB	oru_minimal/include/ndt_map/ndt_cell.h	/^    void getRGB(float &r, float &g, float &b)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+getRSD	include/se_ndt/features_CI.hpp	/^std::vector<double> getRSD(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, float a,float b, float c,/;"	f	typeref:typename:std::vector<double>
+getSegments	src/se_ndt.cpp	/^vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointCloud<pcl::PointX/;"	f	class:NDTMatch_SE	typeref:typename:vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>
+getTrans	src/concat_transform.cpp	/^Eigen::Affine3d getTrans(istream &infile)$/;"	f	typeref:typename:Eigen::Affine3d
+getTransform	oru_minimal/include/ndt_map/ndt_histogram.h	/^    double getTransform(size_t FIT_NUMBER, Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMaj/;"	f	class:lslgeneric::NDTHistogram	typeref:typename:double
+grid_	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    lslgeneric::LazyGrid* grid_[3][3];$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:lslgeneric::LazyGrid * [3][3]
+grids_init	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    bool grids_init;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:bool
+guessSize	oru_minimal/include/ndt_map/ndt_map.h	/^    void guessSize(float cenx, float ceny, float cenz, float sizex, float sizey, float sizez) {$/;"	f	class:lslgeneric::NDTMap	typeref:typename:void
+guess_size_	oru_minimal/include/ndt_map/ndt_map.h	/^    bool guess_size_;$/;"	m	class:lslgeneric::NDTMap	typeref:typename:bool
+hasGaussian_	oru_minimal/include/ndt_map/ndt_cell.h	/^    bool hasGaussian_;	\/\/\/< indicates if the cell has a gaussian in it$/;"	m	class:lslgeneric::NDTCell	typeref:typename:bool
+histogramBinsFlat	oru_minimal/include/ndt_map/ndt_histogram.h	/^    std::vector<int> histogramBinsFlat;$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:std::vector<int>
+histogramBinsLine	oru_minimal/include/ndt_map/ndt_histogram.h	/^    std::vector<int> histogramBinsLine;$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:std::vector<int>
+histogramBinsSphere	oru_minimal/include/ndt_map/ndt_histogram.h	/^    std::vector<int> histogramBinsSphere;$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:std::vector<int>
+hmt_map_dir	include/se_ndt/ndt_fuser_hmt_se.h	/^		std::string hmt_map_dir;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:std::string
+icov_	oru_minimal/include/ndt_map/ndt_cell.h	/^    Eigen::Matrix3d icov_;  \/\/\/ Precomputed inverse covariance (updated every time the cell i/;"	m	class:lslgeneric::NDTCell	typeref:typename:Eigen::Matrix3d
+ignore	include/se_ndt/ndt_fuser_hmt_se.h	/^		initializer_list<float> ignore,size;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:initializer_list<float>
+ignore	include/se_ndt/se_ndt.hpp	/^		initializer_list<float> ignore,size;$/;"	m	class:NDTMatch_SE	typeref:typename:initializer_list<float>
+index_	oru_minimal/include/ndt_map/ndt_map.h	/^    SpatialIndex *index_;$/;"	m	class:lslgeneric::NDTMap	typeref:typename:SpatialIndex *
+index_	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    SpatialIndex *index_;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:SpatialIndex *
+index_selector	src/se_ndt.cpp	/^inline size_t index_selector(size_t **I,int p,int num,std::vector<int> Tails,size_t number_point/;"	f	typeref:typename:size_t
+init	oru_minimal/src/ndt_matcher_d2d.cpp	/^void NDTMatcherD2D::init(bool _isIrregularGrid,$/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:void
+init	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^void NDTMatcherD2D_2D::init(bool _isIrregularGrid,$/;"	f	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:void
+init	oru_minimal/src/ndt_matcher_p2d.cpp	/^void NDTMatcherP2D::init(bool useDefaultGridResolutions, std::vector<double> _resolutions)$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:void
+init	src/ndt_matcher_p2d_se.cpp	/^void NDTMatcherP2D_SE::init()$/;"	f	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:void
+initKDTree	oru_minimal/src/cell_vector.cpp	/^void CellVector::initKDTree()$/;"	f	class:lslgeneric::CellVector	typeref:typename:void
+initMap	src/se_ndt.cpp	/^lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolutions_, initializer_/;"	f	typeref:typename:lslgeneric::NDTMap **
+inited	oru_minimal/include/ndt_map/ndt_histogram.h	/^    bool inited;$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:bool
+initialize	oru_minimal/include/ndt_map/ndt_map.h	/^    void initialize(double cenx, double ceny, double cenz, double sizex, double sizey, double si/;"	f	class:lslgeneric::NDTMap	typeref:typename:void
+initialize	oru_minimal/src/lazy_grid.cpp	/^void LazyGrid::initialize()$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+initializeAll	oru_minimal/src/lazy_grid.cpp	/^void LazyGrid::initializeAll()$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+initializeGrids	oru_minimal/src/ndt_map_hmt.cpp	/^void NDTMapHMT::initializeGrids() {$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:void
+initialized	oru_minimal/include/ndt_map/lazy_grid.h	/^    bool initialized;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:bool
+is3D	oru_minimal/include/ndt_map/ndt_map.h	/^    bool is3D;$/;"	m	class:lslgeneric::NDTMap	typeref:typename:bool
+is3D	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    bool is3D;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:bool
+isEmpty	oru_minimal/include/ndt_map/ndt_cell.h	/^    char isEmpty;	\/\/\/<based on the most recent observation, is the cell seen empty (1), occup/;"	m	class:lslgeneric::NDTCell	typeref:typename:char
+isFirstLoad_	oru_minimal/include/ndt_map/ndt_map.h	/^    bool isFirstLoad_;$/;"	m	class:lslgeneric::NDTMap	typeref:typename:bool
+isFirstLoad_	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    bool isFirstLoad_;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:bool
+isFloatImg	oru_minimal/include/ndt_map/depth_camera.h	/^    bool isFloatImg;$/;"	m	class:lslgeneric::DepthCamera	typeref:typename:bool
+isInside	oru_minimal/include/ndt_map/lazy_grid.h	/^    bool isInside(const pcl::PointXYZ& pt) {$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:bool
+isInside	oru_minimal/include/ndt_map/ndt_cell.h	/^    inline bool isInside(const pcl::PointXYZ pt) const$/;"	f	class:lslgeneric::NDTCell	typeref:typename:bool
+isIrregularGrid	include/se_ndt/ndt_matcher_p2d_se.h	/^    bool isIrregularGrid;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:bool
+isIrregularGrid	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    bool isIrregularGrid;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:bool
+isIrregularGrid	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    bool isIrregularGrid;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:bool
+isIrregularGrid	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    bool isIrregularGrid;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:bool
+iteration_counter_internal	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    int iteration_counter_internal;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:int
+iteration_counter_internal	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    int iteration_counter_internal;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:int
+jest04	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+jest04	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+jest05	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+jest05	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+jest13	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+jest13	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+jest14	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+jest14	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+jest15	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+jest15	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+jest23	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+jest23	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+jest24	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+jest24	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+jest25	include/se_ndt/ndt_matcher_p2d_se.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:Eigen::Vector3d
+jest25	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    Eigen::Vector3d jest13, jest23, jest04, jest14, jest24, jest05, jest15, jest25;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:Eigen::Vector3d
+laserCloud_c	include/se_ndt/ndt_fuser_hmt_se.h	/^		std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud_c;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>
+last_insert	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    Eigen::Vector3d last_insert;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:Eigen::Vector3d
+lfd1	include/se_ndt/ndt_matcher_p2d_se.h	/^    double lfd1,lfd2;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:double
+lfd1	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    double lfd1,lfd2;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:double
+lfd1	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    double lfd1,lfd2;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:double
+lfd1	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    double lfd1,lfd2;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:double
+lfd2	include/se_ndt/ndt_matcher_p2d_se.h	/^    double lfd1,lfd2;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:double
+lfd2	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    double lfd1,lfd2;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:double
+lfd2	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    double lfd1,lfd2;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:double
+lfd2	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    double lfd1,lfd2;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:double
+lineSearch2D	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^double NDTMatcherD2D_2D::lineSearch2D($/;"	f	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:double
+lineSearchMT	oru_minimal/src/ndt_matcher_d2d.cpp	/^double NDTMatcherD2D::lineSearchMT($/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:double
+lineSearchMT	oru_minimal/src/ndt_matcher_p2d.cpp	/^double NDTMatcherP2D::lineSearchMT(  Eigen::Matrix<double,6,1> &score_gradient_init,$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:double
+lineSearchMT	src/ndt_matcher_d2d_se.cpp	/^double NDTMatcherD2D_SE::lineSearchMT($/;"	f	class:lslgeneric::NDTMatcherD2D_SE	typeref:typename:double
+lineSearchMT	src/ndt_matcher_p2d_se.cpp	/^double NDTMatcherP2D_SE::lineSearchMT(  Eigen::Matrix<double,6,1> &score_gradient_init,$/;"	f	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:double
+loadDepthImage	oru_minimal/src/ndt_map.cpp	/^void NDTMap::loadDepthImage(const cv::Mat& depthImage, DepthCamera<pcl::PointXYZ> &cameraParams)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:void
+loadDepthImageFeatures	oru_minimal/src/ndt_map.cpp	/^pcl::PointCloud<pcl::PointXYZ> NDTMap::loadDepthImageFeatures(const cv::Mat& depthImage, std::ve/;"	f	class:lslgeneric::NDTMap	typeref:typename:pcl::PointCloud<pcl::PointXYZ>
+loadFrom	oru_minimal/src/ndt_map_hmt.cpp	/^int NDTMapHMT::loadFrom()$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:int
+loadFromJFF	oru_minimal/include/ndt_map/spatial_index.h	/^    virtual int loadFromJFF(FILE * jffin) const$/;"	f	class:lslgeneric::SpatialIndex	typeref:typename:int
+loadFromJFF	oru_minimal/src/cell_vector.cpp	/^int CellVector::loadFromJFF(FILE * jffin)$/;"	f	class:lslgeneric::CellVector	typeref:typename:int
+loadFromJFF	oru_minimal/src/lazy_grid.cpp	/^int LazyGrid::loadFromJFF(FILE * jffin)$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:int
+loadFromJFF	oru_minimal/src/ndt_cell.cpp	/^int NDTCell::loadFromJFF(FILE * jffin)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:int
+loadFromJFF	oru_minimal/src/ndt_map.cpp	/^int NDTMap::loadFromJFF(const char* filename)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:int
+loadJFFEventData	oru_minimal/src/ndt_cell.cpp	/^int NDTCell::loadJFFEventData(FILE * jffin, TEventData &evdata)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:int
+loadJFFMatrix	oru_minimal/src/ndt_cell.cpp	/^int NDTCell::loadJFFMatrix(FILE * jffin, Eigen::Matrix3d &mat)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:int
+loadJFFVector	oru_minimal/src/ndt_cell.cpp	/^int NDTCell::loadJFFVector(FILE * jffin, Eigen::Vector3d &vec)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:int
+loadMap	src/se_ndt.cpp	/^void loadMap(lslgeneric::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clo/;"	f	typeref:typename:void
+loadPointCloud	oru_minimal/src/ndt_map.cpp	/^void NDTMap::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, const std::vector<std::vec/;"	f	class:lslgeneric::NDTMap	typeref:typename:void
+loadPointCloud	oru_minimal/src/ndt_map.cpp	/^void NDTMap::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, double range_limit)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:void
+loadPointCloud	oru_minimal/src/ndt_map_hmt.cpp	/^void NDTMapHMT::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, double range_limit)$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:void
+loadPointCloudCentroid	oru_minimal/src/ndt_map.cpp	/^void NDTMap::loadPointCloudCentroid(const pcl::PointCloud<pcl::PointXYZ> &pc, const Eigen::Vecto/;"	f	class:lslgeneric::NDTMap	typeref:typename:void
+localMapSize	include/se_ndt/ndt_fuser_hmt_se.h	/^	Eigen::Vector3d localMapSize;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:Eigen::Vector3d
+localMapSize	include/se_ndt/se_ndt.hpp	/^		Eigen::Vector3d localMapSize;$/;"	m	class:NDTMatch_SE	typeref:typename:Eigen::Vector3d
+lslgeneric	include/se_ndt/ndt_fuser_hmt_se.h	/^namespace lslgeneric {$/;"	n
+lslgeneric	include/se_ndt/ndt_matcher_d2d_se.h	/^namespace lslgeneric$/;"	n
+lslgeneric	include/se_ndt/ndt_matcher_p2d_se.h	/^namespace lslgeneric$/;"	n
+lslgeneric	oru_minimal/include/ndt_map/cell_vector.h	/^namespace lslgeneric$/;"	n
+lslgeneric	oru_minimal/include/ndt_map/depth_camera.h	/^namespace lslgeneric$/;"	n
+lslgeneric	oru_minimal/include/ndt_map/impl/pointcloud_utils.hpp	/^namespace lslgeneric$/;"	n
+lslgeneric	oru_minimal/include/ndt_map/lazy_grid.h	/^namespace lslgeneric$/;"	n
+lslgeneric	oru_minimal/include/ndt_map/ndt_cell.h	/^namespace lslgeneric$/;"	n
+lslgeneric	oru_minimal/include/ndt_map/ndt_histogram.h	/^namespace lslgeneric{$/;"	n
+lslgeneric	oru_minimal/include/ndt_map/ndt_map.h	/^namespace lslgeneric$/;"	n
+lslgeneric	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^namespace lslgeneric$/;"	n
+lslgeneric	oru_minimal/include/ndt_map/pointcloud_utils.h	/^namespace lslgeneric$/;"	n
+lslgeneric	oru_minimal/include/ndt_map/spatial_index.h	/^namespace lslgeneric$/;"	n
+lslgeneric	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^namespace lslgeneric$/;"	n
+lslgeneric	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^namespace lslgeneric$/;"	n
+lslgeneric	oru_minimal/include/ndt_registration/ndt_matcher_d2d_feature.h	/^namespace lslgeneric$/;"	n
+lslgeneric	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^namespace lslgeneric$/;"	n
+lslgeneric	oru_minimal/src/cell_vector.cpp	/^namespace lslgeneric$/;"	n	file:
+lslgeneric	oru_minimal/src/lazy_grid.cpp	/^namespace lslgeneric$/;"	n	file:
+lslgeneric	oru_minimal/src/ndt_cell.cpp	/^namespace lslgeneric$/;"	n	file:
+lslgeneric	oru_minimal/src/ndt_map.cpp	/^namespace lslgeneric$/;"	n	file:
+lslgeneric	oru_minimal/src/ndt_map_hmt.cpp	/^namespace lslgeneric$/;"	n	file:
+lslgeneric	oru_minimal/src/ndt_matcher_d2d.cpp	/^namespace lslgeneric$/;"	n	file:
+lslgeneric	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^namespace lslgeneric$/;"	n	file:
+lslgeneric	oru_minimal/src/ndt_matcher_p2d.cpp	/^namespace lslgeneric$/;"	n	file:
+lslgeneric	src/ndt_fuser_hmt_se.cpp	/^namespace lslgeneric {$/;"	n	file:
+lslgeneric	src/ndt_matcher_d2d_se.cpp	/^namespace lslgeneric$/;"	n	file:
+lslgeneric	src/ndt_matcher_p2d_se.cpp	/^namespace lslgeneric$/;"	n	file:
+main	src/concat_transform.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/polesRegister.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/polesRegister_fuser.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/polesRegister_kalman.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/polesRegister_ndt.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/rsdRegister.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/rsdRegister2.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/rsdRegister3.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/rsd_register_fuser.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/semanticRegister.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/smoothness.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+map	include/se_ndt/ndt_fuser_hmt_se.h	/^		lslgeneric::NDTMap ***map;		 \/\/\/< da map$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:lslgeneric::NDTMap ***
+map	include/se_ndt/se_ndt.hpp	/^		lslgeneric::NDTMap ***map;		 \/\/\/< da map$/;"	m	class:NDTMatch_SE	typeref:typename:lslgeneric::NDTMap ***
+mapLocal	include/se_ndt/ndt_fuser_hmt_se.h	/^		lslgeneric::NDTMap ***mapLocal;		 \/\/\/< da map$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:lslgeneric::NDTMap ***
+mapLocal	include/se_ndt/se_ndt.hpp	/^		lslgeneric::NDTMap ***mapLocal;		 \/\/\/< da map$/;"	m	class:NDTMatch_SE	typeref:typename:lslgeneric::NDTMap ***
+map_sizex	oru_minimal/include/ndt_map/ndt_map.h	/^    float map_sizex;$/;"	m	class:lslgeneric::NDTMap	typeref:typename:float
+map_sizex	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    float map_sizex;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:float
+map_sizey	oru_minimal/include/ndt_map/ndt_map.h	/^    float map_sizey;$/;"	m	class:lslgeneric::NDTMap	typeref:typename:float
+map_sizey	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    float map_sizey;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:float
+map_sizez	oru_minimal/include/ndt_map/ndt_map.h	/^    float map_sizez;$/;"	m	class:lslgeneric::NDTMap	typeref:typename:float
+map_sizez	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    float map_sizez;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:float
+match	oru_minimal/src/ndt_matcher_d2d.cpp	/^bool NDTMatcherD2D::match( NDTMap& targetNDT,$/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:bool
+match	oru_minimal/src/ndt_matcher_d2d.cpp	/^bool NDTMatcherD2D::match( pcl::PointCloud<pcl::PointXYZ>& target,$/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:bool
+match	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^bool NDTMatcherD2D_2D::match( NDTMap& targetNDT,$/;"	f	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:bool
+match	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^bool NDTMatcherD2D_2D::match( pcl::PointCloud<pcl::PointXYZ>& target,$/;"	f	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:bool
+match	oru_minimal/src/ndt_matcher_p2d.cpp	/^bool NDTMatcherP2D::match( NDTMap& targetNDT,$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:bool
+match	oru_minimal/src/ndt_matcher_p2d.cpp	/^bool NDTMatcherP2D::match( pcl::PointCloud<pcl::PointXYZ>& target,$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:bool
+match	src/ndt_fuser_hmt_se.cpp	/^Eigen::Affine3d NDTFuserHMT_SE::match(Eigen::Affine3d Tmotion, pcl::PointCloud<pcl::PointXYZ>::P/;"	f	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:Eigen::Affine3d
+match	src/ndt_matcher_d2d_se.cpp	/^bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,$/;"	f	class:lslgeneric::NDTMatcherD2D_SE	typeref:typename:bool
+match	src/ndt_matcher_p2d_se.cpp	/^bool NDTMatcherP2D_SE::match( NDTMap **targetNDT,$/;"	f	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:bool
+match	src/se_ndt.cpp	/^Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cl/;"	f	class:NDTMatch_SE	typeref:typename:Eigen::Affine3d
+match	src/se_ndt.cpp	/^Eigen::Affine3d NDTMatch_SE::match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<v/;"	f	class:NDTMatch_SE	typeref:typename:Eigen::Affine3d
+matcher	include/se_ndt/ndt_fuser_hmt_se.h	/^	lslgeneric::NDTMatcherD2D_SE matcher;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:lslgeneric::NDTMatcherD2D_SE
+matcher	include/se_ndt/se_ndt.hpp	/^		lslgeneric::NDTMatcherD2D_SE matcher;$/;"	m	class:NDTMatch_SE	typeref:typename:lslgeneric::NDTMatcherD2D_SE
+matcher2D	include/se_ndt/ndt_fuser_hmt_se.h	/^	lslgeneric::NDTMatcherD2D_2D matcher2D;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:lslgeneric::NDTMatcherD2D_2D
+max	oru_minimal/src/ndt_matcher_d2d.cpp	/^double NDTMatcherD2D::MoreThuente::max(double a, double b)$/;"	f	class:lslgeneric::NDTMatcherD2D::MoreThuente	typeref:typename:double
+max	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^double NDTMatcherD2D_2D::MoreThuente::max(double a, double b)$/;"	f	class:lslgeneric::NDTMatcherD2D_2D::MoreThuente	typeref:typename:double
+max	oru_minimal/src/ndt_matcher_p2d.cpp	/^double NDTMatcherP2D::MoreThuente::max(double a, double b)$/;"	f	class:lslgeneric::NDTMatcherP2D::MoreThuente	typeref:typename:double
+max	src/ndt_matcher_p2d_se.cpp	/^double NDTMatcherP2D_SE::MoreThuente::max(double a, double b)$/;"	f	class:lslgeneric::NDTMatcherP2D_SE::MoreThuente	typeref:typename:double
+max_occu_	oru_minimal/include/ndt_map/ndt_cell.h	/^    float max_occu_;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:float
+max_range_	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    double max_range_;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:double
+max_rotation_norm	include/se_ndt/ndt_fuser_hmt_se.h	/^		double max_translation_norm, max_rotation_norm;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:double
+max_translation_norm	include/se_ndt/ndt_fuser_hmt_se.h	/^		double max_translation_norm, max_rotation_norm;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:double
+mean_	oru_minimal/include/ndt_map/ndt_cell.h	/^    Eigen::Vector3d mean_;  \/\/\/ Mean of the normal distribution$/;"	m	class:lslgeneric::NDTCell	typeref:typename:Eigen::Vector3d
+meansTree	oru_minimal/include/ndt_map/cell_vector.h	/^    pcl::KdTreeFLANN<pcl::PointXYZ> meansTree;$/;"	m	class:lslgeneric::CellVector	typeref:typename:pcl::KdTreeFLANN<pcl::PointXYZ>
+min	oru_minimal/src/ndt_matcher_d2d.cpp	/^double NDTMatcherD2D::MoreThuente::min(double a, double b)$/;"	f	class:lslgeneric::NDTMatcherD2D::MoreThuente	typeref:typename:double
+min	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^double NDTMatcherD2D_2D::MoreThuente::min(double a, double b)$/;"	f	class:lslgeneric::NDTMatcherD2D_2D::MoreThuente	typeref:typename:double
+min	oru_minimal/src/ndt_matcher_p2d.cpp	/^double NDTMatcherP2D::MoreThuente::min(double a, double b)$/;"	f	class:lslgeneric::NDTMatcherP2D::MoreThuente	typeref:typename:double
+min	src/ndt_matcher_p2d_se.cpp	/^double NDTMatcherP2D_SE::MoreThuente::min(double a, double b)$/;"	f	class:lslgeneric::NDTMatcherP2D_SE::MoreThuente	typeref:typename:double
+mp	oru_minimal/include/ndt_map/cell_vector.h	/^    typename pcl::KdTree<pcl::PointXYZ>::PointCloudPtr mp;$/;"	m	class:lslgeneric::CellVector	typeref:typename:pcl::KdTree<pcl::PointXYZ>::PointCloudPtr
+my_directory	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    std::string my_directory;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:std::string
+n_neighbours	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    int n_neighbours;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:int
+n_threads	include/se_ndt/features_CI.hpp	/^#define n_threads /;"	d
+n_threads	oru_minimal/src/ndt_matcher_d2d.cpp	/^#define n_threads /;"	d	file:
+n_threads	src/ndt_matcher_d2d_se.cpp	/^#define n_threads /;"	d	file:
+n_threads	src/ndt_matcher_p2d_se.cpp	/^#define n_threads /;"	d	file:
+normalizeAngle	oru_minimal/src/ndt_matcher_d2d.cpp	/^double NDTMatcherD2D::normalizeAngle(double a)$/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:double
+normalizeAngle	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^double NDTMatcherD2D_2D::normalizeAngle(double a)$/;"	f	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:double
+normalizeAngle	oru_minimal/src/ndt_matcher_p2d.cpp	/^double NDTMatcherP2D::normalizeAngle(double a)$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:double
+normalizeAngle	src/ndt_matcher_p2d_se.cpp	/^double NDTMatcherP2D_SE::normalizeAngle(double a)$/;"	f	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:double
+normalizeProb	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    void normalizeProb(float &p)$/;"	f	struct:TEventData	typeref:typename:void
+numberOfActiveCells	oru_minimal/src/ndt_map.cpp	/^int NDTMap::numberOfActiveCells()$/;"	f	class:lslgeneric::NDTMap	typeref:typename:int
+numberOfActiveCells	oru_minimal/src/ndt_map_hmt.cpp	/^int NDTMapHMT::numberOfActiveCells()$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:int
+occ	oru_minimal/include/ndt_map/ndt_cell.h	/^    float occ;   			\/\/\/Occupancy value stored as "Log odds" (if you wish)$/;"	m	class:lslgeneric::NDTCell	typeref:typename:float
+occluded	include/se_ndt/features_CI.hpp	/^int occluded(pcl::PointXYZI a, pcl::PointXYZI b, float d)$/;"	f	typeref:typename:int
+occval	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    uint8_t 	occval; 			\/\/\/<Occupancy value$/;"	m	struct:TEventData	typeref:typename:uint8_t
+operator =	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    const TEventData &operator =(const TEventData &copy)$/;"	f	struct:TEventData	typeref:typename:const TEventData &
+parametersSet_	oru_minimal/include/ndt_map/ndt_cell.h	/^    static bool parametersSet_;													\/\/ ???$/;"	m	class:lslgeneric::NDTCell	typeref:typename:bool
+parametersSet_	oru_minimal/src/ndt_cell.cpp	/^bool NDTCell::parametersSet_ = false;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:bool
+performRecencyFiltering	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    void performRecencyFiltering()$/;"	f	struct:TEventData	typeref:typename:void
+points_	oru_minimal/include/ndt_map/ndt_cell.h	/^    std::vector<pcl::PointXYZ,Eigen::aligned_allocator<pcl::PointXYZ> > points_; \/\/\/The point/;"	m	class:lslgeneric::NDTCell	typeref:typename:std::vector<pcl::PointXYZ,Eigen::aligned_allocator<pcl::PointXYZ>>
+precomputeAngleDerivatives	oru_minimal/src/ndt_matcher_p2d.cpp	/^void NDTMatcherP2D::precomputeAngleDerivatives(Eigen::Vector3d &eulerAngles)$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:void
+precomputeAngleDerivatives	src/ndt_matcher_p2d_se.cpp	/^void NDTMatcherP2D_SE::precomputeAngleDerivatives(Eigen::Vector3d &eulerAngles)$/;"	f	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:void
+predictOccupancy	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    float predictOccupancy(int N)$/;"	f	struct:TEventData	typeref:typename:float
+prefix	include/se_ndt/ndt_fuser_hmt_se.h	/^		std::string prefix;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:std::string
+protoType	oru_minimal/include/ndt_map/cell_vector.h	/^    NDTCell *protoType;$/;"	m	class:lslgeneric::CellVector	typeref:typename:NDTCell *
+protoType	oru_minimal/include/ndt_map/lazy_grid.h	/^    NDTCell *protoType;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:NDTCell *
+pseudoTransformNDT	oru_minimal/src/ndt_map.cpp	/^std::vector<NDTCell*> NDTMap::pseudoTransformNDT(Eigen::Transform<double,3,Eigen::Affine,Eigen::/;"	f	class:lslgeneric::NDTMap	typeref:typename:std::vector<NDTCell * >
+pseudoTransformNDT	oru_minimal/src/ndt_map_hmt.cpp	/^std::vector<NDTCell*> NDTMapHMT::pseudoTransformNDT(Eigen::Transform<double,3,Eigen::Affine,Eige/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:std::vector<NDTCell * >
+pseudoTransformNDTMap	oru_minimal/src/ndt_map.cpp	/^NDTMap* NDTMap::pseudoTransformNDTMap(Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> T/;"	f	class:lslgeneric::NDTMap	typeref:typename:NDTMap *
+regularize	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    bool regularize;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:bool
+removeProbability	include/se_ndt/ndt_fuser_hmt_se.h	/^		float removeProbability;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:float
+removeProbability	include/se_ndt/se_ndt.hpp	/^		float removeProbability;$/;"	m	class:NDTMatch_SE	typeref:typename:float
+rescaleCovariance	oru_minimal/src/ndt_cell.cpp	/^bool NDTCell::rescaleCovariance(Eigen::Matrix3d &cov, Eigen::Matrix3d &invCov)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:bool
+rescaleCovariance	oru_minimal/src/ndt_cell.cpp	/^void NDTCell::rescaleCovariance()$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+resolution	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    double resolution;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:double
+resolutions	include/se_ndt/ndt_fuser_hmt_se.h	/^		vector<float> resolutions;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:vector<float>
+resolutions	include/se_ndt/ndt_matcher_p2d_se.h	/^    std::vector<double> resolutions;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:std::vector<double>
+resolutions	include/se_ndt/se_ndt.hpp	/^		vector<float> resolutions;$/;"	m	class:NDTMatch_SE	typeref:typename:vector<float>
+resolutions	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    std::vector<double> resolutions;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:std::vector<double>
+resolutions	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    std::vector<double> resolutions;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:std::vector<double>
+resolutions	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    std::vector<double> resolutions;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:std::vector<double>
+resolutions_order	include/se_ndt/ndt_fuser_hmt_se.h	/^		initializer_list<int> resolutions_order,tails;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:initializer_list<int>
+resolutions_order	include/se_ndt/se_ndt.hpp	/^		initializer_list<int> resolutions_order,tails;$/;"	m	class:NDTMatch_SE	typeref:typename:initializer_list<int>
+rotation_fuse_delta	include/se_ndt/ndt_fuser_hmt_se.h	/^	double translation_fuse_delta, rotation_fuse_delta;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:double
+saveMap	include/se_ndt/ndt_fuser_hmt_se.h	/^	bool saveMap() {$/;"	f	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:bool
+saveOnDelete	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    bool saveOnDelete;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:bool
+scale_	oru_minimal/include/ndt_map/depth_camera.h	/^    double fx, fy, cx, cy, ds, scale_;$/;"	m	class:lslgeneric::DepthCamera	typeref:typename:double
+scoreNDT	oru_minimal/src/ndt_matcher_d2d.cpp	/^double NDTMatcherD2D::scoreNDT(std::vector<NDTCell*> &sourceNDT, NDTMap &targetNDT)$/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:double
+scoreNDTPositive	oru_minimal/src/ndt_matcher_d2d.cpp	/^double NDTMatcherD2D::scoreNDTPositive(std::vector<NDTCell*> &sourceNDT, NDTMap &targetNDT,$/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:double
+scoreNDT_OM	oru_minimal/src/ndt_matcher_d2d.cpp	/^double NDTMatcherD2D::scoreNDT_OM(NDTMap &sourceNDT, NDTMap &targetNDT)$/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:double
+scorePointCloud	oru_minimal/src/ndt_matcher_p2d.cpp	/^double NDTMatcherP2D::scorePointCloud(pcl::PointCloud<pcl::PointXYZ> &source,$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:double
+scorePointCloud	src/ndt_matcher_p2d_se.cpp	/^double NDTMatcherP2D_SE::scorePointCloud(pcl::PointCloud<pcl::PointXYZ> *source,$/;"	f	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:double
+score_gradientF	include/se_ndt/ndt_matcher_d2d_se.h	/^	Eigen::Matrix<double,6,1> score_gradientF;$/;"	m	class:lslgeneric::NDTMatcherD2D_SE	typeref:typename:Eigen::Matrix<double,6,1>
+semantic_labels	include/se_ndt/se_ndt.hpp	/^		std::unordered_set<int> semantic_labels;$/;"	m	class:NDTMatch_SE	typeref:typename:std::unordered_set<int>
+sensor_pose	include/se_ndt/ndt_fuser_hmt_se.h	/^	Eigen::Affine3d sensor_pose;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:Eigen::Affine3d
+sensor_range	include/se_ndt/ndt_fuser_hmt_se.h	/^		double sensor_range;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:double
+setCellType	oru_minimal/src/cell_vector.cpp	/^void CellVector::setCellType(NDTCell *type)$/;"	f	class:lslgeneric::CellVector	typeref:typename:void
+setCellType	oru_minimal/src/lazy_grid.cpp	/^void LazyGrid::setCellType(NDTCell *type)$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+setCenter	oru_minimal/include/ndt_map/ndt_cell.h	/^    inline void setCenter(const pcl::PointXYZ &cn)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+setCenter	oru_minimal/include/ndt_map/spatial_index.h	/^    virtual void setCenter(const double &cx, const double &cy, const double &cz) {}$/;"	f	class:lslgeneric::SpatialIndex	typeref:typename:void
+setCenter	oru_minimal/src/lazy_grid.cpp	/^void LazyGrid::setCenter(const double &cx, const double &cy, const double &cz)$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+setCov	oru_minimal/src/ndt_cell.cpp	/^void NDTCell::setCov(const Eigen::Matrix3d &_cov)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+setDimensions	oru_minimal/include/ndt_map/ndt_cell.h	/^    inline void setDimensions(const double &xs, const double &ys, const double &zs)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+setEmptyval	oru_minimal/include/ndt_map/ndt_cell.h	/^    void setEmptyval(int emptyval_)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+setEvals	oru_minimal/include/ndt_map/ndt_cell.h	/^    inline void setEvals(const Eigen::Vector3d &ev)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+setEventData	oru_minimal/include/ndt_map/ndt_cell.h	/^    void setEventData(TEventData _ed)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+setInsertPosition	oru_minimal/src/ndt_map_hmt.cpp	/^void NDTMapHMT::setInsertPosition(const Eigen::Vector3d &newPos) {$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:void
+setLookupTable	oru_minimal/include/ndt_map/depth_camera.h	/^    inline void setLookupTable(cv::Mat lookup)$/;"	f	class:lslgeneric::DepthCamera	typeref:typename:void
+setMapSize	oru_minimal/include/ndt_map/ndt_map.h	/^    void setMapSize(float sx, float sy, float sz)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:void
+setMean	oru_minimal/include/ndt_map/ndt_cell.h	/^    inline void setMean(const Eigen::Vector3d &mean)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+setMode	oru_minimal/include/ndt_map/ndt_map.h	/^    void setMode(bool is3D_)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:void
+setN	oru_minimal/include/ndt_map/ndt_cell.h	/^    void setN(int N_)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+setOccupancy	oru_minimal/include/ndt_map/ndt_cell.h	/^    void setOccupancy(float occ_)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+setParameters	oru_minimal/src/ndt_cell.cpp	/^void NDTCell::setParameters(double _EVAL_ROUGH_THR   ,$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+setRGB	oru_minimal/include/ndt_map/ndt_cell.h	/^    void setRGB(float r, float g, float b)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+setSensorPose	include/se_ndt/ndt_fuser_hmt_se.h	/^	void setSensorPose(Eigen::Affine3d spose){$/;"	f	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:void
+setSize	oru_minimal/include/ndt_map/spatial_index.h	/^    virtual void setSize(const double &sx, const double &sy, const double &sz) {}$/;"	f	class:lslgeneric::SpatialIndex	typeref:typename:void
+setSize	oru_minimal/src/lazy_grid.cpp	/^void LazyGrid::setSize(const double &sx, const double &sy, const double &sz)$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:void
+setupDepthPointCloudLookUpTable	oru_minimal/include/ndt_map/depth_camera.h	/^    inline void setupDepthPointCloudLookUpTable(const cv::Size &size) \/\/, const cv::Mat &camMa/;"	f	class:lslgeneric::DepthCamera	typeref:typename:void
+size	include/se_ndt/ndt_fuser_hmt_se.h	/^		initializer_list<float> ignore,size;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:initializer_list<float>
+size	include/se_ndt/se_ndt.hpp	/^		initializer_list<float> ignore,size;$/;"	m	class:NDTMatch_SE	typeref:typename:initializer_list<float>
+size	oru_minimal/include/ndt_map/spatial_index.h	/^    virtual int size() const$/;"	f	class:lslgeneric::SpatialIndex	typeref:typename:int
+size	oru_minimal/src/cell_vector.cpp	/^int CellVector::size()$/;"	f	class:lslgeneric::CellVector	typeref:typename:int
+size	oru_minimal/src/lazy_grid.cpp	/^int LazyGrid::size()$/;"	f	class:lslgeneric::LazyGrid	typeref:typename:int
+sizeIsSet	oru_minimal/include/ndt_map/lazy_grid.h	/^    bool centerIsSet, sizeIsSet;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:bool
+sizeX	oru_minimal/include/ndt_map/lazy_grid.h	/^    int sizeX,sizeY,sizeZ;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:int
+sizeXmeters	oru_minimal/include/ndt_map/lazy_grid.h	/^    double sizeXmeters, sizeYmeters, sizeZmeters;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:double
+sizeY	oru_minimal/include/ndt_map/lazy_grid.h	/^    int sizeX,sizeY,sizeZ;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:int
+sizeYmeters	oru_minimal/include/ndt_map/lazy_grid.h	/^    double sizeXmeters, sizeYmeters, sizeZmeters;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:double
+sizeZ	oru_minimal/include/ndt_map/lazy_grid.h	/^    int sizeX,sizeY,sizeZ;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:int
+sizeZmeters	oru_minimal/include/ndt_map/lazy_grid.h	/^    double sizeXmeters, sizeYmeters, sizeZmeters;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:double
+sort_pointcloud	src/se_ndt.cpp	/^size_t* sort_pointcloud(vector<double> &in,float disregard)$/;"	f	typeref:typename:size_t *
+squareSum	oru_minimal/include/ndt_map/ndt_cell.h	/^		double squareSum(const Eigen::Matrix3d &C,const Eigen::Vector3d &x){$/;"	f	class:lslgeneric::NDTCell	typeref:typename:double
+step_control	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    bool step_control;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:bool
+step_control	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    bool step_control;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:bool
+studentT	oru_minimal/src/ndt_cell.cpp	/^void NDTCell::studentT(){$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+subsample	oru_minimal/src/ndt_matcher_p2d.cpp	/^pcl::PointCloud<pcl::PointXYZ> NDTMatcherP2D::subsample(pcl::PointCloud<pcl::PointXYZ>& original/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:pcl::PointCloud<pcl::PointXYZ>
+subsample	src/ndt_matcher_p2d_se.cpp	/^pcl::PointCloud<pcl::PointXYZ> NDTMatcherP2D_SE::subsample(pcl::PointCloud<pcl::PointXYZ>& origi/;"	f	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:pcl::PointCloud<pcl::PointXYZ>
+subsample_size	include/se_ndt/ndt_matcher_p2d_se.h	/^    double subsample_size;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:double
+subsample_size	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    double subsample_size;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:double
+tails	include/se_ndt/ndt_fuser_hmt_se.h	/^		initializer_list<int> resolutions_order,tails;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:initializer_list<int>
+tails	include/se_ndt/se_ndt.hpp	/^		initializer_list<int> resolutions_order,tails;$/;"	m	class:NDTMatch_SE	typeref:typename:initializer_list<int>
+topThree	oru_minimal/include/ndt_map/ndt_histogram.h	/^    std::vector< Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>,Eigen::aligned_allocat/;"	m	class:lslgeneric::NDTHistogram
+topThreeS	oru_minimal/include/ndt_map/ndt_histogram.h	/^    double topThreeS[3];$/;"	m	class:lslgeneric::NDTHistogram	typeref:typename:double[3]
+traceLine	oru_minimal/src/lazy_grid.cpp	/^bool LazyGrid::traceLine(const Eigen::Vector3d &origin, const pcl::PointXYZ &endpoint,const Eige/;"	f	class:lslgeneric::LazyGrid	typeref:typename:bool
+traceLineWithEndpoint	oru_minimal/src/lazy_grid.cpp	/^bool LazyGrid::traceLineWithEndpoint(const Eigen::Vector3d &origin, const pcl::PointXYZ &endpoin/;"	f	class:lslgeneric::LazyGrid	typeref:typename:bool
+transformPointCloud	oru_minimal/include/ndt_map/impl/pointcloud_utils.hpp	/^pcl::PointCloud<PointT> transformPointCloud(Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMa/;"	f	namespace:lslgeneric	typeref:typename:pcl::PointCloud<PointT>
+transformPointCloudInPlace	oru_minimal/include/ndt_map/impl/pointcloud_utils.hpp	/^void transformPointCloudInPlace(Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> &Tr, pc/;"	f	namespace:lslgeneric	typeref:typename:void
+transformPointCloudsInPlace	oru_minimal/include/ndt_map/impl/pointcloud_utils.hpp	/^void transformPointCloudsInPlace(Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> &Tr, p/;"	f	namespace:lslgeneric	typeref:typename:void
+translation_fuse_delta	include/se_ndt/ndt_fuser_hmt_se.h	/^	double translation_fuse_delta, rotation_fuse_delta;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:double
+treeUpdated	oru_minimal/include/ndt_map/cell_vector.h	/^    bool treeUpdated;$/;"	m	class:lslgeneric::CellVector	typeref:typename:bool
+tryLoad	oru_minimal/src/ndt_map_hmt.cpp	/^bool NDTMapHMT::tryLoad(const double &cx, const double &cy, const double &cz, LazyGrid *&grid) {$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:bool
+tryLoadPosition	oru_minimal/src/ndt_map_hmt.cpp	/^bool NDTMapHMT::tryLoadPosition(const Eigen::Vector3d &newPos) {$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:bool
+update	src/ndt_fuser_hmt_se.cpp	/^Eigen::Affine3d NDTFuserHMT_SE::update(Eigen::Affine3d Tmotion, pcl::PointCloud<pcl::PointXYZ>::/;"	f	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:Eigen::Affine3d
+updateColorInformation	oru_minimal/src/ndt_cell.cpp	/^void NDTCell::updateColorInformation()$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+updateEmpty	oru_minimal/include/ndt_map/ndt_cell.h	/^    void updateEmpty(double elik, double dist)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+updateEntryEvent	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    void updateEntryEvent(uint8_t meas, float w)$/;"	f	struct:TEventData	typeref:typename:void
+updateExitEvent	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    void updateExitEvent(uint8_t meas, float w)$/;"	f	struct:TEventData	typeref:typename:void
+updateMap	src/ndt_fuser_hmt_se.cpp	/^bool NDTFuserHMT_SE::updateMap()$/;"	f	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:bool
+updateOccupancy	oru_minimal/include/ndt_map/ndt_cell.h	/^    void updateOccupancy(float occ_val, float max_occu=255.0)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+updateSampleVariance	oru_minimal/src/ndt_cell.cpp	/^void NDTCell::updateSampleVariance(const Eigen::Matrix3d &cov2,const Eigen::Vector3d &m2, unsign/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+updateSimple	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    void updateSimple(uint8_t meas)$/;"	f	struct:TEventData	typeref:typename:void
+updateSimple	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    void updateSimple(uint8_t meas, float w)$/;"	f	struct:TEventData	typeref:typename:void
+update_gradient_hessian	oru_minimal/src/ndt_matcher_d2d.cpp	/^bool NDTMatcherD2D::update_gradient_hessian($/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:bool
+update_gradient_hessian_2d	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^bool NDTMatcherD2D_2D::update_gradient_hessian_2d($/;"	f	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:bool
+update_gradient_hessian_local	oru_minimal/src/ndt_matcher_d2d.cpp	/^bool NDTMatcherD2D::update_gradient_hessian_local($/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:bool
+update_gradient_hessian_local_2d	oru_minimal/src/ndt_matcher_d2d_2d.cpp	/^bool NDTMatcherD2D_2D::update_gradient_hessian_local_2d($/;"	f	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:bool
+update_hessian	oru_minimal/src/ndt_matcher_p2d.cpp	/^void NDTMatcherP2D::update_hessian(Eigen::Matrix<double,6,6> &Hessian,$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:void
+update_hessian	src/ndt_matcher_p2d_se.cpp	/^void NDTMatcherP2D_SE::update_hessian(Eigen::Matrix<double,6,6> &Hessian,$/;"	f	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:void
+update_score_gradient	oru_minimal/src/ndt_matcher_p2d.cpp	/^bool NDTMatcherP2D::update_score_gradient(Eigen::Matrix<double,6,1> &score_gradient,$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:bool
+update_score_gradient	src/ndt_matcher_p2d_se.cpp	/^bool NDTMatcherP2D_SE::update_score_gradient(Eigen::Matrix<double,6,1> &score_gradient,$/;"	f	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:bool
+update_set	oru_minimal/include/ndt_map/ndt_map.h	/^    std::set<NDTCell*> update_set;$/;"	m	class:lslgeneric::NDTMap	typeref:typename:std::set<NDTCell * >
+update_set	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    std::set<NDTCell*> update_set;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:std::set<NDTCell * >
+useSimpleDerivatives	include/se_ndt/ndt_matcher_p2d_se.h	/^    bool useSimpleDerivatives;$/;"	m	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:bool
+useSimpleDerivatives	oru_minimal/include/ndt_registration/ndt_matcher_p2d.h	/^    bool useSimpleDerivatives;$/;"	m	class:lslgeneric::NDTMatcherP2D	typeref:typename:bool
+viewer	include/se_ndt/ndt_fuser_hmt_se.h	/^	NDTViz *viewer;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:NDTViz *
+visualize	include/se_ndt/ndt_fuser_hmt_se.h	/^	bool visualize,firstRun;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:bool
+writeCellVectorJFF	oru_minimal/src/ndt_map.cpp	/^int NDTMap::writeCellVectorJFF(FILE * jffout)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:int
+writeJFFEventData	oru_minimal/src/ndt_cell.cpp	/^void NDTCell::writeJFFEventData(FILE * jffout, TEventData &evdata)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+writeJFFMatrix	oru_minimal/src/ndt_cell.cpp	/^void NDTCell::writeJFFMatrix(FILE * jffout, Eigen::Matrix3d &mat)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+writeJFFVector	oru_minimal/src/ndt_cell.cpp	/^void NDTCell::writeJFFVector(FILE * jffout, Eigen::Vector3d &vec)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:void
+writeLazyGridJFF	oru_minimal/src/ndt_map.cpp	/^int NDTMap::writeLazyGridJFF(FILE * jffout)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:int
+writeOctTreeJFF	oru_minimal/src/ndt_map.cpp	/^int NDTMap::writeOctTreeJFF(FILE * jffout)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:int
+writeTo	oru_minimal/src/ndt_map_hmt.cpp	/^int NDTMapHMT::writeTo()$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:int
+writeToJFF	oru_minimal/src/ndt_cell.cpp	/^int NDTCell::writeToJFF(FILE * jffout)$/;"	f	class:lslgeneric::NDTCell	typeref:typename:int
+writeToJFF	oru_minimal/src/ndt_map.cpp	/^int NDTMap::writeToJFF(const char* filename)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:int
+xsize_	oru_minimal/include/ndt_map/ndt_cell.h	/^    double xsize_, ysize_, zsize_;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+xtB	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,1,3> TMP1, xtB;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,1,3>
+xtB	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    Eigen::Matrix<double,1,3> TMP1, xtB;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:Eigen::Matrix<double,1,3>
+xtBH	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,6,6> JtBJ, xtBZBJ, xtBH, xtBZBZBx, xtBZhBx;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,6,6>
+xtBH	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    Eigen::Matrix<double,3,3> JtBJ, xtBZBJ, xtBH, xtBZBZBx, xtBZhBx;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:Eigen::Matrix<double,3,3>
+xtBJ	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,6,1> xtBJ, xtBZBx, Q;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,6,1>
+xtBJ	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    Eigen::Matrix<double,3,1> xtBJ, xtBZBx, Q;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:Eigen::Matrix<double,3,1>
+xtBZBJ	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,6,6> JtBJ, xtBZBJ, xtBH, xtBZBZBx, xtBZhBx;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,6,6>
+xtBZBJ	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    Eigen::Matrix<double,3,3> JtBJ, xtBZBJ, xtBH, xtBZBZBx, xtBZhBx;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:Eigen::Matrix<double,3,3>
+xtBZBZBx	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,6,6> JtBJ, xtBZBJ, xtBH, xtBZBZBx, xtBZhBx;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,6,6>
+xtBZBZBx	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    Eigen::Matrix<double,3,3> JtBJ, xtBZBJ, xtBH, xtBZBZBx, xtBZhBx;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:Eigen::Matrix<double,3,3>
+xtBZBx	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,6,1> xtBJ, xtBZBx, Q;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,6,1>
+xtBZBx	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    Eigen::Matrix<double,3,1> xtBJ, xtBZBx, Q;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:Eigen::Matrix<double,3,1>
+xtBZhBx	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    Eigen::Matrix<double,6,6> JtBJ, xtBZBJ, xtBH, xtBZBZBx, xtBZhBx;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:Eigen::Matrix<double,6,6>
+xtBZhBx	oru_minimal/include/ndt_registration/ndt_matcher_d2d_2d.h	/^    Eigen::Matrix<double,3,3> JtBJ, xtBZBJ, xtBH, xtBZBZBx, xtBZhBx;$/;"	m	class:lslgeneric::NDTMatcherD2D_2D	typeref:typename:Eigen::Matrix<double,3,3>
+ysize_	oru_minimal/include/ndt_map/ndt_cell.h	/^    double xsize_, ysize_, zsize_;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+zsize_	oru_minimal/include/ndt_map/ndt_cell.h	/^    double xsize_, ysize_, zsize_;$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
+~CellVector	oru_minimal/src/cell_vector.cpp	/^CellVector::~CellVector()$/;"	f	class:lslgeneric::CellVector
+~LazyGrid	oru_minimal/src/lazy_grid.cpp	/^LazyGrid::~LazyGrid()$/;"	f	class:lslgeneric::LazyGrid
+~NDTCell	oru_minimal/include/ndt_map/ndt_cell.h	/^    virtual ~NDTCell()$/;"	f	class:lslgeneric::NDTCell
+~NDTFuserHMT_SE	include/se_ndt/ndt_fuser_hmt_se.h	/^	~NDTFuserHMT_SE()$/;"	f	class:lslgeneric::NDTFuserHMT_SE
+~NDTMap	oru_minimal/include/ndt_map/ndt_map.h	/^    virtual ~NDTMap()$/;"	f	class:lslgeneric::NDTMap
+~NDTMapHMT	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    virtual ~NDTMapHMT()$/;"	f	class:lslgeneric::NDTMapHMT
+~NDTMatch_SE	include/se_ndt/se_ndt.hpp	/^		~NDTMatch_SE()$/;"	f	class:NDTMatch_SE
+~SpatialIndex	oru_minimal/include/ndt_map/spatial_index.h	/^    virtual ~SpatialIndex()$/;"	f	class:lslgeneric::SpatialIndex
+~TEventData	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    ~TEventData()$/;"	f	struct:TEventData

@@ -72,6 +72,8 @@ int main(int argc, char** argv)
 		else
 		{
 			T_pred=getTrans(cin);
+			if(cin.eof())
+				return 0;
 			i--;
 		}
 		if(invert)

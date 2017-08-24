@@ -47,8 +47,8 @@ int main(int argc, char** argv)
 	Eigen::Affine3d T;
 	T.setIdentity();
 
-		lslgeneric::NDTMatcherD2D matcher(false,false,{1,2,1,0.5});
-		matcher.ITR_MAX =5;
+		lslgeneric::NDTMatcherD2D matcher(false,false,{2,1});
+		matcher.ITR_MAX =25;
 		matcher.step_control=true;
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudp=getCloudXYZ(pointcloud_files[0]);
 	for(int i=1;i<num_files;i++)
