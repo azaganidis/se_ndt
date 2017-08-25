@@ -51,6 +51,14 @@ add_executable(polesRegister_fuser src/polesRegister_fuser.cpp)
 target_link_libraries(polesRegister_fuser ndt_fuser ${Boost_LIBRARIES}
 	${OpenCV_LIBS} ${PCL_LIBRARIES})
 
+add_executable(gen_transforms src/gen_transforms.cpp)
+target_link_libraries(gen_transforms ${Boost_LIBRARIES}
+	${Eigen3_LIBRARIES})
+
+add_executable(exp_clouds src/exp_clouds.cpp)
+target_link_libraries(exp_clouds ${Boost_LIBRARIES}
+	${Eigen3_LIBRARIES})
+
 add_executable(rsd_register_fuser src/rsd_register_fuser.cpp)
 target_link_libraries(rsd_register_fuser ndt_fuser ${Boost_LIBRARIES}
 	${OpenCV_LIBS} ${PCL_LIBRARIES})
