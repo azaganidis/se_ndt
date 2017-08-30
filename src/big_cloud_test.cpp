@@ -110,7 +110,8 @@ int main(int argc, char** argv)
 	Eigen::Affine3d Tt;
 	T.setIdentity();
 	Tt.setIdentity();
-	NDTMatch_SE matcher ({100,20,100,4,1,2},{0,1,2,3,4,5},{100,100,100},{'u'},{0},0.01,50);// :-D
+	NDTMatch_SE matcher ({200,60,200,70,50,5},{0,1,2,3,4,5},{200,200,200},{'u'},{0},0.01,50);// :-D
+	//NDTMatch_SE matcher ({100,20,100,4,1,2},{0,1,2,3,4,5},{100,100,100},{'u'},{0},0.01,50);// :-D
 	//
 	//lslgeneric::NDTFuserHMT_SE matcher (the_initial_pose,{the_resolutions},{the_order_with which_the_resolutions_are_used},{the_size_of_the_map},{the_tail_segments},{ignore_values},reject_percentage,number_of_iterations);
 	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_refI=getCloud2(ref_cloud_name,skip);

@@ -74,7 +74,7 @@ int main(int argc, char** argv)
 		double res1= (transforms1[i].matrix()*transforms2[i].matrix().inverse()).block<3,3>(0,0).trace();
 		double res2= acos((res1-1)/2);
 		cerr<<i<<" :  SE : "<<currr<<" \t RSE : "<<sqrt(currr)<<"\t : "<<res2<<endl;
-		res_sum+=res2;
+		if(!isnan(res2))res_sum+=res2;
 		sse+= currr;
 		srse+=sqrt(currr);
 	}
