@@ -64,17 +64,21 @@ int main(int argc, char** argv)
 	std::vector<Eigen::Affine3d> transforms2 = readTransform(in_trans2);
 	double sse=0;
 	double srse=0;
+	double res_sum=0;
 	for(int i=0;i<transforms1.size();i++)
 	{
 		Eigen::Vector3d vec1=transforms1[i].translation();
 		Eigen::Vector3d vec2=transforms2[i].translation();
 //		cout<<vec1.transpose()*vec1-2*vec1.transpose()*vec2+vec2.transpose()*vec2<<endl;
 		double currr = (vec1.transpose()*vec1-2*vec1.transpose()*vec2+vec2.transpose()*vec2)(0,0);
-		cerr<<i<<" :  SE : "<<currr<<" \t RSE : "<<sqrt(currr)<<endl;
+		double res1= (transforms1[i].matrix()*transforms2[i].matrix().inverse()).block<3,3>(0,0).trace();
+		double res2= acos((res1-1)/2);
+		cerr<<i<<" :  SE : "<<currr<<" \t RSE : "<<sqrt(currr)<<"\t : "<<res2<<endl;
+		res_sum+=res2;
 		sse+= currr;
 		srse+=sqrt(currr);
 	}
 	sse/=transforms1.size();
-	cout<<sqrt(sse)<<"\t"<<srse/transforms1.size()<<endl;
+	cout<<sqrt(sse)<<"\t"<<srse/transforms1.size()<<"\t "<<res_sum/transforms1.size()<<endl;
 }
 
