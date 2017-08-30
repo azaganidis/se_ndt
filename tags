@@ -91,6 +91,7 @@ NDTMap	oru_minimal/include/ndt_map/ndt_map.h	/^class NDTMap$/;"	c	namespace:lslg
 NDTMapHMT	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    NDTMapHMT(const NDTMapHMT& other)$/;"	f	class:lslgeneric::NDTMapHMT
 NDTMapHMT	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    NDTMapHMT(double resolution_, float cenx, float ceny, float cenz, float sizex, float sizey, /;"	f	class:lslgeneric::NDTMapHMT
 NDTMapHMT	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^class NDTMapHMT : public NDTMap$/;"	c	namespace:lslgeneric
+NDTMatch_SE	include/se_ndt/se_ndt.hpp	/^		NDTMatch_SE(){};$/;"	f	class:NDTMatch_SE
 NDTMatch_SE	include/se_ndt/se_ndt.hpp	/^class NDTMatch_SE{$/;"	c
 NDTMatch_SE	src/se_ndt.cpp	/^NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initializer_list<floa/;"	f	class:NDTMatch_SE
 NDTMatcherD2D	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    NDTMatcherD2D()$/;"	f	class:lslgeneric::NDTMatcherD2D
@@ -574,6 +575,8 @@ lslgeneric	src/ndt_fuser_hmt_se.cpp	/^namespace lslgeneric {$/;"	n	file:
 lslgeneric	src/ndt_matcher_d2d_se.cpp	/^namespace lslgeneric$/;"	n	file:
 lslgeneric	src/ndt_matcher_p2d_se.cpp	/^namespace lslgeneric$/;"	n	file:
 main	src/concat_transform.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/exp_clouds.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/gen_transforms.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/polesRegister.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/polesRegister_fuser.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/polesRegister_kalman.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
@@ -653,6 +656,7 @@ protoType	oru_minimal/include/ndt_map/lazy_grid.h	/^    NDTCell *protoType;$/;"	
 pseudoTransformNDT	oru_minimal/src/ndt_map.cpp	/^std::vector<NDTCell*> NDTMap::pseudoTransformNDT(Eigen::Transform<double,3,Eigen::Affine,Eigen::/;"	f	class:lslgeneric::NDTMap	typeref:typename:std::vector<NDTCell * >
 pseudoTransformNDT	oru_minimal/src/ndt_map_hmt.cpp	/^std::vector<NDTCell*> NDTMapHMT::pseudoTransformNDT(Eigen::Transform<double,3,Eigen::Affine,Eige/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:std::vector<NDTCell * >
 pseudoTransformNDTMap	oru_minimal/src/ndt_map.cpp	/^NDTMap* NDTMap::pseudoTransformNDTMap(Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> T/;"	f	class:lslgeneric::NDTMap	typeref:typename:NDTMap *
+readTransform	src/se_ndt.cpp	/^Eigen::Affine3d readTransform(istream &infile)$/;"	f	typeref:typename:Eigen::Affine3d
 regularize	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    bool regularize;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:bool
 removeProbability	include/se_ndt/ndt_fuser_hmt_se.h	/^		float removeProbability;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:float
 removeProbability	include/se_ndt/se_ndt.hpp	/^		float removeProbability;$/;"	m	class:NDTMatch_SE	typeref:typename:float
@@ -677,7 +681,7 @@ scoreNDT_OM	oru_minimal/src/ndt_matcher_d2d.cpp	/^double NDTMatcherD2D::scoreNDT
 scorePointCloud	oru_minimal/src/ndt_matcher_p2d.cpp	/^double NDTMatcherP2D::scorePointCloud(pcl::PointCloud<pcl::PointXYZ> &source,$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:double
 scorePointCloud	src/ndt_matcher_p2d_se.cpp	/^double NDTMatcherP2D_SE::scorePointCloud(pcl::PointCloud<pcl::PointXYZ> *source,$/;"	f	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:double
 score_gradientF	include/se_ndt/ndt_matcher_d2d_se.h	/^	Eigen::Matrix<double,6,1> score_gradientF;$/;"	m	class:lslgeneric::NDTMatcherD2D_SE	typeref:typename:Eigen::Matrix<double,6,1>
-semantic_labels	include/se_ndt/se_ndt.hpp	/^		std::unordered_set<int> semantic_labels;$/;"	m	class:NDTMatch_SE	typeref:typename:std::unordered_set<int>
+semantic_labels	include/se_ndt/se_ndt.hpp	/^		std::vector<int> semantic_labels;$/;"	m	class:NDTMatch_SE	typeref:typename:std::vector<int>
 sensor_pose	include/se_ndt/ndt_fuser_hmt_se.h	/^	Eigen::Affine3d sensor_pose;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:Eigen::Affine3d
 sensor_range	include/se_ndt/ndt_fuser_hmt_se.h	/^		double sensor_range;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:double
 setCellType	oru_minimal/src/cell_vector.cpp	/^void CellVector::setCellType(NDTCell *type)$/;"	f	class:lslgeneric::CellVector	typeref:typename:void

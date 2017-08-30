@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <boost/program_options.hpp>
 #include <pcl/filters/crop_box.h>
-#include <se_ndt/ndt_fuser_hmt_se.h>
+#include <se_ndt/se_ndt.hpp>
 #include <pcl/common/io.h>
 
 using namespace std;
@@ -56,13 +56,15 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr
 
 int main(int argc, char** argv)
 {
-	string transforms;
+	string transforms,ref_cloud_name, ref_sem_name;
 	po::options_description desc("Allowed options");
 	desc.add_options()
 	("help", "produce help message")
 	("skip", "skip point cloud first line")
 	("nc", "Do not concatenate transforms")
 	 ("transforms", po::value<std::string >(&transforms), "File with initial transforms")
+	 ("ref_cloud", po::value<string>(&ref_cloud_name), "Point cloud reference file")
+	 ("ref_sem", po::value<string>(&ref_sem_name), "Point cloud reference semantic file")
 	 ("pointclouds", po::value<std::vector<string> >()->multitoken(), "Point cloud files")
 	 ("b", po::value<std::vector<float> >()->multitoken(), "Bounding box--Atention! not working yet!")
 	 ("sem1", po::value<std::vector<string> >()->multitoken(), "First semantic input files");
@@ -107,8 +109,12 @@ int main(int argc, char** argv)
 	T.setIdentity();
 	Tt.setIdentity();
 	//NDTMatch_SE matcher ({0.5,0.1,0.05},{0,1,0,1,2},{25,25,10},{3},{-1},0.60,25);
-	NDTMatch_SE matcher ({5,4,3,2,1,0.5},{0,1,2,3,4,5},{100,100,100},{'u'},{0},0.01,52);
+	NDTMatch_SE matcher ({2,1,0.5},{1},{100,100,100},{'u'},{0},0.01,50);
 	//lslgeneric::NDTFuserHMT_SE matcher (the_initial_pose,{the_resolutions},{the_order_with which_the_resolutions_are_used},{the_size_of_the_map},{the_tail_segments},{ignore_values},reject_percentage,number_of_iterations);
+	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_refI=getCloud2(ref_cloud_name,skip);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ref(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::copyPointCloud(*cloud_refI,*cloud_ref);
+	std::vector<double> rsd_ref=getMeasure(ref_sem_name);
 	for(int i=0;i<num_files;i++)
 	{
 		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud3=h_box?cropIt(getCloud2(pointcloud_files[i],skip),box):getCloud2(pointcloud_files[i],skip);
@@ -120,7 +126,7 @@ int main(int argc, char** argv)
 			pcl::transformPointCloud(*cloud1,*cloud1,T);
 		}
 		std::vector<double> rsd_min=getMeasure(rsd_min_files[i]);
-		Tt=matcher.match(cloud1,{rsd_min});
+		Tt=matcher.match(cloud_ref,cloud1,{rsd_ref},{rsd_min});
 		T=T*Tt;
 
 		for(int i=0;i<4;i++)
