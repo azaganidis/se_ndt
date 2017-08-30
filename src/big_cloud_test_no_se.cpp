@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 	}else {cout<<"pointclouds read failure";};
 	int num_files=pointcloud_files.size();
 
-		lslgeneric::NDTMatcherD2D matcher(false,false,{p});
+		lslgeneric::NDTMatcherD2D matcher(false,false,{0.5});
 	//NDTMatch_SE matcher ({100,20,100,4,1,2},{0,1,2,3,4,5},{100,100,100},{'u'},{0},0.01,50);// :-D
 		matcher.ITR_MAX =50;
 		matcher.step_control=true;
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudc=getCloudXYZ(pointcloud_files[i]);
 		Eigen::Affine3d T_pred;
 		T_pred.setIdentity();
-		matcher.match(*cloudp,*cloudc,T_pred,false);
+		matcher.match(*cloudc,*cloudp,T_pred,false);
 		for(int i=0;i<4;i++)
 			for(int j=0;j<4;j++)
 				cout<<T_pred(i,j)<<", ";

@@ -101,7 +101,7 @@ int main(int argc, char** argv)
 	{
 		Eigen::Matrix4d TM= transforms[i].matrix();
 		Eigen::Matrix4d TI= TM.inverse();
-		Eigen::Matrix4d TG= T0I*TM;
+		Eigen::Matrix4d TG= TI*transforms[0].matrix();
 		for(int k=0;k<4;k++)
 			for(int j=0;j<4;j++)
 				transf_out<<TG(k,j)<<", ";
@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 		pcl::PointCloud<pcl::PointXYZI>::Ptr source_cloud=getCloud2(pointcloud_files[i],skip);
 		pcl::PointCloud<pcl::PointXYZI>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZI> ());
 		pcl::transformPointCloud (*source_cloud, *transformed_cloud,TI);
-		ofstream cloud_out(out_name+"pcl_"+(i<10?"0":"")+to_string(i)+".csv");
+		ofstream cloud_out(out_name+"pcl_"+to_string(i)+".csv");
 		for(int j=0;j<transformed_cloud->size();j++)
 		{
 			cloud_out<<transformed_cloud->points[j].x<<", ";

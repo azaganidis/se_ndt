@@ -72,6 +72,7 @@ int main(int argc, char** argv)
 	int num;
 	float dev;
 	float deva;
+	float max_range=50;
 	std::vector<std::string> pointcloud_files;
 	std::vector<std::string> semantics_files;
 	string out_name, transforms_name;
@@ -83,6 +84,7 @@ int main(int argc, char** argv)
 	 ("transforms", po::value<std::string>(&transforms_name), "Transforms file")
 	 ("out", po::value<std::string>(&out_name), "Output file prefix")
 	("skip", "skip point cloud first line")
+	("range", po::value<float>(&max_range)->default_value(50.0), "Maximum sensor range")
 	("dev", po::value<float>(&dev)->default_value(1.0), "Standard deviation")
 	("deva", po::value<float>(&deva)->default_value(1.0), "Standard deviation of angle")
 	("num", po::value<int>(&num)->default_value(10), "Number of generated transforms");
@@ -119,7 +121,6 @@ int main(int argc, char** argv)
 	std::default_random_engine generator;
 
 	std::set<std::pair<int,int> > angles;
-	float max_range=50;
 	int steps=5;
 	int total_points=10000;
 	pcl::ExtractIndices<pcl::PointXYZI> extract;
@@ -134,9 +135,9 @@ int main(int argc, char** argv)
 			Eigen::Affine3d T=transforms.at(t_n);
 			pcl::RandomSample<pcl::PointXYZI> sample(true);
 			string foname="pcl_";
-			foname+=(t_n<10?"0":"")+to_string(t_n)+".csv";
+			foname+=to_string(t_n)+".csv";
 			string sename="sem_";
-			sename+=(t_n<10?"0":"")+to_string(t_n)+".csv";
+			sename+=to_string(t_n)+".csv";
 			ofstream file_out(foname,ofstream::out|ofstream::app);
 			ofstream file_sem_out(sename,ofstream::out|ofstream::app);
 			for(int k=1;k<=steps;k++)
