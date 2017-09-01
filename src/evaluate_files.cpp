@@ -73,12 +73,21 @@ int main(int argc, char** argv)
 		double currr = (vec1.transpose()*vec1-2*vec1.transpose()*vec2+vec2.transpose()*vec2)(0,0);
 		double res1= (transforms1[i].matrix()*transforms2[i].matrix().inverse()).block<3,3>(0,0).trace();
 		double res2= acos((res1-1)/2);
-		cerr<<i<<" :  SE : "<<currr<<" \t RSE : "<<sqrt(currr)<<"\t : "<<res2<<endl;
+		Eigen::Affine3d dT_i= transforms2[i]*transforms2[0].inverse();
+		double dT_it = sqrt(pow(dT_i.translation()(0),2)+pow(dT_i.translation()(1),2)+pow(dT_i.translation()(2),2));
+		double dR_i= acos((dT_i.rotation().matrix().trace()-1)/2);
+
+		Eigen::Affine3d dT= transforms1[i]*transforms2[i].inverse();
+		double dT_t = sqrt(pow(dT.translation()(0),2)+pow(dT.translation()(1),2)+pow(dT.translation()(2),2));
+		double dR= acos((dT.rotation().matrix().trace()-1)/2);
+
+		cerr<<dT_it<<", "<<dR_i<<", "<<i<<" :  SE : "<<currr<<" \t RSE : "<<sqrt(currr)<<" "<<dT_t<<"\t : "<<res2<<endl;
+		cout<<dT_it<<", "<<dR_i<<", "<<dT_t<<", "<<dR<<endl;
 		if(!isnan(res2))res_sum+=res2;
 		sse+= currr;
 		srse+=sqrt(currr);
 	}
 	sse/=transforms1.size();
-	cout<<sqrt(sse)<<"\t"<<srse/transforms1.size()<<"\t "<<res_sum/transforms1.size()<<endl;
+	cerr<<sqrt(sse)<<"\t"<<srse/transforms1.size()<<"\t "<<res_sum/transforms1.size()<<endl;
 }
 
