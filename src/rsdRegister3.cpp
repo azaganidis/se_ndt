@@ -57,12 +57,14 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr
 int main(int argc, char** argv)
 {
 	po::options_description desc("Allowed options");
+	int par;
 	desc.add_options()
 	("help", "produce help message")
 	("skip", "skip point cloud first line")
 	("nc", "Do not concatenate transforms")
 	 ("pointclouds", po::value<std::vector<string> >()->multitoken(), "Point cloud files")
 	 ("b", po::value<std::vector<float> >()->multitoken(), "Bounding box--Atention! not working yet!")
+	 ("p", po::value<int>(&par), "parameter")
 	 ("sem1", po::value<std::vector<string> >()->multitoken(), "First semantic input files")
 	 ("sem2", po::value<std::vector<string> >()->multitoken(), "Second semantic input files")
 	 ("sem3", po::value<std::vector<string> >()->multitoken(), "Third semantic input files");
@@ -109,7 +111,8 @@ int main(int argc, char** argv)
 	T.setIdentity();
 	Tt.setIdentity();
 	//NDTMatch_SE matcher ({0.5,0.1,0.05},{0,1,0,1,2},{25,25,10},{3},{-1},0.60,25);
-	NDTMatch_SE matcher ({1,2},{1,0},{80,80,20},{3,3,3},{-1,-1,-1},0.70,5);
+	NDTMatch_SE matcher ({0.5,0.05},{0,1},{10,10,10},{2,1,0},{-1,-1,-1},0.30,50);
+	cerr<<par<<endl;
 	//lslgeneric::NDTFuserHMT_SE matcher (the_initial_pose,{the_resolutions},{the_order_with which_the_resolutions_are_used},{the_size_of_the_map},{the_tail_segments},{ignore_values},reject_percentage,number_of_iterations);
 	for(int i=0;i<num_files;i++)
 	{

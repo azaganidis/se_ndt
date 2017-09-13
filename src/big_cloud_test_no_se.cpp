@@ -48,6 +48,7 @@ int main(int argc, char** argv)
 	int num_files=pointcloud_files.size();
 
 		lslgeneric::NDTMatcherD2D matcher(false,false,{5,4,20,10,180});
+		//lslgeneric::NDTMatcherD2D matcher(false,false,{1,5,4,20,10,90});
 	//NDTMatch_SE matcher ({200,60,200,70,50,5},{0,1,2,3,4,5},{200,200,200},{'u'},{0},0.01,50);// :-D
 	//NDTMatch_SE matcher ({100,20,100,4,1,2},{0,1,2,3,4,5},{100,100,100},{'u'},{0},0.01,50);// :-D
 		matcher.ITR_MAX =50;

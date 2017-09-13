@@ -121,7 +121,7 @@ int main(int argc, char** argv)
 	std::default_random_engine generator;
 
 	std::set<std::pair<int,int> > angles;
-	int steps=5;
+	int steps=20;
 	int total_points=10000;
 	pcl::ExtractIndices<pcl::PointXYZI> extract;
 	transforms = readTransform(in_trans);

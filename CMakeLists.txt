@@ -55,6 +55,15 @@ add_executable(gen_transforms src/gen_transforms.cpp)
 target_link_libraries(gen_transforms ${Boost_LIBRARIES}
 	${Eigen3_LIBRARIES})
 
+add_executable(rpy_to_transform src/rpy_to_transform.cpp)
+target_link_libraries(rpy_to_transform ${Eigen3_LIBRARIES})
+
+add_executable(transform_diff src/transform_diff.cpp)
+target_link_libraries(transform_diff ${Eigen3_LIBRARIES})
+
+add_executable(transform_concat src/transform_concat.cpp)
+target_link_libraries(transform_concat ${Eigen3_LIBRARIES})
+
 add_executable(exp_clouds src/exp_clouds.cpp)
 target_link_libraries(exp_clouds ${Boost_LIBRARIES}
 	${Eigen3_LIBRARIES} ${PCL_LIBRARIES})
@@ -107,7 +116,7 @@ add_executable(polesRegister_ndt src/polesRegister_ndt.cpp)
 target_link_libraries(polesRegister_ndt ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
-add_executable(big_cloud_test_no_se src/big_cloud_test_no_se.cpp)
+add_executable(big_cloud_test_no_se src/big_cloud_test_no_se2.cpp)
 target_link_libraries(big_cloud_test_no_se ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
