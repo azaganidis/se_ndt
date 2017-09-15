@@ -3,7 +3,7 @@ The point clouds must be in csv form, and contain intensity. Intensity is only n
 The semantic should be separate from the point clouds, one file per cloud, one line per point.
 example:
 
-   semanticRegister --pointclouds ./pointclouds/pointcloud_{00..99}.csv --sem1 ./semantics/semantic_{00..99}.csv
+   semanticRegister --pointclouds ./pointclouds/pointcloud_{00..99}.csv --sem ./semantics/semantic_{00..99}.csv
 
 To not keep track of the final transform, and only display the relative between the clouds (Td instead of T, if T=T*Td), add the parameter --nc
 
@@ -30,7 +30,7 @@ Modifying:
 	The last parameter is the number of iterations.
 
 	The registration happens in 
-		Tt=matcher.match(cloud1,{std::vector<double>(),semantic});
+		Tt=matcher.match(cloud1,{std::vector<double>(),getMeasure(sem_files[0][i]});
 	with input the new cloud, and an initializer list with the vectors of the semantics. An empty vector can be passed if the parameter '*' is set on this index. 
 
 
