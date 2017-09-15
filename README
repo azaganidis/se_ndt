@@ -26,5 +26,11 @@ Modifying:
 	0  completely ignore this semantic.
 	'*' symbolizes all points that dont belong in any semantic. If the option exists, those points are assigned to a separate category. Otherwise they are discarded.
 
+	the following parameter, 0.01, is the probability of rejecting points. Only used in tail-based segmentation (1,2,3).
+	The last parameter is the number of iterations.
+
+	The registration happens in 
+		Tt=matcher.match(cloud1,{std::vector<double>(),semantic});
+	with input the new cloud, and an initializer list with the vectors of the semantics. An empty vector can be passed if the parameter '*' is set on this index. 
 
 
