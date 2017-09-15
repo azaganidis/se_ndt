@@ -100,7 +100,7 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointC
 				num_tails++;
 			}else look_up[i+num_attributes]=-1;
 		}
-		else if(distribution_tails[i]==(int )'e')
+		else if(distribution_tails[i]==(int )'e'||distribution_tails[i]=='>'||distribution_tails[i]=='<'||distribution_tails[i]=='*'||distribution_tails[i]=='=')
 		{
 			look_up[i]=num_tails;
 			num_tails++;
@@ -120,9 +120,25 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointC
 		int index=-1;
 		for(auto j=0;j< num_attributes;j++)
 		{
-			if(distribution_tails.at(j)==(int )'e')
+			if(distribution_tails.at(j)==(int )'e'||distribution_tails.at(j)==(int )'=')
 			{
 				if(attributes.at(j).at(i)==disregard.at(j))
+				{
+					index=look_up[j];
+					continue;
+				}
+			}
+			else if(distribution_tails.at(j)==(int )'>')
+			{
+				if(attributes.at(j).at(i)>=disregard.at(j))
+				{
+					index=look_up[j];
+					continue;
+				}
+			}
+			else if(distribution_tails.at(j)==(int )'<')
+			{
+				if(attributes.at(j).at(i)<=disregard.at(j))
 				{
 					index=look_up[j];
 					continue;
@@ -145,6 +161,8 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointC
 				if(index>=NumInputs)cerr<<"too many labels"<<endl;
 				continue;
 			}
+			else if(distribution_tails.at(j)==(int )'*'&&index==-1)
+				index=look_up[j];
 		}
 
 
