@@ -51,6 +51,35 @@ add_executable(polesRegister_fuser src/polesRegister_fuser.cpp)
 target_link_libraries(polesRegister_fuser ndt_fuser ${Boost_LIBRARIES}
 	${OpenCV_LIBS} ${PCL_LIBRARIES})
 
+add_executable(gen_transforms src/gen_transforms.cpp)
+target_link_libraries(gen_transforms ${Boost_LIBRARIES}
+	${Eigen3_LIBRARIES})
+
+add_executable(rpy_to_transform src/rpy_to_transform.cpp)
+target_link_libraries(rpy_to_transform ${Eigen3_LIBRARIES})
+
+add_executable(transform_diff src/transform_diff.cpp)
+target_link_libraries(transform_diff ${Eigen3_LIBRARIES})
+
+add_executable(transform_concat src/transform_concat.cpp)
+target_link_libraries(transform_concat ${Eigen3_LIBRARIES})
+
+add_executable(exp_clouds src/exp_clouds.cpp)
+target_link_libraries(exp_clouds ${Boost_LIBRARIES}
+	${Eigen3_LIBRARIES} ${PCL_LIBRARIES})
+
+add_executable(inverse_transforms src/inverse_transforms.cpp)
+target_link_libraries(inverse_transforms ${Boost_LIBRARIES}
+	${Eigen3_LIBRARIES} ${PCL_LIBRARIES})
+
+add_executable(csv_uniform_sampling src/csv_uniform_sampling.cpp)
+target_link_libraries(csv_uniform_sampling ${Boost_LIBRARIES}
+	${Eigen3_LIBRARIES} ${PCL_LIBRARIES})
+
+add_executable(evaluate src/evaluate_files.cpp)
+target_link_libraries(evaluate ${Boost_LIBRARIES}
+	${Eigen3_LIBRARIES} )
+
 add_executable(rsd_register_fuser src/rsd_register_fuser.cpp)
 target_link_libraries(rsd_register_fuser ndt_fuser ${Boost_LIBRARIES}
 	${OpenCV_LIBS} ${PCL_LIBRARIES})
@@ -75,12 +104,20 @@ add_executable(semanticRegister src/semanticRegister.cpp)
 target_link_libraries(semanticRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
+add_executable(big_cloud_test src/big_cloud_test.cpp)
+target_link_libraries(big_cloud_test ${PROJECT_NAME} ${ndt_map_LIBRARIES}
+	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
+
 add_executable(rsdRegister3 src/rsdRegister3.cpp)
 target_link_libraries(rsdRegister3 ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
 add_executable(polesRegister_ndt src/polesRegister_ndt.cpp)
 target_link_libraries(polesRegister_ndt ${PROJECT_NAME} ${ndt_map_LIBRARIES}
+	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
+
+add_executable(big_cloud_test_no_se src/big_cloud_test_no_se2.cpp)
+target_link_libraries(big_cloud_test_no_se ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
 add_executable(concat_transform src/concat_transform.cpp)

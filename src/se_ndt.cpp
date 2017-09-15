@@ -100,7 +100,7 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointC
 				num_tails++;
 			}else look_up[i+num_attributes]=-1;
 		}
-		else if(distribution_tails[i]==101)
+		else if(distribution_tails[i]==(int )'e'||distribution_tails[i]=='>'||distribution_tails[i]=='<'||distribution_tails[i]=='*'||distribution_tails[i]=='=')
 		{
 			look_up[i]=num_tails;
 			num_tails++;
@@ -120,9 +120,25 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointC
 		int index=-1;
 		for(auto j=0;j< num_attributes;j++)
 		{
-			if(distribution_tails.at(j)==101)
+			if(distribution_tails.at(j)==(int )'e'||distribution_tails.at(j)==(int )'=')
 			{
 				if(attributes.at(j).at(i)==disregard.at(j))
+				{
+					index=look_up[j];
+					continue;
+				}
+			}
+			else if(distribution_tails.at(j)==(int )'>')
+			{
+				if(attributes.at(j).at(i)>=disregard.at(j))
+				{
+					index=look_up[j];
+					continue;
+				}
+			}
+			else if(distribution_tails.at(j)==(int )'<')
+			{
+				if(attributes.at(j).at(i)<=disregard.at(j))
 				{
 					index=look_up[j];
 					continue;
@@ -145,6 +161,8 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointC
 				if(index>=NumInputs)cerr<<"too many labels"<<endl;
 				continue;
 			}
+			else if(distribution_tails.at(j)==(int )'*'&&index==-1)
+				index=look_up[j];
 		}
 
 
@@ -244,10 +262,10 @@ NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initi
 		mapLocal[i]=initMap(NumInputs,{resolutions.at(i)},size);
 	}
 }
-Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2,initializer_list<vector<double> > attributes)
+Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2,initializer_list<vector<double> > attributes1,initializer_list<vector<double> > attributes2)
 {
-	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud1=getSegments(cloud1,attributes,tails,ignore,removeProbability);
-	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud2=getSegments(cloud2,attributes,tails,ignore,removeProbability);
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud1=getSegments(cloud1,attributes1,tails,ignore,removeProbability);
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud2=getSegments(cloud2,attributes2,tails,ignore,removeProbability);
 	for(int i=0;i<resolutions.size();i++)
 	{
 		loadMap(map[i],laserCloud1,NumInputs);
@@ -287,4 +305,10 @@ Eigen::Affine3d NDTMatch_SE::match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, in
 	Eigen::Affine3d T;
 	T.setIdentity();
 	return this->match(T,cloud,attributes);
+}
+Eigen::Affine3d NDTMatch_SE::match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2, initializer_list<vector<double> > attributes1, initializer_list<vector<double> > attributes2)
+{
+	Eigen::Affine3d T;
+	T.setIdentity();
+	return this->match(T,cloud1,cloud2,attributes1,attributes2);
 }

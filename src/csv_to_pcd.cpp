@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <boost/program_options.hpp>
 #include <pcl/filters/crop_box.h>
-#include <se_ndt/ndt_fuser_hmt_se.h>
+#include <se_ndt/se_ndt.hpp>
 #include <pcl/common/io.h>
 
 using namespace std;
@@ -56,18 +56,18 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr
 
 int main(int argc, char** argv)
 {
+	string transforms,ref_cloud_name, ref_sem_name;
 	po::options_description desc("Allowed options");
-	int par;
 	desc.add_options()
 	("help", "produce help message")
 	("skip", "skip point cloud first line")
 	("nc", "Do not concatenate transforms")
+	 ("transforms", po::value<std::string >(&transforms), "File with initial transforms")
+	 ("ref_cloud", po::value<string>(&ref_cloud_name), "Point cloud reference file")
+	 ("ref_sem", po::value<string>(&ref_sem_name), "Point cloud reference semantic file")
 	 ("pointclouds", po::value<std::vector<string> >()->multitoken(), "Point cloud files")
 	 ("b", po::value<std::vector<float> >()->multitoken(), "Bounding box--Atention! not working yet!")
-	 ("p", po::value<int>(&par), "parameter")
-	 ("sem1", po::value<std::vector<string> >()->multitoken(), "First semantic input files")
-	 ("sem2", po::value<std::vector<string> >()->multitoken(), "Second semantic input files")
-	 ("sem3", po::value<std::vector<string> >()->multitoken(), "Third semantic input files");
+	 ("sem1", po::value<std::vector<string> >()->multitoken(), "First semantic input files");
 
 
     po::variables_map vm;
@@ -75,9 +75,13 @@ int main(int argc, char** argv)
     po::notify(vm);
 	vector<string> rsd_min_files;
 	vector<string> rsd_max_files;
-	vector<string> rsd_3_files;
 	vector<string> pointcloud_files;
 	vector<float> box;
+
+	bool trans=false;
+	ifstream in_trans;
+	if(vm.count("transforms")) { in_trans.open(transforms, ifstream::in); trans=true; }
+
 	bool skip=false;
 	if(vm.count("skip"))
 		skip=true;
@@ -95,15 +99,9 @@ int main(int argc, char** argv)
 	if (!vm["sem1"].empty() && (rsd_min_files= vm["sem1"].as<vector<string> >()).size() >= 2) {
 		///cout<<"success poles read";
 	}else {cout<<"sem1 read failure";};
-	if (!vm["sem2"].empty() && (rsd_max_files= vm["sem2"].as<vector<string> >()).size() >= 2) {
-		///cout<<"success poles read";
-	}else {cout<<"sem2 read failure";};
-	if (!vm["sem3"].empty() && (rsd_3_files= vm["sem3"].as<vector<string> >()).size() >= 2) {
-		///cout<<"success poles read";
-	}else {cout<<"sem3 read failure";};
 	bool h_box=false;
 	if(vm.count("b")) {h_box=true;box=vm["b"].as<vector<float> >();if(box.size()!=6){cout<<"Wrong box size! must be 6."<<endl;return -1;}}
-	int num_files=min(min(rsd_min_files.size(),pointcloud_files.size()),rsd_3_files.size());
+	int num_files=min(rsd_min_files.size(),pointcloud_files.size());
 
 
 	Eigen::Affine3d T;
@@ -111,18 +109,24 @@ int main(int argc, char** argv)
 	T.setIdentity();
 	Tt.setIdentity();
 	//NDTMatch_SE matcher ({0.5,0.1,0.05},{0,1,0,1,2},{25,25,10},{3},{-1},0.60,25);
-	NDTMatch_SE matcher ({0.5,0.05},{0,1},{10,10,10},{2,1,0},{-1,-1,-1},0.30,50);
-	cerr<<par<<endl;
+	NDTMatch_SE matcher ({2,1,0.5},{1},{100,100,100},{'u'},{0},0.01,50);
 	//lslgeneric::NDTFuserHMT_SE matcher (the_initial_pose,{the_resolutions},{the_order_with which_the_resolutions_are_used},{the_size_of_the_map},{the_tail_segments},{ignore_values},reject_percentage,number_of_iterations);
+	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_refI=getCloud2(ref_cloud_name,skip);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ref(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::copyPointCloud(*cloud_refI,*cloud_ref);
+	std::vector<double> rsd_ref=getMeasure(ref_sem_name);
 	for(int i=0;i<num_files;i++)
 	{
 		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud3=h_box?cropIt(getCloud2(pointcloud_files[i],skip),box):getCloud2(pointcloud_files[i],skip);
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::copyPointCloud(*cloud3,*cloud1);
+
+		if(trans){
+			Eigen::Affine3d T=readTransform(in_trans);
+			pcl::transformPointCloud(*cloud1,*cloud1,T);
+		}
 		std::vector<double> rsd_min=getMeasure(rsd_min_files[i]);
-		std::vector<double> rsd_max=getMeasure(rsd_max_files[i]);
-		std::vector<double> rsd_3=getMeasure(rsd_3_files[i]);
-		Tt=matcher.match(cloud1,{rsd_min,rsd_max,rsd_3});
+		Tt=matcher.match(cloud_ref,cloud1,{rsd_ref},{rsd_min});
 		T=T*Tt;
 
 		for(int i=0;i<4;i++)
