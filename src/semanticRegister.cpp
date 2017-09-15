@@ -60,21 +60,28 @@ int main(int argc, char** argv)
 	float parameter;
 	po::options_description desc("Allowed options");
 	desc.add_options()
-	("help", "produce help message")
+	("help,h", "produce help message")
 	("skip", "skip point cloud first line")
-	("nc", "Do not concatenate transforms")
-	 ("transforms", po::value<std::string >(&transforms), "File with initial transforms")
-	 ("pointclouds", po::value<std::vector<string> >()->multitoken(), "Point cloud files")
+	("nc,n", "Do not concatenate transforms")
+	 ("transforms,t", po::value<std::string >(&transforms), "File with initial transforms")
+	 ("pointclouds,p", po::value<std::vector<string> >()->multitoken(), "Point cloud files")
 	 ("b", po::value<std::vector<float> >()->multitoken(), "Bounding box--Atention! not working yet!")
-	 ("p", po::value<float>(&parameter), "Bounding box--Atention! not working yet!")
-	 ("sem1", po::value<std::vector<string> >()->multitoken(), "First semantic input files");
+	 ("parameter", po::value<float>(&parameter), "Bounding box--Atention! not working yet!")
+	 ("sem,s", po::value<std::vector<string> >()->multitoken(), "First semantic input files");
 
+	po::parsed_options parsed_options = po::command_line_parser(argc, argv)
+      .options(desc).style(po::command_line_style::unix_style ).run();
+
+   std::vector<std::vector<std::string>> sem_files;
+   for (const po::option& o : parsed_options.options) {
+      if (o.string_key == "sem")
+         sem_files.push_back(o.value);
+   }
 
     po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc, po::command_line_style::unix_style ^ po::command_line_style::allow_short), vm);
+//    po::store(po::parse_command_line(argc, argv, desc, po::command_line_style::unix_style ^ po::command_line_style::allow_short), vm);
+	po::store(parsed_options, vm);
     po::notify(vm);
-	vector<string> rsd_min_files;
-	vector<string> rsd_max_files;
 	vector<string> pointcloud_files;
 	vector<float> box;
 
@@ -96,12 +103,11 @@ int main(int argc, char** argv)
 	if (!vm["pointclouds"].empty() && (pointcloud_files= vm["pointclouds"].as<vector<string> >()).size() >= 2) {
 		///cout<<"success pointcloud read";
 	}else {cout<<"pointclouds read failure";};
-	if (!vm["sem1"].empty() && (rsd_min_files= vm["sem1"].as<vector<string> >()).size() >= 2) {
-		///cout<<"success poles read";
-	}else {cout<<"sem1 read failure";};
 	bool h_box=false;
 	if(vm.count("b")) {h_box=true;box=vm["b"].as<vector<float> >();if(box.size()!=6){cout<<"Wrong box size! must be 6."<<endl;return -1;}}
-	int num_files=min(rsd_min_files.size(),pointcloud_files.size());
+	int num_files=pointcloud_files.size();
+	for(int i=0;i<sem_files.size();i++)
+		num_files=min(num_files,(int ) sem_files.at(i).size());
 
 
 	Eigen::Affine3d T;
@@ -121,8 +127,7 @@ int main(int argc, char** argv)
 			Eigen::Affine3d T=readTransform(in_trans);
 			pcl::transformPointCloud(*cloud1,*cloud1,T);
 		}
-		std::vector<double> semantic=getMeasure(rsd_min_files[i]);
-		Tt=matcher.match(cloud1,{std::vector<double>(),semantic});
+		Tt=matcher.match(cloud1,{std::vector<double>(), getMeasure(sem_files[0][i])});
 		T=T*Tt;
 
 		for(int i=0;i<4;i++)
