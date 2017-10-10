@@ -115,7 +115,8 @@ int main(int argc, char** argv)
 	T.setIdentity();
 	Tt.setIdentity();
 	//NDTMatch_SE matcher ({0.5,0.1,0.05},{0,1,0,1,2},{25,25,10},{3},{-1},0.60,25);
-	NDTMatch_SE matcher ({1,2,0.5},{0,1,0,2},{100,100,100},{'*','>'},{0,3},0.01,52);
+	//NDTMatch_SE matcher ({0.5},{0},{100,100,100},{'>','<','>','<','*'},{3,0.5,3,0.1,0},0.01,52);
+	NDTMatch_SE matcher ({2,1,0.5},{1,0,1,2},{100,100,100},{'*'},{0},0.01,52);
 	//lslgeneric::NDTFuserHMT_SE matcher (the_initial_pose,{the_resolutions},{the_order_with which_the_resolutions_are_used},{the_size_of_the_map},{the_tail_segments},{ignore_values},reject_percentage,number_of_iterations);
 	for(int i=0;i<num_files;i++)
 	{
@@ -127,7 +128,7 @@ int main(int argc, char** argv)
 			Eigen::Affine3d T=readTransform(in_trans);
 			pcl::transformPointCloud(*cloud1,*cloud1,T);
 		}
-		Tt=matcher.match(cloud1,{std::vector<double>(), getMeasure(sem_files[0][i])});
+		Tt=matcher.match(cloud1,{std::vector<double>()});// getMeasure(sem_files[0][i]),getMeasure(sem_files[1][i]),getMeasure(sem_files[1][i]),getMeasure(sem_files[2][i]),std::vector<double>()});
 		T=T*Tt;
 
 		for(int i=0;i<4;i++)

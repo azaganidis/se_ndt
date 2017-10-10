@@ -8,12 +8,13 @@
 
 using namespace std;
 namespace po = boost::program_options;
-pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename)
+pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename,bool skip_first=false)
 {
 	ifstream infile(filename); // for example
 	string line = "";
 	pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud(new pcl::PointCloud<pcl::PointXYZI>);
-	getline(infile, line);
+	if(skip_first)
+		getline(infile, line);
 	while (getline(infile, line)){
 		stringstream strstr(line);
 		string word = "";
@@ -39,6 +40,7 @@ int main(int argc, char** argv)
 	po::options_description desc("Allowed options");
 	desc.add_options()
 	("help", "Produce help message.")
+	 ("skip", "Skip first pointcloud line")
 	 ("rsd", "Calculate RSD.")
 	 ("normal-neighbors",po::value<float>(&norm_radius)->default_value(6), "RSD: Normal estimation number of neighbors.")
 	 ("normal-radius",po::value<float>(&norm_radius), "RSD: Normal estimation radius-not implemented.")
@@ -58,7 +60,7 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud=getCloud2(in_p);
+	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud=getCloud2(in_p,vm.count("skip")?true:false);
 
 	std::vector<double> measure_out;
 	if(vm.count("rsd")) 

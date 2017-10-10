@@ -1880,6 +1880,22 @@ std::vector<NDTCell*> NDTMap::getCellsForPoint(const pcl::PointXYZ pt, int n_nei
     //}
 }
 
+std::vector<lslgeneric::NDTCell*> NDTMap::getAllCellsNoCopy() const
+{
+
+    std::vector<NDTCell*> ret;
+    typename SpatialIndex::CellVectorItr it = index_->begin();
+    while (it != index_->end())
+    {
+        NDTCell *cell = (*it);
+		if(cell->hasGaussian_)
+		{
+			ret.push_back(cell);
+		}
+        it++;
+    }
+    return ret;
+}
 bool NDTMap::getCellForPoint(const pcl::PointXYZ &pt, NDTCell* &out_cell, bool checkForGaussian) const
 {
 
@@ -1984,11 +2000,11 @@ std::vector<lslgeneric::NDTCell*> NDTMap::getAllCells() const
     while (it != index_->end())
     {
         NDTCell *cell = (*it);
-	if(cell->hasGaussian_)
-	{
-	    NDTCell* nd = cell->copy();
-	    ret.push_back(nd);
-	}
+		if(cell->hasGaussian_)
+		{
+			NDTCell* nd = cell->copy();
+			ret.push_back(nd);
+		}
         it++;
     }
     return ret;
@@ -2000,8 +2016,8 @@ std::vector<lslgeneric::NDTCell*> NDTMap::getAllInitializedCells()
     typename SpatialIndex::CellVectorItr it = index_->begin();
     while (it != index_->end())
     {
-	NDTCell* nd = (*it)->copy();
-	ret.push_back(nd);
+		NDTCell* nd = (*it)->copy();
+		ret.push_back(nd);
         it++;
     }
     return ret;

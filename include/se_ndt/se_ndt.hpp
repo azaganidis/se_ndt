@@ -24,7 +24,7 @@ class NDTMatch_SE{
 		{
 			for(unsigned int i=0;i<resolutions.size();i++)
 			{
-				for(auto j=0;j<NumInputs;j++)
+				for(unsigned int j=0;j<NumInputs;j++)
 				{
 					delete map[i][j];
 					delete mapLocal[i][j];
@@ -50,7 +50,7 @@ size_t count_tails(vector<int>& distribution_tails);
 size_t* sort_pointcloud(vector<double> &in,float disregard);
 Eigen::Affine3d readTransform(istream &infile);
 inline size_t index_selector(size_t **I,int p,int num,std::vector<int> Tails,size_t number_points);
-inline bool checkInLimits(size_t **in,int p,int num,int cu,int cl);
+inline bool checkInLimits(size_t **in,size_t p,size_t num,size_t cu,size_t cl);
 lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_);
 void loadMap(lslgeneric::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,size_t number_tails,float sensor_range=100);
 #endif/*SE_NDT*/

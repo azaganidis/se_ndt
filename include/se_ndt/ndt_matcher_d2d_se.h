@@ -55,7 +55,7 @@ class NDTMatcherD2D_SE: public NDTMatcherD2D
 public:
 	Eigen::Matrix<double,6,6> HessianF;
 	Eigen::Matrix<double,6,1> score_gradientF;
-	int NumInputs;
+	unsigned int NumInputs;
     /**
      * Registers multiple point clouds to multiple NDT structures.
      * \param  fixed

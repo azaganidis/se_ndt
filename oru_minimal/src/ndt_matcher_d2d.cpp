@@ -492,7 +492,6 @@ bool NDTMatcherD2D::update_gradient_hessian_local(
     {
         Hessian += factor*(2*_Jest.transpose()*B*_Jest+2*_xtBH -_xtBZhBx -2*_xtBZBJ.transpose()
                            -2*_xtBZBJ +_xtBZBZBx +_xtBZBZBx.transpose() -lfd2*_Q*_Q.transpose()/2 ); // + Eigen::Matrix<double,6,6>::Identity();
-
     }
     return true;
 }
@@ -2027,7 +2026,7 @@ bool NDTMatcherD2D::covariance( NDTMap& targetNDT,
 
     pcl::PointXYZ point;
     //now compute Jdpdz
-    for(int i=0; i<sourceNDTN.size(); i++)
+    for(unsigned int i=0; i<sourceNDTN.size(); i++)
     {
         meanMoving = sourceNDTN[i]->getMean();
         point.x = meanMoving(0);
@@ -2085,7 +2084,7 @@ bool NDTMatcherD2D::covariance( NDTMap& targetNDT,
 
             Jdpdz.row(i) = G.transpose();
 
-            for(int j=0; j<targetNDTN.size(); j++)
+            for(unsigned int j=0; j<targetNDTN.size(); j++)
             {
                 if(targetNDTN[j]->getMean() == meanFixed)
                 {

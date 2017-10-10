@@ -56,9 +56,9 @@ inline size_t index_selector(size_t **I,int p,int num,std::vector<int> Tails,siz
 	}
 	return number_points-maxA<minA?maxI+num:minI;
 }
-inline bool checkInLimits(size_t **in,int p,int num,int cu,int cl)
+inline bool checkInLimits(size_t **in,size_t p,size_t num,size_t cu,size_t cl)
 {
-	for(int i=0;i<num;i++)
+	for(unsigned int i=0;i<num;i++)
 		if(in[i]!=NULL)
 			if(in[i][p]>cu||in[i][p]<cl)
 				return true;
@@ -110,7 +110,7 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointC
 	}
 	///////
 	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud;
-	for(int i=0;i<num_tails+semantic_labels.size();i++)
+	for(unsigned int i=0;i<num_tails+semantic_labels.size();i++)
 	{
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudT(new pcl::PointCloud<pcl::PointXYZ>);
 		laserCloud.push_back(cloudT);
@@ -156,9 +156,8 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointC
 					semantic_labels.push_back(sem_val);
 					my_iter=semantic_labels.end()-1;
 				}
-				int nummm=distance(semantic_labels.begin(),my_iter);
 				index=num_tails+distance(semantic_labels.begin(),my_iter);
-				if(index>=NumInputs)cerr<<"too many labels"<<endl;
+				if(index>=(int )NumInputs)cerr<<"too many labels"<<endl;
 				continue;
 			}
 			else if(distribution_tails.at(j)==(int )'*'&&index==-1)
@@ -189,7 +188,7 @@ size_t count_tails(vector<int>& distribution_tails)
 	return distribution_tails.size()+number_tails3-number_tails0;
 }
 
-lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_)
+lslgeneric::NDTMap **initMap(unsigned int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_)
 {
 	vector<float> size(size_),resolutions(resolutions_);
 	if(number_tails!=resolutions.size()&&resolutions.size()!=1)
@@ -204,7 +203,7 @@ lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolution
 		cerr<<"Wrong size parameter. Using size x=y=z="<<max_size<<endl;
 	}
 	lslgeneric::NDTMap **map = new lslgeneric::NDTMap * [number_tails];
-	for(size_t i=0;i<number_tails;i++)
+	for(unsigned int i=0;i<number_tails;i++)
 	{
 		lslgeneric::LazyGrid *grid = new lslgeneric::LazyGrid(resolutions[i%resolutions.size()]);
 		lslgeneric::NDTMap *mapTMP=new lslgeneric::NDTMap(grid);
@@ -228,7 +227,7 @@ Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix
         Eigen::Matrix<double,6,1> evals = Sol.eigenvalues().real();
         double minCoeff = evals.minCoeff();
         double maxCoeff = evals.maxCoeff();
-        if(minCoeff < 0)  //|| evals.minCoeff()) // < 10e-5*evals.maxCoeff()) 
+        if(minCoeff <= 0)  //|| evals.minCoeff()) // < 10e-5*evals.maxCoeff()) 
 		{
 			Eigen::Matrix<double,6,6> evecs = Sol.eigenvectors().real();
 			double regularizer = score_gradient.norm();
@@ -256,7 +255,7 @@ NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initi
 
 	map=new lslgeneric::NDTMap ** [resolutions.size()];
 	mapLocal=new lslgeneric::NDTMap ** [resolutions.size()];
-	for(auto i=0;i<resolutions.size();i++)
+	for(unsigned int i=0;i<resolutions.size();i++)
 	{
 		map[i]=initMap(NumInputs,{resolutions.at(i)},size);
 		mapLocal[i]=initMap(NumInputs,{resolutions.at(i)},size);
@@ -266,7 +265,7 @@ Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::P
 {
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud1=getSegments(cloud1,attributes1,tails,ignore,removeProbability);
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud2=getSegments(cloud2,attributes2,tails,ignore,removeProbability);
-	for(int i=0;i<resolutions.size();i++)
+	for(unsigned int i=0;i<resolutions.size();i++)
 	{
 		loadMap(map[i],laserCloud1,NumInputs);
 		loadMap(mapLocal[i],laserCloud2,NumInputs);
@@ -282,7 +281,7 @@ Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::P
 Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes)
 {
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegments(cloud,attributes,tails,ignore,removeProbability);
-	for(int i=0;i<resolutions.size();i++)
+	for(unsigned int i=0;i<resolutions.size();i++)
 		loadMap(mapLocal[i],laserCloud,NumInputs);
 	if(!firstRun)
 	{

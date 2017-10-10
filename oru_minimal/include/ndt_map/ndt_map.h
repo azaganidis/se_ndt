@@ -399,6 +399,7 @@ public:
      * This method gives all the vectors that contain a gaussian within a cell (hasGaussian is true).
      */
     virtual std::vector<lslgeneric::NDTCell*> getAllCells() const;
+    virtual std::vector<lslgeneric::NDTCell*> getAllCellsNoCopy() const;
 
     /**
      * Returns all cells that have been initialized (including ones that do not contain gaussian at the moment).
