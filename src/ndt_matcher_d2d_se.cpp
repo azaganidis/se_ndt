@@ -281,17 +281,21 @@ double NDTMatcherD2D_SE::derivativesNDT(
     score_gradient.setZero();
     Hessian.setZero();
 
+		Eigen::Matrix<double,1,6> InM_Sum;
+		InM_Sum.setZero();
 #ifdef USE_OMP
 #define n_threads 6
     Eigen::MatrixXd score_gradient_S(n_dimensions,NumInputs);
     Eigen::MatrixXd score_here_S(1,NumInputs);
     Eigen::MatrixXd Hessian_S(n_dimensions,n_dimensions*NumInputs);
     Eigen::MatrixXd cov_S(n_dimensions,n_dimensions*NumInputs);
+    Eigen::MatrixXd In_S(NumInputs,n_dimensions);
 
     score_gradient_S.setZero();
     score_here_S.setZero();
     Hessian_S.setZero();
     cov_S.setZero();
+    In_S.setZero();
 
     //n_threads = omp_get_num_threads();
     //std::cout<<n_threads<<" "<<omp_get_thread_num()<<std::endl;
@@ -446,82 +450,54 @@ double NDTMatcherD2D_SE::derivativesNDT(
 			Eigen::MatrixXd Hessian_here=Hessian_S.block(0,n_dimensions*nS,n_dimensions,n_dimensions);
 			if(Hessian_here!=Eigen::Matrix<double,6,6>::Zero())
 			{
-				Eigen::Matrix<double,6,6> JK, cov;
+				Eigen::Matrix<double,6,6> JK;
 				JK = sigmaS*Jdpdz.transpose()*Jdpdz;
-				Eigen::Matrix<double,6,6> IH = getInverseHes(Hessian_here,score_gradient_S.col(nS));
 
-				Eigen::Matrix<double,6,6> JII;
-    bool exists = false;
-    double det = 0;
-				(JK).computeInverseAndDetWithCheck(JII,det,exists);
-			std::cerr<<JII<<std::endl<<det<<exists<<"ppppppppppppppp"<<std::endl;
-
-				cov_S.block(0,n_dimensions*nS,n_dimensions,n_dimensions) = IH*JK*IH;
-
-				//Hessian_here=cov_S.block(0,n_dimensions*nS,n_dimensions,n_dimensions);
-				//if(!(Hessian_here.array()==Hessian_here.array()).all())
-				//	std::cerr<<"f2"<<std::endl;
-
+				Eigen::ColPivHouseholderQR<Eigen::Matrix<double,6,6> > decomp(JK);
+				if(decomp.isInvertible())
+				{
+					Eigen::Matrix<double,6,1> InVcov;
+					InVcov=(Hessian_here*decomp.solve(Hessian_here)).diagonal();
+					In_S.row(nS)=InVcov.transpose().cwiseSqrt().cwiseInverse();
+					InM_Sum=InM_Sum+In_S.row(nS);
+				}
 			}
+			else std::cerr<<"f"<<std::endl;
 		}
 
 	}
-    //std::cout<<"sgomp: "<<score_gradient_omp<<std::endl;
-    //std::cout<<"somp: "<<score_here_omp<<std::endl;
-
-	Eigen::Matrix<double,6,6> cov;
-	cov.setZero();
-
-	int non_zero_count=0;
-	if(balanceClasses)
+	if(balanceClasses&&InM_Sum!=Eigen::Matrix<double,1,6>::Zero())
 	{
-		Eigen::MatrixXd InM_Sum(6,6);
-		InM_Sum.setZero();
 		for(unsigned int nS=0;nS<NumInputs;nS++)
 		{
-			Eigen::Matrix<double,6,6> InM;
-			Eigen::Matrix<double,6,6> cov_t=cov_S.block(0,n_dimensions*nS,n_dimensions,n_dimensions);
-			//InM=cov_S.block(0,n_dimensions*nS,n_dimensions,n_dimensions).inverse();
-			if(cov_t==Eigen::Matrix<double,6,6>::Zero())
-			{
+			Eigen::Matrix<double,1,6> InM=In_S.row(nS)+(0.1*InM_Sum);
+			if(InM==Eigen::Matrix<double,1,6>::Zero())
 				continue;
-			}
-			InM=getInverseHes(cov_t);
-			//if(!(InM.array()==InM.array()).all())
-			//	std::cerr<<"fk"<<std::endl;
-			non_zero_count++;
-			InM_Sum=InM_Sum+InM;
-			score_gradient=score_gradient+InM*score_gradient_S.col(nS);
-			score_here=score_here+InM.trace()*score_here_S(0,nS);
+			Eigen::Matrix<double,1,6> gain=(1.1*InM_Sum).cwiseInverse().cwiseProduct(InM);
+			score_gradient=score_gradient+gain.cwiseProduct(score_gradient_S.col(nS).transpose()).transpose();
+			score_here=score_here+sqrt(gain.dot(gain))*score_here_S(0,nS);
+			Eigen::Matrix<double,6,6> h_scale=Eigen::Matrix<double,6,6>::Identity();
+			h_scale.diagonal()=gain;
+			Hessian+=h_scale*Hessian_S.block(0,n_dimensions*nS,n_dimensions,n_dimensions);
 		}
-		cov=InM_Sum.inverse();
-		if(cov==Eigen::Matrix<double,6,6>::Zero()||InM_Sum==Eigen::Matrix<double,6,6>::Zero()||!(cov.array()==cov.array()).all())
-		{
-			std::cerr<<"n"<<std::endl;
-			score_gradient = score_gradient_S.rowwise().sum();
-			score_here = score_here_S.sum();
-		}
-		else
-		{
-			score_gradient=non_zero_count*cov*score_gradient;
-			score_here=score_here*cov.trace();
-			std::cerr<<score_gradient.transpose()<<std::endl<<"***"<<std::endl<<score_gradient_S.rowwise().sum().transpose()<<std::endl<<"--------------"<<std::endl;
-		}
+//		score_here*=NumInputs;
+//		score_gradient*=NumInputs;
+//		Hessian*=NumInputs;
 	}
-	if(!balanceClasses)
+	else
 	{
 		score_gradient = score_gradient_S.rowwise().sum();
 		score_here = score_here_S.sum();
-	}
-	if(computeHessian)
-	{
-		//std::cout<<"Homp: "<<Hessian_omp<<std::endl;
-		for(unsigned int i=0; i<NumInputs; ++i)
+		if(computeHessian)
 		{
-			Hessian += Hessian_S.block(0,n_dimensions*i,n_dimensions,n_dimensions);
+			//std::cout<<"Homp: "<<Hessian_omp<<std::endl;
+			for(unsigned int i=0; i<NumInputs; ++i)
+			{
+				Hessian += Hessian_S.block(0,n_dimensions*i,n_dimensions,n_dimensions);
+			}
+			HessianF=Hessian;
+			score_gradientF=score_gradient;
 		}
-		HessianF=Hessian;
-		score_gradientF=score_gradient;
 	}
 #endif
    return score_here;
