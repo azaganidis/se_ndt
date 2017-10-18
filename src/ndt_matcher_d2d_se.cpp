@@ -306,6 +306,8 @@ double NDTMatcherD2D_SE::derivativesNDT(
 	if(balanceClasses)
 		computeHessian=true;
 	double sigmaS = (0.03)*(0.03);
+	Eigen::Matrix<double,6,6> JK_All;
+	JK_All.setZero();
 	for(unsigned int nS=0;nS<NumInputs;nS++)
 	{
 		std::vector<NDTCell*> sourceNDT = sourceNDTMany[nS];
@@ -452,33 +454,51 @@ double NDTMatcherD2D_SE::derivativesNDT(
 			{
 				Eigen::Matrix<double,6,6> JK;
 				JK = sigmaS*Jdpdz.transpose()*Jdpdz;
+				JK_All+=JK;
 
 				Eigen::ColPivHouseholderQR<Eigen::Matrix<double,6,6> > decomp(JK);
 				if(decomp.isInvertible())
 				{
 					Eigen::Matrix<double,6,1> InVcov;
 					InVcov=(Hessian_here*decomp.solve(Hessian_here)).diagonal();
-					In_S.row(nS)=InVcov.transpose().cwiseSqrt().cwiseInverse();
+					In_S.row(nS)=InVcov.transpose().cwiseSqrt().cwiseSqrt();
 					InM_Sum=InM_Sum+In_S.row(nS);
 				}
 			}
-			else std::cerr<<"f"<<std::endl;
+			else std::cerr<<"f"<<std::flush;
 		}
 
 	}
-	if(balanceClasses&&InM_Sum!=Eigen::Matrix<double,1,6>::Zero())
+	double val1,val2=InM_Sum.norm();
+	Eigen::ColPivHouseholderQR<Eigen::Matrix<double,6,6> > decomp(JK_All);
+	if(decomp.isInvertible())
 	{
+		Eigen::Matrix<double,6,6> Hessian_here;
+		Hessian_here.setZero();
+		for(unsigned int i=0; i<NumInputs; ++i)
+			Hessian_here += Hessian_S.block(0,n_dimensions*i,n_dimensions,n_dimensions);
+		Eigen::Matrix<double,6,1> InVcov;
+		InVcov=(Hessian_here*decomp.solve(Hessian_here)).diagonal();
+		val1=InVcov.transpose().cwiseSqrt().cwiseSqrt().norm();
+	}
+
+		double ratio=val1/val2;
+		std::cerr<<ratio<<"\t"<<val1<<"\t"<<InM_Sum.norm()<<std::endl;
+	if(balanceClasses&&InM_Sum!=Eigen::Matrix<double,1,6>::Zero()&&val1<val2)
+	{
+		Hessian.setZero();
 		for(unsigned int nS=0;nS<NumInputs;nS++)
 		{
-			Eigen::Matrix<double,1,6> InM=In_S.row(nS)+(0.1*InM_Sum);
+			ratio=6;
+			Eigen::Matrix<double,1,6> InM=In_S.row(nS)+(ratio*InM_Sum);
 			if(InM==Eigen::Matrix<double,1,6>::Zero())
 				continue;
-			Eigen::Matrix<double,1,6> gain=(1.1*InM_Sum).cwiseInverse().cwiseProduct(InM);
+			Eigen::Matrix<double,1,6> gain=((1+ratio)*InM_Sum).cwiseInverse().cwiseProduct(InM);
 			score_gradient=score_gradient+gain.cwiseProduct(score_gradient_S.col(nS).transpose()).transpose();
 			score_here=score_here+sqrt(gain.dot(gain))*score_here_S(0,nS);
 			Eigen::Matrix<double,6,6> h_scale=Eigen::Matrix<double,6,6>::Identity();
 			h_scale.diagonal()=gain;
-			Hessian+=h_scale*Hessian_S.block(0,n_dimensions*nS,n_dimensions,n_dimensions);
+			Hessian+=Hessian_S.block(0,n_dimensions*nS,n_dimensions,n_dimensions);
 		}
 //		score_here*=NumInputs;
 //		score_gradient*=NumInputs;
@@ -486,6 +506,7 @@ double NDTMatcherD2D_SE::derivativesNDT(
 	}
 	else
 	{
+		Hessian.setZero();
 		score_gradient = score_gradient_S.rowwise().sum();
 		score_here = score_here_S.sum();
 		if(computeHessian)
