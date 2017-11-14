@@ -39,6 +39,7 @@ class NDTMatch_SE{
 		Eigen::Affine3d match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes);
 		Eigen::Affine3d match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2, initializer_list<vector<double> > attributes1, initializer_list<vector<double> > attributes2);
 		lslgeneric::NDTMatcherD2D_SE matcher;
+		Eigen::Matrix<double,6,6> getPoseCovariance(Eigen::Affine3d T);
     private:
 		bool firstRun;
 		std::vector<int> semantic_labels;

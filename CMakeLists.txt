@@ -4,6 +4,8 @@ find_package(OpenMP REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}")
+find_package(G2O REQUIRED COMPONENTS types_slam3d)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 #find_package(ndt_map)
@@ -24,7 +26,7 @@ include_directories(
 	${ndt_registration_INCLUDE_DIRS}
 	${EIGEN3_INCLUDE_DIR}
 	${PCL_INCLUDE_DIRS})
-link_directories ( ${Boost_LIBRARY_DIRS} )
+link_directories ( ${Boost_LIBRARY_DIRS} ${G2O_LIBRARY_DIRS})
 include(pcl_find_sse.cmake)
 PCL_CHECK_FOR_SSE()
 #find_package(Boost REQUIRED)
@@ -102,7 +104,8 @@ target_link_libraries(rsdRegister2 ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 
 add_executable(semanticRegister src/semanticRegister.cpp)
 target_link_libraries(semanticRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
+	g2o_types_slam3d ${ndt_registration_LIBRARIES} ${PCL_LIBRARIES}
+	${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
 add_executable(big_cloud_test src/big_cloud_test.cpp)
 target_link_libraries(big_cloud_test ${PROJECT_NAME} ${ndt_map_LIBRARIES}

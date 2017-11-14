@@ -279,6 +279,21 @@ Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::P
 	//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
 	return Tinit;
 }
+Eigen::Matrix<double, 6,6> NDTMatch_SE::getPoseCovariance(Eigen::Affine3d T)
+{
+	std::cerr<<"Attention! No semantics";
+	Eigen::MatrixXd Covariance(6,6);
+	Eigen::Matrix<double,6,6> CovarianceMin;
+	CovarianceMin.setIdentity();
+	for(auto i:resolutions_order)
+	{
+		matcher.current_resolution=resolutions.at(i);
+		matcher.covariance(*map[i][0],*mapLocal[i][0],T,Covariance);
+		if(Covariance.norm()<CovarianceMin.norm()||CovarianceMin==Eigen::Matrix<double,6,6>::Identity())
+			CovarianceMin=Covariance;
+	}
+	return CovarianceMin;
+}
 Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes)
 {
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegments(cloud,attributes,tails,ignore,removeProbability);
