@@ -255,31 +255,6 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr Voxel_rm_NaN(pcl::PointCloud<pcl::PointXYZI
 	//laserCloud[1]=getNARF(laserCloudIn);
 	return laserCloudIn;
 }
-pcl::PointCloud<pcl::PointXYZ>  getCloud(string filename)
-{
-	ifstream infile(filename); // for example
-	string line = "";
-	pcl::PointCloud<pcl::PointXYZ> laserCloud;
-	getline(infile, line);
-	while (getline(infile, line)){
-	//cin>>line;
-	//while (cin>>line){
-		stringstream strstr(line);
-		string word = "";
-		getline(strstr,word, ',');
-		pcl::PointXYZ point;
-		getline(strstr,word, ',');
-		point.x=stof(word);
-		getline(strstr,word, ',');
-		point.y=stof(word);
-		getline(strstr,word, ',');
-		point.z=stof(word);
-		getline(strstr,word, ',');
-		//point.intensity=stof(word);
-		laserCloud.points.push_back(point);
-	}
-	return laserCloud;
-}
 
 
 pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud)
@@ -293,33 +268,6 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr
 	cropBoxFilter.filter(*outC);
 	return outC;
 }
-
-pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloudI(string filename)
-{
-	ifstream infile(filename); // for example
-	string line = "";
-	pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud(new pcl::PointCloud<pcl::PointXYZI>);
-	getline(infile, line);
-	while (getline(infile, line)){
-	//cin>>line;
-	//while (cin>>line){
-		stringstream strstr(line);
-		string word = "";
-		getline(strstr,word, ',');
-		pcl::PointXYZI point;
-		getline(strstr,word, ',');
-		point.x=stof(word);
-		getline(strstr,word, ',');
-		point.y=stof(word);
-		getline(strstr,word, ',');
-		point.z=stof(word);
-		getline(strstr,word, ',');
-		point.intensity=stof(word);
-		(*laserCloud).points.push_back(point);
-	}
-    return cropIt(laserCloud);
-}
-
 
 std::vector<Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> > getPose(string filename)
 {
