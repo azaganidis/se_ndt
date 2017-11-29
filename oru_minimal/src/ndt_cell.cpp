@@ -850,6 +850,8 @@ void NDTCell::writeJFFEventData(FILE * jffout, TEventData &evdata)
   */
 int NDTCell::writeToJFF(FILE * jffout)
 {
+	if(!hasGaussian_)
+		return 0;
 
     pcl::PointXYZ * center = &(this->center_);
     fwrite(center, sizeof(pcl::PointXYZ), 1, jffout);

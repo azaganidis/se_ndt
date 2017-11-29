@@ -467,6 +467,8 @@ void LazyGrid::setCellType(NDTCell *type)
 {
     if(type!=NULL)
     {
+		if(protoType!=NULL)
+			delete protoType;
         protoType = type->clone();
     }
 }
@@ -502,6 +504,31 @@ void LazyGrid::getGridSizeInMeters(double &cx, double &cy, double &cz)
 
 int LazyGrid::loadFromJFF(FILE * jffin)
 {
+    if(initialized)
+    {
+		for(unsigned int i=0; i<activeCells.size(); ++i)
+		{
+			if(activeCells[i])
+			{
+			delete activeCells[i];
+			}
+		}
+		activeCells.clear();
+		for(int i=0; i<sizeX; i++)
+		{
+			for(int j=0; j<sizeY; j++)
+			{
+			delete[] dataArray[i][j];
+			}
+			delete[] dataArray[i];
+		}
+		delete[] dataArray;
+		if(protoType!=NULL)
+		{
+			delete protoType;
+		}
+		//fprintf(stderr,"Deleted %d cells and array of (%d x %d)!!!\n",cnt, sizeX, sizeY);
+    }
     double lazyGridData[9]; // = { sizeXmeters, sizeYmeters, sizeZmeters,
     //     cellSizeX,   cellSizeY,   cellSizeZ,
     //     centerX,     centerY,     centerZ };
@@ -533,13 +560,8 @@ int LazyGrid::loadFromJFF(FILE * jffin)
 
     this->setCenter(lazyGridData[6], lazyGridData[7], lazyGridData[8]);
 
-    this->initializeAll();
     int indX, indY, indZ;
-    float r,g,b;
-    double xs,ys,zs;
     pcl::PointXYZ centerCell;
-    float occ;
-    unsigned int N;
 
     // load all cells
     while (1)
@@ -556,49 +578,23 @@ int LazyGrid::loadFromJFF(FILE * jffin)
             }
         }
 
-        if(!feof(jffin))
-        {
-            // std::cout << prototype_.getOccupancy() << std::endl; /* for debugging */
-        }
-        else
-        {
-            break;
-        }
-	centerCell = prototype_.getCenter();
+        if(feof(jffin)) break;
+		centerCell = prototype_.getCenter();
         this->getIndexForPoint(centerCell, indX, indY, indZ);
+
         if(indX < 0 || indX >= sizeX) continue; 
         if(indY < 0 || indY >= sizeY) continue; 
         if(indZ < 0 || indZ >= sizeZ) continue; 
-	if(!initialized) return -1;
+		if(!initialized) return -1;
         if(dataArray == NULL) return -1;
         if(dataArray[indX] == NULL) return -1;
         if(dataArray[indX][indY] == NULL) return -1;
 
         if(dataArray[indX][indY][indZ] != NULL)
-        {
-            NDTCell* ret = dataArray[indX][indY][indZ];
-	    prototype_.getRGB(r,g,b);
-	    prototype_.getDimensions(xs,ys,zs);
+			delete dataArray[indX][indY][indZ];
 
-	    ret->setDimensions(xs,ys,zs);
-	    ret->setCenter(centerCell);
-	    ret->setMean(prototype_.getMean());
-	    ret->setCov(prototype_.getCov());
-	    ret->setRGB(r,g,b);
-	    ret->setOccupancy(prototype_.getOccupancy());
-	    ret->setEmptyval(prototype_.getEmptyval());
-	    ret->setEventData(prototype_.getEventData());
-	    ret->setN(prototype_.getN());
-	    ret->isEmpty = prototype_.isEmpty;
-	    ret->hasGaussian_ = prototype_.hasGaussian_;
-	    ret->consistency_score = prototype_.consistency_score;
-
-	} else {
-	    //initialize cell
-	    std::cerr<<"NEW CELL\n";
 	    dataArray[indX][indY][indZ] = prototype_.copy();
 	    activeCells.push_back(dataArray[indX][indY][indZ]);
-	}
     }
 
     return 0;

@@ -5,33 +5,11 @@
 #include <unistd.h>
 #include <boost/program_options.hpp>
 #include <pcl/filters/crop_box.h>
-#include <se_ndt/ndt_fuser_hmt_se.h>
+#include <se_ndt/se_ndt.hpp>
 #include <pcl/common/io.h>
 
 using namespace std;
 namespace po = boost::program_options;
-pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename, bool skip=false)
-{
-	ifstream infile(filename); // for example
-	string line = "";
-	pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud(new pcl::PointCloud<pcl::PointXYZI>);
-	if(skip)getline(infile, line);
-	while (getline(infile, line)){
-		stringstream strstr(line);
-		string word = "";
-		pcl::PointXYZI point;
-		getline(strstr,word, ',');
-		point.x=stof(word);
-		getline(strstr,word, ',');
-		point.y=stof(word);
-		getline(strstr,word, ',');
-		point.z=stof(word);
-		getline(strstr,word);
-		point.intensity=stof(word);
-		(*laserCloud).points.push_back(point);
-	}
-    return laserCloud;
-}
 vector<double>  getMeasure(string filename)
 {
 	ifstream infile(filename); // for example
@@ -104,7 +82,7 @@ int main(int argc, char** argv)
 	//lslgeneric::NDTFuserHMT_SE matcher (the_initial_pose,{the_resolutions},{the_order_with which_the_resolutions_are_used},{the_size_of_the_map},{the_tail_segments},{ignore_values},reject_percentage,number_of_iterations);
 	for(int i=0;i<num_files;i++)
 	{
-		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud3=h_box?cropIt(getCloud2(pointcloud_files[i],skip),box):getCloud2(pointcloud_files[i],skip);
+		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud3=h_box?cropIt(getCloud<pcl::PointXYZI>(pointcloud_files[i],',',skip),box):getCloud<pcl::PointXYZI>(pointcloud_files[i],',',skip);
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::copyPointCloud(*cloud3,*cloud1);
 		std::vector<double> rsd_min=getMeasure(rsd_min_files[i]);
