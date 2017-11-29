@@ -233,7 +233,7 @@ size_t count_tails(vector<int>& distribution_tails)
 	return distribution_tails.size()+number_tails3-number_tails0;
 }
 
-lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_, bool load_from_file)
+lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_)
 {
 	vector<float> size(size_),resolutions(resolutions_);
 	if(number_tails!=resolutions.size()&&resolutions.size()!=1)
@@ -253,11 +253,8 @@ lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolution
 		lslgeneric::LazyGrid *grid = new lslgeneric::LazyGrid(resolutions[i%resolutions.size()]);
 		lslgeneric::NDTMap *mapTMP=new lslgeneric::NDTMap(grid);
 		map[i]=mapTMP;
-		if(!load_from_file)
-		{
-			map[i]->guessSize(0,0,0,size[0],size[1],size[2]);
-			map[i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
-		}
+		map[i]->guessSize(0,0,0,size[0],size[1],size[2]);
+		map[i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
 	}
 	return map;
 }
@@ -291,7 +288,7 @@ Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix
 		}
 		return Hessian;
 }
-NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initializer_list<float> d,initializer_list<int> e,initializer_list<float> ig,float removeP,int max_iter, bool load_from_file_):resolutions(b),resolutions_order(c),size(d),tails(e),ignore(ig),removeProbability(removeP),load_from_file(load_from_file_)
+NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initializer_list<float> d,initializer_list<int> e,initializer_list<float> ig,float removeP,int max_iter):resolutions(b),resolutions_order(c),size(d),tails(e),ignore(ig),removeProbability(removeP)
 {
 	vector<int> tails_t(tails);
 	NumInputs=count_tails(tails_t)+70*std::count(tails_t.begin(),tails_t.end(),'u');
@@ -306,8 +303,8 @@ NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initi
 	mapLocal=new lslgeneric::NDTMap ** [resolutions.size()];
 	for(auto i=0;i<resolutions.size();i++)
 	{
-		map[i]=initMap(NumInputs,{resolutions.at(i)},size,load_from_file);
-		mapLocal[i]=initMap(NumInputs,{resolutions.at(i)},size,load_from_file);
+		map[i]=initMap(NumInputs,{resolutions.at(i)},size);
+		mapLocal[i]=initMap(NumInputs,{resolutions.at(i)},size);
 	}
 }
 Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2,initializer_list<vector<double> > attributes1,initializer_list<vector<double> > attributes2)
@@ -347,11 +344,20 @@ Eigen::Affine3d NDTMatch_SE::match(std::string cloudF1, std::string cloudF2,init
 		for(int j=0;j<NumInputs;j++)
 		{
 			std::string fname=cloudF1;
-			std::string fname_jff="/tmp/"+
+			std::string fname_jff=precomputed_ndt_folder+
 				basename(fname+"."+std::to_string(resolutions[i])+"."+std::to_string(j)+".jff");
 			std::ifstream file((fname_jff).c_str());
 			if(file.good())
 			{
+				/*
+				if(map!=NULL)
+				{
+				map[i][j]->unsetFirstLoad();
+				delete map[i][j];
+				}
+				lslgeneric::LazyGrid *grid = new lslgeneric::LazyGrid(resolutions[i]);
+				map[i][j]=new lslgeneric::NDTMap(grid);
+				*/
 				map[i][j]->loadFromJFF((fname_jff).c_str());
 			}
 			else
@@ -362,7 +368,7 @@ Eigen::Affine3d NDTMatch_SE::match(std::string cloudF1, std::string cloudF2,init
 				{
 					map[i][j]->loadPointCloud(*laserClouds[j],sensor_range);
 					map[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
-					fname_jff="/tmp/"+
+					fname_jff=precomputed_ndt_folder+
 						basename(fname+"."+std::to_string(resolutions[i])+"."+std::to_string(j)+".jff");
 					map[i][j]->writeToJFF(fname_jff.c_str());
 				}
@@ -371,22 +377,31 @@ Eigen::Affine3d NDTMatch_SE::match(std::string cloudF1, std::string cloudF2,init
 		for(int j=0;j<NumInputs;j++)
 		{
 			std::string fname=cloudF2;
-			std::string fname_jff="/tmp/"+
+			std::string fname_jff=precomputed_ndt_folder+
 				basename(fname+"."+std::to_string(resolutions[i])+"."+std::to_string(j)+".jff");
 			std::ifstream file((fname_jff).c_str());
 			if(file.good())
 			{
+				/*
+				if(mapLocal!=NULL)
+				{
+				mapLocal[i][j]->unsetFirstLoad();
+				delete mapLocal[i][j];
+				}
+				lslgeneric::LazyGrid *grid = new lslgeneric::LazyGrid(resolutions[i]);
+				mapLocal[i][j]=new lslgeneric::NDTMap(grid);
+				*/
 				mapLocal[i][j]->loadFromJFF((fname_jff).c_str());
 			}
 			else
 			{
 				std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >
-					laserClouds=getSegments(getCloud<pcl::PointXYZ>(fname,IFS,skip),attributes1,tails,ignore,removeProbability);
+					laserClouds=getSegments(getCloud<pcl::PointXYZ>(fname,IFS,skip),attributes2,tails,ignore,removeProbability);
 				for(j=j;j<NumInputs;j++)//intentional the same variable, load the remaining
 				{
 					mapLocal[i][j]->loadPointCloud(*laserClouds[j],sensor_range);
 					mapLocal[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
-					fname_jff="/tmp/"+
+					fname_jff=precomputed_ndt_folder+
 						basename(fname+"."+std::to_string(resolutions[i])+"."+std::to_string(j)+".jff");
 					mapLocal[i][j]->writeToJFF(fname_jff.c_str());
 				}

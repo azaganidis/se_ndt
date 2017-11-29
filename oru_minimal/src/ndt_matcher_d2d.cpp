@@ -2117,6 +2117,12 @@ bool NDTMatcherD2D::covariance( NDTMap& targetNDT,
         delete sourceNDTN[q];
     }
     sourceNDTN.clear();
+	for(unsigned int q=0; q<targetNDTN .size(); q++)
+    {
+        delete targetNDTN[q];
+    }
+    targetNDTN .clear();
+
 
     return true;
 }

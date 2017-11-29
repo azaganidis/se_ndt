@@ -137,10 +137,10 @@ public:
 			return(indX < sizeX && indY < sizeY && indZ < sizeZ && indX >=0 && indY >=0 && indZ >=0);
     }
 protected:
-    bool initialized;
+    bool initialized=false;
     NDTCell ****dataArray;
     //bool ***linkedCells;
-    NDTCell *protoType;
+    NDTCell *protoType=NULL;
     std::vector<NDTCell*> activeCells;
     bool centerIsSet, sizeIsSet;
 

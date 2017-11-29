@@ -25,6 +25,7 @@
 #include <pcl/features/normal_3d.h>
 #include <pcl/features/rsd.h>
 
+#define n_threads 12
 using namespace std;
 
 int occluded(pcl::PointXYZI a, pcl::PointXYZI b, float d)
@@ -41,7 +42,8 @@ int occluded(pcl::PointXYZI a, pcl::PointXYZI b, float d)
 	}
 	return 0;
 }
-std::vector<double> getRSD(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, float a,float b, float c,float d)
+//std::vector<double> getRSD(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float a,float b, float c,float d)
+void getRSD(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float a,float b, float c)
 {
 	int cloudSize =cloud->points.size();
 	std::vector<double> rsd_v(cloudSize,-1);
@@ -50,15 +52,15 @@ std::vector<double> getRSD(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, float a,f
 	// Object for storing the RSD descriptors for each point.
 	pcl::PointCloud<pcl::PrincipalRadiiRSD>::Ptr descriptors(new pcl::PointCloud<pcl::PrincipalRadiiRSD>());
 
-	pcl::NormalEstimation<pcl::PointXYZI, pcl::Normal> normalEstimation;
+	pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
 	normalEstimation.setInputCloud(cloud);
 	normalEstimation.setKSearch(a);
-	pcl::search::KdTree<pcl::PointXYZI>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZI>);
+	pcl::search::KdTree<pcl::PointXYZ>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZ>);
 	normalEstimation.setSearchMethod(kdtree);
 	normalEstimation.compute(*normals);
 
 	// RSD estimation object.
-	pcl::RSDEstimation<pcl::PointXYZI, pcl::Normal, pcl::PrincipalRadiiRSD> rsd;
+	pcl::RSDEstimation<pcl::PointXYZ, pcl::Normal, pcl::PrincipalRadiiRSD> rsd;
 	rsd.setInputCloud(cloud);
 	rsd.setInputNormals(normals);
 	rsd.setSearchMethod(kdtree);
@@ -71,6 +73,10 @@ std::vector<double> getRSD(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, float a,f
 	rsd.setSaveHistograms(false);
 
 	rsd.compute(*descriptors);
+
+	for(int i=0;i<cloudSize;i++)
+		std::cout<<descriptors->points[i].r_min<<", "<<descriptors->points[i].r_max<<std::endl;
+	/*
 	if(d==0)
 		for(int i=0;i<cloudSize;i++)
 			rsd_v[i]=descriptors->points[i].r_min;//Recomended 6 0.1 4 
@@ -85,6 +91,7 @@ std::vector<double> getRSD(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, float a,f
 			rsd_v[i]=descriptors->points[i].r_min/descriptors->points[i].r_max;
 
 	return rsd_v;
+	*/
 }
 std::vector<double> getCornerness2(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn,int K)
 {
@@ -93,7 +100,6 @@ std::vector<double> getCornerness2(pcl::PointCloud<pcl::PointXYZI>::Ptr laserClo
 	kdtree.setInputCloud (laserCloudIn);
 	std::vector<double> cornerness(cloudSize,-1);
 	int rem=0;
-#define n_threads 8
     #pragma omp parallel num_threads(n_threads)
 	{
         #pragma omp for
@@ -152,7 +158,6 @@ std::vector<double> getCornerness(pcl::PointCloud<pcl::PointXYZI>::Ptr laserClou
 	kdtree.setInputCloud (laserCloudIn);
 	std::vector<double> cornerness(cloudSize,-1);
 	int rem=0;
-#define n_threads 12
     #pragma omp parallel num_threads(n_threads)
 	{
         #pragma omp for

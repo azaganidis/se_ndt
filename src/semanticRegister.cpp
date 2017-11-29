@@ -16,6 +16,9 @@ using namespace g2o;
 #include <pcl/filters/crop_box.h>
 #include <se_ndt/ndt_fuser_hmt_se.h>
 
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 using namespace std;
 namespace po = boost::program_options;
 
@@ -116,6 +119,7 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr
 int main(int argc, char** argv)
 {
 	string transforms;
+	string ndt_folder;
 	char IFS=',';
 	float parameter;
 	bool Inv=false;
@@ -130,6 +134,7 @@ int main(int argc, char** argv)
 	 ("b", po::value<std::vector<float> >()->multitoken(), "Bounding box--Atention! not working yet!")
 	 ("parameter", po::value<float>(&parameter), "Bounding box--Atention! not working yet!")
 	 ("ifs,f", po::value<char>(&IFS), "Pointcloud IFS")
+	 ("ndt_folder", po::value<std::string >(&ndt_folder)->default_value("/tmp/semantic/"), "Folder to load/save computed NDTs")
 	 ("sem,s", po::value<std::vector<string> >()->multitoken(), "First semantic input files");
 
 	po::parsed_options parsed_options = po::command_line_parser(argc, argv)
@@ -207,12 +212,18 @@ int main(int argc, char** argv)
 		}
 	}
 #else
+	struct stat st = {0};
+
+	if (stat(ndt_folder.c_str(), &st) == -1) {
+		mkdir(ndt_folder.c_str(), 0700);
+	}
 	//NDTMatch_SE matcher ({200,60,200,70,50,5},{0,1,2,3,4,5},{200,200,200},{'*'},{0},0.01,50);// :-D
 	//NDTMatch_SE matcher ({100,20,5,2,1,0.5},{0,1,2,3,4,3,4,5},{200,200,200},{'*'},{0},0.01,5,true);// :-D
-	NDTMatch_SE matcher ({0.5},{0},{100,100,50},{'*'},{0},0.01,5,true);// :-D
-	matcher.setNeighbours(4);
+	NDTMatch_SE matcher ({70,10,1,2,parameter},{0,1,0,1,2,3,2,4},{200,200,200},{'=','=','=','=','=','=','=','='},{1,2,3,4,5,6,7,8},0.01,5);// :-D
+	matcher.setNeighbours(3);
 	matcher.IFS=IFS;
 	matcher.skip=skip;
+	matcher.precomputed_ndt_folder=ndt_folder;
 	HyperGraph::VertexSet vertices;
 	HyperGraph::EdgeSet edges;
 	SparseOptimizer optimizer;
@@ -254,7 +265,11 @@ int main(int argc, char** argv)
 //				pcl::transformPointCloud(*cloud2,*cloud2,T);
 //			}
 //			Tt=matcher.match(cloud1,cloud2,{std::vector<double>()},{std::vector<double>()});
-			Tt=matcher.match(pointcloud_files[i],pointcloud_files[j],{std::vector<double>()},{std::vector<double>()});
+			std::vector<double> sem1,sem2;
+			sem1=getMeasure(sem_files[0][i]);
+			sem2=getMeasure(sem_files[0][j]);
+//			Tt=matcher.match(pointcloud_files[i],pointcloud_files[j],{std::vector<double>()},{std::vector<double>()});
+			Tt=matcher.match(pointcloud_files[i],pointcloud_files[j],{sem1,sem1,sem1,sem1,sem1,sem1,sem1,sem1},{sem2,sem2,sem2,sem2,sem2,sem2,sem2,sem2});
 			EdgeSE3 *edge=new EdgeSE3();
 			edge->vertices()[0]=optimizer.vertex(i);
 			edge->vertices()[1]=optimizer.vertex(j);
@@ -265,19 +280,24 @@ int main(int argc, char** argv)
 			edge->setMeasurement(b);
 			edge->setInformation(matcher.getPoseCovariance(Tt));
 			optimizer.addEdge(edge);
+	/*
+		for(int i=0;i<4;i++)
+			for(int j=0;j<4;j++)
+				cout<<Tt(i,j)<<", ";
+		cout<<endl;
+*/
 		}
 	}
 	optimizer.initializeOptimization();
 	optimizer.optimize(200);
-	for(int i=0;i<num_files;i++)
+	for(int k=0;k<num_files;k++)
 	{
-		Eigen::Affine3d Tp=static_cast<VertexSE3*>(optimizer.vertex(i))->estimate();
+		Eigen::Affine3d Tp=static_cast<VertexSE3*>(optimizer.vertex(k))->estimate();
 		for(int i=0;i<4;i++)
 			for(int j=0;j<4;j++)
 				cout<<Tp(i,j)<<", ";
 		cout<<endl;
 	}
-
 
 	optimizer.save("tutorial_before.g2o");
 	optimizer.clear();

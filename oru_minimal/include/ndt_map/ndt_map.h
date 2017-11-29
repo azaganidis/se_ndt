@@ -39,6 +39,7 @@
 #include <ndt_map/ndt_cell.h>
 #include <ndt_map/depth_camera.h>
 #include <ndt_map/lazy_grid.h>
+#include <ndt_map/cell_vector.h>
 
 #include <set>
 #include <cstdlib>
@@ -208,8 +209,24 @@ public:
         if(index_ !=NULL && !isFirstLoad_)
         {
             //std::cout<<"DELETE INDEX\n";
-            delete index_;
-						index_ = NULL;
+			
+			LazyGrid *gr = dynamic_cast<LazyGrid*>(index_);
+			CellVector* cl = dynamic_cast<CellVector * >(index_);
+			if(gr!=NULL)
+			{
+				delete gr;
+				index_ = NULL;
+			}
+			else if(cl!=NULL)
+			{
+				delete cl;
+				index_ = NULL;
+			}
+			else
+			{
+				delete index_;
+				index_ = NULL;
+			}
         }
         
     }
@@ -462,6 +479,7 @@ public:
                           double weight = 5.0,
                           double threshold = 0.2,
                           Eigen::Vector3d *hit = NULL);
+	void unsetFirstLoad(){isFirstLoad_=false;};
     
 protected:
     bool is3D;
