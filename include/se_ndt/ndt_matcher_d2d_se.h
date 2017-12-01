@@ -73,6 +73,12 @@ public:
                 bool useInitialGuess = false
 				);
 
+	bool covariance( 
+		NDTMap ** targetNDTMany,
+		NDTMap ** sourceNDTMany,
+			Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>& T,
+			Eigen::MatrixXd &cov);
+
     //compute the score gradient & hessian of multiple point clouds + transformation to NDTs
     // input: moving, fixed, tr, computeHessian
     //output: score_gradient, Hessian, returns: score!

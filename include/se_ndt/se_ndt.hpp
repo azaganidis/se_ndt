@@ -11,6 +11,7 @@ using namespace std;
 Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> score_gradient);
 class NDTMatch_SE{
  public:
+	 bool useSaved=false;
 		vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloudIn,initializer_list<vector<double> >& attributes_,initializer_list<int > distribution_tails_,initializer_list<float> disregard_, float rejectPerc);
 		unsigned int NumInputs;
 		lslgeneric::NDTMap ***map;		 ///< da map
@@ -64,4 +65,5 @@ lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolution
 void loadMap(lslgeneric::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range=100);
 template <typename T> typename pcl::PointCloud<T>::Ptr getCloud(string filename,char IFS, bool skip);
 
+Eigen::Matrix<double,7,6> getJacobian(Eigen::VectorXd v);
 #endif/*SE_NDT*/
