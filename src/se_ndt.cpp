@@ -347,7 +347,7 @@ Eigen::Affine3d NDTMatch_SE::match(std::string cloudF1, std::string cloudF2,init
 			std::string fname_jff=precomputed_ndt_folder+
 				basename(fname+"."+std::to_string(resolutions[i])+"."+std::to_string(j)+".jff");
 			std::ifstream file((fname_jff).c_str());
-			if(file.good())
+			if(file.good()&&useSaved)
 			{
 				/*
 				if(map!=NULL)
@@ -380,7 +380,7 @@ Eigen::Affine3d NDTMatch_SE::match(std::string cloudF1, std::string cloudF2,init
 			std::string fname_jff=precomputed_ndt_folder+
 				basename(fname+"."+std::to_string(resolutions[i])+"."+std::to_string(j)+".jff");
 			std::ifstream file((fname_jff).c_str());
-			if(file.good())
+			if(file.good()&&useSaved)
 			{
 				/*
 				if(mapLocal!=NULL)
@@ -425,7 +425,7 @@ Eigen::Matrix<double, 6,6> NDTMatch_SE::getPoseCovariance(Eigen::Affine3d T)
 	for(auto i:resolutions_order)
 	{
 		matcher.current_resolution=resolutions.at(i);
-		matcher.covariance(*map[i][0],*mapLocal[i][0],T,Covariance);
+		matcher.covariance(map[i],mapLocal[i],T,Covariance);
 		if(Covariance.norm()<CovarianceMin.norm()||CovarianceMin==Eigen::Matrix<double,6,6>::Identity())
 			CovarianceMin=Covariance;
 	}
@@ -463,4 +463,69 @@ Eigen::Affine3d NDTMatch_SE::match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,pc
 	Eigen::Affine3d T;
 	T.setIdentity();
 	return this->match(T,cloud1,cloud2,attributes1,attributes2);
+}
+
+Eigen::Matrix<double,7,6> getJacobian(Eigen::VectorXd v)
+{
+	Eigen::Matrix<double,7,6> m;
+	double x=v(0)/2;
+	double y=v(1)/2;
+	double z=v(2)/2;
+	double cx=cos(x);
+	double cy=cos(y);
+	double cz=cos(z);
+	double sx=sin(x);
+	double sy=sin(y);
+	double sz=sin(z);
+	m(0,3)=0;
+	m(1,3)=0;
+	m(2,3)=0;
+	m(3,3)=-sx*sy*cz+cx*cy*sz;
+	m(4,3)=-sx*cy*sz-cx*sy*cz;
+	m(5,3)=+cx*cy*cz+sx*sy*sz;
+	m(6,3)=-sx*cy*cz+cx*sy*sz;
+
+	m(0,4)=0;
+	m(1,4)=0;
+	m(2,4)=0;
+	m(3,4)=+cx*cy*cz-sx*sy*sz;
+	m(4,4)=-cx*sy*sz-sx*cy*cz;
+	m(5,4)=-sx*sy*cz-cx*cy*sz;
+	m(6,4)=-cx*sy*cz+sx*cy*sz;
+
+	m(0,5)=0;
+	m(1,5)=0;
+	m(2,5)=0;
+	m(3,5)=-cx*sy*sz+sx*cy*cz;
+	m(4,5)=+cx*cy*cz+sx*sy*sz;
+	m(5,5)=-sx*cy*sz-cx*sy*cz;
+	m(6,5)=-cx*cy*sz+sx*sy*cz;
+
+	m=m/2;
+
+	m(0,0)=1;//1
+	m(1,0)=0;
+	m(2,0)=0;
+	m(3,0)=0;
+	m(4,0)=0;
+	m(5,0)=0;
+	m(6,0)=0;
+
+	m(0,1)=0;
+	m(1,1)=1;//1	
+	m(2,1)=0;
+	m(3,1)=0;
+	m(4,1)=0;
+	m(5,1)=0;
+	m(6,1)=0;
+
+	m(0,2)=0;
+	m(1,2)=0;
+	m(2,2)=1;//1
+	m(3,2)=0;
+	m(4,2)=0;
+	m(5,2)=0;
+	m(6,2)=0;
+
+	return m;
 }

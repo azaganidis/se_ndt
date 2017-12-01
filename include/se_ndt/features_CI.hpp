@@ -1,3 +1,4 @@
+#include <pcl/kdtree/kdtree_flann.h>
 #include <cmath>
 #include <iostream>
 #include <vector>
@@ -8,7 +9,6 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/filters/voxel_grid.h>
-#include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/common/transforms.h>
 #include <pcl/filters/approximate_voxel_grid.h>
 #include <pcl/filters/crop_box.h>
