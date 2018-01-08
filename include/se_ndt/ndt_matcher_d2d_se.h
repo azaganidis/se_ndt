@@ -74,9 +74,10 @@ public:
 				);
 
 	bool covariance( 
-		NDTMap ** targetNDTMany,
-		NDTMap ** sourceNDTMany,
+		NDTMap *** targetNDTMany,
+		NDTMap *** sourceNDTMany,
 			Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>& T,
+		std::vector<float>& resolutions,
 			Eigen::MatrixXd &cov);
 
     //compute the score gradient & hessian of multiple point clouds + transformation to NDTs

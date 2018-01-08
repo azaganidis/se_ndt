@@ -102,7 +102,7 @@ target_link_libraries(features ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 #target_link_libraries(rsdRegister2 ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 #	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
-add_executable(semanticRegister src/semanticRegister.cpp)
+add_executable(semanticRegister src/semanticRegister_poles.cpp)
 target_link_libraries(semanticRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	g2o_core g2o_solver_csparse g2o_types_slam3d cxsparse 
 	g2o_stuff g2o_csparse_extension ${G2O_LIBRARIES} 

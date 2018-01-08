@@ -41,7 +41,7 @@ class NDTMatch_SE{
 		Eigen::Affine3d match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes);
 		Eigen::Affine3d match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes);
 		Eigen::Affine3d match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2, initializer_list<vector<double> > attributes1, initializer_list<vector<double> > attributes2);
-		Eigen::Affine3d match(std::string cloudF1, std::string cloudF2,initializer_list<vector<double> > attributes1,initializer_list<vector<double> > attributes2);
+		Eigen::Affine3d match(Eigen::Affine3d Tinit, std::string cloudF1, std::string cloudF2,initializer_list<vector<double> > attributes1,initializer_list<vector<double> > attributes2);
 		lslgeneric::NDTMatcherD2D_SE matcher;
 		Eigen::Matrix<double,6,6> getPoseCovariance(Eigen::Affine3d T);
 		void setNeighbours(short int i){matcher.n_neighbours=i;};

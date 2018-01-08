@@ -548,9 +548,9 @@ int LazyGrid::loadFromJFF(FILE * jffin)
 
     protoType = prototype_.clone();
 
-    std::cerr<<"size meters: "<<lazyGridData[0]<<" "<<lazyGridData[1]<<" "<<lazyGridData[2]<<std::endl;
-    std::cerr<<"cell size: "<<lazyGridData[3]<<" "<<lazyGridData[4]<<" "<<lazyGridData[5]<<std::endl;
-    std::cerr<<"center meters: "<<lazyGridData[6]<<" "<<lazyGridData[7]<<" "<<lazyGridData[8]<<std::endl;
+    //std::cerr<<"size meters: "<<lazyGridData[0]<<" "<<lazyGridData[1]<<" "<<lazyGridData[2]<<std::endl;
+    //std::cerr<<"cell size: "<<lazyGridData[3]<<" "<<lazyGridData[4]<<" "<<lazyGridData[5]<<std::endl;
+    //std::cerr<<"center meters: "<<lazyGridData[6]<<" "<<lazyGridData[7]<<" "<<lazyGridData[8]<<std::endl;
 
     this->setSize(lazyGridData[0], lazyGridData[1], lazyGridData[2]);
 

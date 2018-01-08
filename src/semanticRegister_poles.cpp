@@ -1,4 +1,4 @@
-#define BULK_ADJUSTMENT 1
+//#define BULK_ADJUSTMENT 1
 
 #ifdef BULK_ADJUSTMENT
 #include "g2o/core/sparse_optimizer.h"
@@ -122,21 +122,15 @@ int main(int argc, char** argv)
 	//NDTMatch_SE matcher ({200,60,200,70,50,5},{0,1,2,3,4,5},{200,200,200},{'*'},{0},0.01,50);// :-D
 	//lslgeneric::NDTFuserHMT_SE matcher (the_initial_pose,{the_resolutions},{the_order_with which_the_resolutions_are_used},{the_size_of_the_map},{the_tail_segments},{ignore_values},reject_percentage,number_of_iterations);
 #ifndef BULK_ADJUSTMENT
-	NDTMatch_SE matcher ({1,2,0.5},{0,1,0,2},{200,200,200},{'e'},{1},0.01,50);// :-D
+	NDTMatch_SE matcher ({1,2,0.5},{0,1,0,2},{200,200,200},{'*'},{1},0.01,50);// :-D
 	for(int i=0;i<num_files;i++)
 	{
-		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud3=h_box?cropIt(getCloud<pcl::PointXYZI>(pointcloud_files[i],IFS,skip),box):getCloud<pcl::PointXYZI>(pointcloud_files[i],IFS,skip);
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1(new pcl::PointCloud<pcl::PointXYZ>);
-		pcl::copyPointCloud(*cloud3,*cloud1);
-
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1=getCloud<pcl::PointXYZ>(pointcloud_files[i],IFS,skip);
 		if(trans){
 			Eigen::Affine3d T=readTransform(in_trans);
 			pcl::transformPointCloud(*cloud1,*cloud1,T);
 		}
-		std::vector<double> rsd_min;
-		for(int j=0;j<cloud1->size();j++)
-			rsd_min.push_back(1);
-		Tt=matcher.match(cloud1,{rsd_min});
+		Tt=matcher.match(cloud1,{std::vector<double>()});
 		if(i!=0)
 		{
 			if(Inv) T=Tt*T;

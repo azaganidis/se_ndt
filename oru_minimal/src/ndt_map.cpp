@@ -1571,7 +1571,7 @@ int NDTMap::loadFromJFF(const char* filename)
 #endif
     case 3:
     {
-	std::cerr << "Map uses LazyGrid\n";
+//	std::cerr << "Map uses LazyGrid\n";
         LazyGrid* gr = dynamic_cast<LazyGrid*>(index_);
         if(gr->loadFromJFF(jffin) < 0)
         {

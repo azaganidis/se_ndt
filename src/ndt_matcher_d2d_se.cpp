@@ -903,27 +903,34 @@ double NDTMatcherD2D_SE::lineSearchMT(
 
 }
 bool NDTMatcherD2D_SE::covariance( 
-    NDTMap ** targetNDTMany,
-    NDTMap ** sourceNDTMany,
+    NDTMap *** targetNDTMany,
+    NDTMap *** sourceNDTMany,
         Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>& T,
+		std::vector<float>& resolutions,
         Eigen::MatrixXd &cov
                                                        )
 {
     Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> TR;
     TR.setIdentity();
-	std::vector<NDTCell*> *nextNDT=new std::vector<NDTCell*>[NumInputs]();
-	std::vector<NDTCell*> *targetNDT=new std::vector<NDTCell*>[NumInputs]();
-	for (int i=0;i<NumInputs;i++)
-    	nextNDT[i]= sourceNDTMany[i]->pseudoTransformNDT(T);
-	for (int i=0;i<NumInputs;i++)
-    	targetNDT[i]= targetNDTMany[i]->pseudoTransformNDT(TR);
+    int NM=0,NM_=0;
+
+	std::vector<NDTCell*> *nextNDT[resolutions.size()];
+	std::vector<NDTCell*> *targetNDT[resolutions.size()];
+	for(int nR=0;nR<resolutions.size();nR++)
+	{
+		nextNDT[nR]=new std::vector<NDTCell*>[NumInputs]();
+		targetNDT[nR]=new std::vector<NDTCell*>[NumInputs]();
+		for (int nS=0;nS<NumInputs;nS++)
+		{
+			nextNDT[nR][nS]= sourceNDTMany[nR][nS]->pseudoTransformNDT(T);
+			targetNDT[nR][nS]= targetNDTMany[nR][nS]->pseudoTransformNDT(TR);
+			NM+= nextNDT[nR][nS].size() + targetNDT[nR][nS].size();
+		}
+	}
     double sigmaS = (0.03)*(0.03);
 
 
     Eigen::MatrixXd scg(6,1); //column vectors
-    int NM=0,NM_=0;
-	for(int nS=0;nS<NumInputs;nS++)
-		NM+= nextNDT[nS].size() + targetNDT[nS].size();
 
     Eigen::MatrixXd Jdpdz(NM,6);
 
@@ -936,7 +943,6 @@ bool NDTMatcherD2D_SE::covariance(
     Eigen::Matrix<double,6,1> ones;
     ones<<1,1,1,1,1,1;
     //TODO
-    derivativesNDT(nextNDT,targetNDTMany,scg,cov,true);
 
     Eigen::Matrix3d Q;
     Jdpdz.setZero();
@@ -944,92 +950,100 @@ bool NDTMatcherD2D_SE::covariance(
 
     pcl::PointXYZ point;
     //now compute Jdpdz
-	for(int nS=0;nS<NumInputs;nS++)
+	for(int nR=0;nR<resolutions.size();nR++)
 	{
-		std::vector<NDTCell*> sourceNDTN = nextNDT[nS];
-		std::vector<NDTCell*> targetNDTN = targetNDT[nS];
-
-		for(int i=0; i<sourceNDTN.size(); i++)
+		current_resolution=resolutions.at(nR);
+		derivativesNDT(nextNDT[nR],targetNDTMany[nR],scg,cov,true);
+		for(int nS=0;nS<NumInputs;nS++)
 		{
-			meanMoving = sourceNDTN[i]->getMean();
-			point.x = meanMoving(0);
-			point.y = meanMoving(1);
-			point.z = meanMoving(2);
+			std::vector<NDTCell*> sourceNDTN = nextNDT[nR][nS];
+			std::vector<NDTCell*> targetNDTN = targetNDT[nR][nS];
 
-			if(!targetNDTMany[nS]->getCellForPoint(point,cell)) continue;
-			if(cell == NULL) continue;
-			if(cell->hasGaussian_)
+			for(int i=0; i<sourceNDTN.size(); i++)
 			{
+				meanMoving = sourceNDTN[i]->getMean();
+				point.x = meanMoving(0);
+				point.y = meanMoving(1);
+				point.z = meanMoving(2);
 
-				meanFixed = cell->getMean();
-				transformed = meanMoving-meanFixed;
-				CFixed = cell->getCov();
-				CMoving= sourceNDTN[i]->getCov();
-
-				(CFixed+CMoving).computeInverseAndDetWithCheck(Cinv,det,exists);
-				if(!exists) continue;
-
-				//compute Jdpdz.col(i)
-				double factor = (-transformed.dot(Cinv*transformed)/2);
-				//these conditions were copied from martin's code
-				if(factor < -120)
+				if(!targetNDTMany[nR][nS]->getCellForPoint(point,cell)) continue;
+				if(cell == NULL) continue;
+				if(cell->hasGaussian_)
 				{
-					continue;
-				}
-				factor = exp(lfd2*factor)/2;
-				if(factor > 1 || factor < 0 || factor*0 !=0)
-				{
-					continue;
-				}
 
-				Q = -sigmaS*Cinv*Cinv;
+					meanFixed = cell->getMean();
+					transformed = meanMoving-meanFixed;
+					CFixed = cell->getCov();
+					CMoving= sourceNDTN[i]->getCov();
 
-				Eigen::Matrix<double,6,1> G, xtQJ;
+#ifndef DONT_COMPUTE_ZEST
+					computeDerivatives(meanMoving,CMoving,false);
+#endif
+					(CFixed+CMoving).computeInverseAndDetWithCheck(Cinv,det,exists);
+					if(!exists) continue;
 
-				G.setZero();
-				for(int q=3; q<6; q++)
-				{
-					G(q) =  -transformed.transpose()*Q*Zest.block<3,3>(0,3*q)*Cinv*transformed;
-					G(q) = G(q) -transformed.transpose()*Cinv*Zest.block<3,3>(0,3*q)*Q*transformed;
-				}
-
-				xtQJ = transformed.transpose()*Q*Jest;
-
-				double f1 = (transformed.transpose()*Q*transformed);
-				G = G + xtQJ + (-lfd2/2)*f1*ones;
-				G = G*factor*lfd1*lfd2/2;
-
-				Jdpdz.row(NM_+i) = G.transpose();
-
-				for(int j=0; j<targetNDTN.size(); j++)
-				{
-					if(targetNDTN[j]->getMean() == meanFixed)
+					//compute Jdpdz.col(i)
+					double factor = (-transformed.dot(Cinv*transformed)/2);
+					//these conditions were copied from martin's code
+					if(factor < -120)
 					{
-
-						Jdpdz.row(NM_+j+sourceNDTN.size()) = Jdpdz.row(NM_+j+sourceNDTN.size())+G.transpose();
 						continue;
 					}
+					factor = exp(lfd2*factor)/2;
+					if(factor > 1 || factor < 0 || factor*0 !=0)
+					{
+						continue;
+					}
+
+					Q = -sigmaS*Cinv*Cinv;
+
+					Eigen::Matrix<double,6,1> G, xtQJ;
+
+					G.setZero();
+					for(int q=3; q<6; q++)
+					{
+						G(q) =  -transformed.transpose()*Q*Zest.block<3,3>(0,3*q)*Cinv*transformed;
+						G(q) = G(q) -transformed.transpose()*Cinv*Zest.block<3,3>(0,3*q)*Q*transformed;
+					}
+
+					xtQJ = transformed.transpose()*Q*Jest;
+
+					double f1 = (transformed.transpose()*Q*transformed);
+					G = G + xtQJ + (-lfd2/2)*f1*ones;
+					G = G*factor*lfd1*lfd2/2;
+
+					Jdpdz.row(NM_+i) = G.transpose();
+
+					for(int j=0; j<targetNDTN.size(); j++)
+					{
+						if(targetNDTN[j]->getMean() == meanFixed)
+						{
+
+							Jdpdz.row(NM_+j+sourceNDTN.size()) = Jdpdz.row(NM_+j+sourceNDTN.size())+G.transpose();
+							continue;
+						}
+					}
+
+					cell = NULL;
 				}
-
-				cell = NULL;
 			}
+			NM_+=sourceNDTN.size()+targetNDTN.size();
+			for(unsigned int q=0; q<sourceNDTN.size(); q++)
+			{
+				delete sourceNDTN[q];
+			}
+			sourceNDTN.clear();
+			nextNDT[nR][nS].clear();
+			for(unsigned int q=0; q<targetNDTN.size(); q++)
+			{
+				delete targetNDTN[q];
+			}
+			targetNDTN .clear();
+			targetNDT[nR][nS].clear();
 		}
-		NM_+=sourceNDTN.size()+targetNDTN.size();
-		for(unsigned int q=0; q<sourceNDTN.size(); q++)
-		{
-			delete sourceNDTN[q];
-		}
-		sourceNDTN.clear();
-		for(unsigned int q=0; q<targetNDTN.size(); q++)
-		{
-			delete targetNDTN[q];
-		}
-		targetNDTN .clear();
+		delete[] targetNDT[nR];
+		delete[] nextNDT[nR];
 	}
-//	delete nextNDT;
-//	delete targetNDT;
-
-
     //cout<<Jdpdz.transpose()<<endl;
 
     Eigen::MatrixXd JK(6,6);
@@ -1038,7 +1052,8 @@ bool NDTMatcherD2D_SE::covariance(
     //cout<<"J*J'\n"<<JK<<endl;
     //cout<<"H\n"<<cov<<endl;
 
-    cov = cov.inverse()*JK*cov.inverse();
+    //cov = cov.inverse()*JK*cov.inverse();
+    cov = cov*JK.inverse()*cov;
     //cov = cov.inverse();//*fabsf(scoreNDT(sourceNDTN,targetNDT)*2/3);
     //cout<<"cov\n"<<cov<<endl;
 

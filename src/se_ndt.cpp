@@ -335,10 +335,8 @@ std::string basename(std::string const& pathname)
 {
 	return std::string(std::find_if(pathname.rbegin(),pathname.rend(),MatchPathSeparator() ).base(),pathname.end());
 }
-Eigen::Affine3d NDTMatch_SE::match(std::string cloudF1, std::string cloudF2,initializer_list<vector<double> > attributes1,initializer_list<vector<double> > attributes2)//Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2)
+Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, std::string cloudF1, std::string cloudF2,initializer_list<vector<double> > attributes1,initializer_list<vector<double> > attributes2)//Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2)
 {
-	Eigen::Affine3d Tinit;
-	Tinit.setIdentity();
 	for(int i=0;i<resolutions.size();i++)
 	{
 		for(int j=0;j<NumInputs;j++)
@@ -418,18 +416,11 @@ Eigen::Affine3d NDTMatch_SE::match(std::string cloudF1, std::string cloudF2,init
 }
 Eigen::Matrix<double, 6,6> NDTMatch_SE::getPoseCovariance(Eigen::Affine3d T)
 {
-	std::cerr<<"Attention! No semantics"<<std::endl;
 	Eigen::MatrixXd Covariance(6,6);
-	Eigen::Matrix<double,6,6> CovarianceMin;
-	CovarianceMin.setIdentity();
-	for(auto i:resolutions_order)
-	{
-		matcher.current_resolution=resolutions.at(i);
-		matcher.covariance(map[i],mapLocal[i],T,Covariance);
-		if(Covariance.norm()<CovarianceMin.norm()||CovarianceMin==Eigen::Matrix<double,6,6>::Identity())
-			CovarianceMin=Covariance;
-	}
-	return CovarianceMin;
+	Eigen::Matrix<double,6,6> Covariance_;
+	matcher.covariance(map,mapLocal,T,resolutions,Covariance);
+	Covariance_=Covariance;
+	return Covariance_;
 }
 Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes)
 {
