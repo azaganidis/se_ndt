@@ -86,9 +86,6 @@ target_link_libraries(evaluate ${Boost_LIBRARIES}
 #target_link_libraries(rsd_register_fuser ndt_fuser ${Boost_LIBRARIES}
 #	${OpenCV_LIBS} ${PCL_LIBRARIES})
 
-add_executable(features src/features.cpp)
-target_link_libraries(features ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
 #add_executable(polesRegister src/polesRegister.cpp)
 #target_link_libraries(polesRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}

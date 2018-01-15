@@ -1,3 +1,8 @@
+Run with 
+semanticRegister -p ~/Dataset/pointclouds/01571* -s ~/Dataset/ceilingness/01571* -s ~/Dataset/floorness/01571* -s ~/Dataset/wallness/01571* --pcl_out_folder transformed/
+
+
+---------------OLD---------------------------
 An example of the registration is in "semanticRegister".
 The point clouds must be in csv form, and contain intensity. Intensity is only necessary for reading the files, the code can be modified. 
 The semantic should be separate from the point clouds, one file per cloud, one line per point.

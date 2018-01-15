@@ -1,4 +1,4 @@
-#define BULK_ADJUSTMENT 1
+//#define BULK_ADJUSTMENT 1
 
 #ifdef BULK_ADJUSTMENT
 #include "g2o/core/sparse_optimizer.h"
@@ -21,7 +21,7 @@ using namespace g2o;
 #include <unistd.h>
 using namespace std;
 namespace po = boost::program_options;
-#define G2O_OPT 1
+//#define G2O_OPT 1
 
 Eigen::VectorXd get7d(Eigen::Affine3d p)
 {
