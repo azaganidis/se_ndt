@@ -116,6 +116,7 @@ class NDTFuserHMT_SE : NDTMatch_SE{
 	Eigen::Affine3d update(Eigen::Affine3d Tmotion, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,initializer_list<vector<double> > attributes);
 	Eigen::Affine3d match(Eigen::Affine3d Tmotion, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,initializer_list<vector<double> > attributes);
 	bool updateMap();
+	Eigen::Matrix<double,6,6> getPoseCovariance(Eigen::Affine3d T);
 	lslgeneric::NDTMatcherD2D_SE matcher;
     private:
 

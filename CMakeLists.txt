@@ -46,8 +46,8 @@ set (${PROJECT_NAME}_LIB_SRCS
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_LIB_SRCS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
-#add_library(ndt_fuser src/ndt_fuser_hmt_se.cpp)
-#target_link_libraries(ndt_fuser ${PROJECT_NAME})
+add_library(ndt_fuser src/ndt_fuser_hmt_se.cpp)
+target_link_libraries(ndt_fuser ${PROJECT_NAME})
 
 #add_executable(polesRegister_fuser src/polesRegister_fuser.cpp)
 #target_link_libraries(polesRegister_fuser ndt_fuser ${Boost_LIBRARIES}
@@ -104,6 +104,7 @@ target_link_libraries(features ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 
 add_executable(semanticRegister src/semanticRegister_poles.cpp)
 target_link_libraries(semanticRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
+	ndt_fuser
 	g2o_core g2o_solver_csparse g2o_types_slam3d cxsparse 
 	g2o_stuff g2o_csparse_extension ${G2O_LIBRARIES} 
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES}

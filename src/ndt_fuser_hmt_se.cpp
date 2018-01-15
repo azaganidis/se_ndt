@@ -249,6 +249,14 @@ Eigen::Affine3d NDTFuserHMT_SE::match(Eigen::Affine3d Tmotion, pcl::PointCloud<p
 		Tnow = Tnow * Tmotion;
 	return Tnow;
 }
+Eigen::Matrix<double, 6,6> NDTFuserHMT_SE::getPoseCovariance(Eigen::Affine3d T)
+{
+	Eigen::MatrixXd Covariance(6,6);
+	Eigen::Matrix<double,6,6> Covariance_;
+	matcher.covariance(map,mapLocal,T,resolutions,Covariance);
+	Covariance_=Covariance;
+	return Covariance_;
+}
 bool NDTFuserHMT_SE::updateMap()
 {
 	if(!canUpdate)return false;
