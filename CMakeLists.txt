@@ -41,7 +41,7 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 add_library(ndt_fuser src/ndt_fuser_hmt_se.cpp)
 target_link_libraries(ndt_fuser ${PROJECT_NAME})
 
-add_executable(semanticRegister src/semanticRegister_poles.cpp)
+add_executable(semanticRegister src/semanticRegister.cpp)
 target_link_libraries(semanticRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	ndt_fuser ${ndt_registration_LIBRARIES} ${PCL_LIBRARIES}
 	${Boost_LIBRARIES} -lboost_serialization)
