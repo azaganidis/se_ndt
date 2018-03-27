@@ -37,14 +37,12 @@
 
 #include <ndt_map/spatial_index.h>
 #include <ndt_map/ndt_cell.h>
-#include <ndt_map/depth_camera.h>
 #include <ndt_map/lazy_grid.h>
 #include <ndt_map/cell_vector.h>
 
 #include <set>
 #include <cstdlib>
 
-#include <opencv/cv.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
@@ -342,9 +340,6 @@ public:
      */
     void loadPointCloudCentroid(const pcl::PointCloud<pcl::PointXYZ> &pc, const Eigen::Vector3d &origin, const Eigen::Vector3d &old_centroid, const Eigen::Vector3d &map_size, double range_limit);
 		
-    void loadDepthImage(const cv::Mat& depthImage, DepthCamera<pcl::PointXYZ> &cameraParams);
-    pcl::PointCloud<pcl::PointXYZ> loadDepthImageFeatures(const cv::Mat& depthImage, std::vector<cv::KeyPoint> &keypoints,
-            size_t &supportSize, double maxVar, DepthCamera<pcl::PointXYZ> &cameraParams, bool estimateParamsDI=false, bool nonMean = false);
 
     /**
     * Computes the NDT-cells after a measurement has been added
