@@ -4,9 +4,9 @@
 #include <fstream>
 #include <unistd.h>
 #include <boost/program_options.hpp>
-#include <pcl/filters/crop_box.h>
 #include <se_ndt/ndt_fuser_hmt_se.h>
 #include <pcl/common/io.h>
+#include <pcl/common/transforms.h>
 
 using namespace std;
 namespace po = boost::program_options;
@@ -41,17 +41,6 @@ vector<double>  getMeasure(string filename)
 		measure.push_back(stod(line));
 	}
     return measure;
-}
-pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud, std::vector<float>& b)
-{
-	pcl::PointCloud<pcl::PointXYZI>::Ptr outC(new pcl::PointCloud<pcl::PointXYZI>);
-	pcl::CropBox<pcl::PointXYZI> cropBoxFilter(false);
-	cropBoxFilter.setInputCloud(laserCloud);
-	cropBoxFilter.setMin(Eigen::Vector4f (b[0],b[1],b[2], 1));
-	cropBoxFilter.setMax(Eigen::Vector4f (b[3],b[4],b[5], 1));
-	cropBoxFilter.setNegative(true);
-	cropBoxFilter.filter(*outC);
-	return outC;
 }
 
 int main(int argc, char** argv)
@@ -120,7 +109,7 @@ int main(int argc, char** argv)
 	//lslgeneric::NDTFuserHMT_SE matcher (the_initial_pose,{the_resolutions},{the_order_with which_the_resolutions_are_used},{the_size_of_the_map},{the_tail_segments},{ignore_values},reject_percentage,number_of_iterations);
 	for(int i=0;i<num_files;i++)
 	{
-		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud3=h_box?cropIt(getCloud2(pointcloud_files[i],skip),box):getCloud2(pointcloud_files[i],skip);
+		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud3=getCloud2(pointcloud_files[i],skip);
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::copyPointCloud(*cloud3,*cloud1);
 

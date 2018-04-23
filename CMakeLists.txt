@@ -43,6 +43,6 @@ target_link_libraries(ndt_fuser ${PROJECT_NAME})
 
 add_executable(semanticRegister src/semanticRegister.cpp)
 target_link_libraries(semanticRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-	ndt_fuser ${ndt_registration_LIBRARIES} ${PCL_LIBRARIES}
+    ndt_fuser ${ndt_registration_LIBRARIES} ${PCL_COMMON_LIBRARIES}
 	${Boost_LIBRARIES} -lboost_serialization)
 

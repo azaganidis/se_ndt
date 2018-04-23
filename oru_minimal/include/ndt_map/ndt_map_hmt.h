@@ -42,7 +42,7 @@
 #include <ndt_map/lazy_grid.h>
 
 #include <cstdlib>
-#include <opencv/cv.h>
+//#include <opencv/cv.h>
 #include <sys/stat.h>
 #include <sys/dir.h>
 
