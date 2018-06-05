@@ -489,7 +489,6 @@ protected:
 public:
     float map_sizex;
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    pcl::PointCloud<pcl::PointXYZ> conflictPoints; ///< points that were conflicting during update
 
 
 };

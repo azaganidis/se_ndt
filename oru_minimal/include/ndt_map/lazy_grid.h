@@ -58,6 +58,26 @@ public:
     virtual NDTCell* getCellForPoint(const pcl::PointXYZ &point);
     virtual NDTCell* addPoint(const pcl::PointXYZ &point);
 
+    struct Darray
+    {
+        int sX, sY,sZ;
+        NDTCell** array;
+        void initialize(int x,int y,int z){
+            sX=x;
+            sY=y;
+            sZ=z;
+            array=(NDTCell**) calloc(x*y*z, sizeof(NDTCell*));
+        };
+        NDTCell* operator()(int x, int y, int z)
+        {
+            return array[z+y*sZ+x*sZ*sY];
+        }
+        void set(int x, int y, int z, NDTCell* c)
+        {
+            array[z+y*sZ+x*sZ*sY] = c;
+        }
+    };
+ 
     //these two don't make much sense...
     ///iterator through all cells in index, points at the begining
     virtual typename SpatialIndex::CellVectorItr begin();
@@ -84,7 +104,7 @@ public:
 
     virtual inline void getCellAt(int indX, int indY, int indZ, NDTCell* &cell){
 	if(indX < sizeX && indY < sizeY && indZ < sizeZ && indX >=0 && indY >=0 && indZ >=0){
-	    cell = dataArray[indX][indY][indZ];
+	    cell = dataArray(indX,indY,indZ);
 	}else{
 		cell = NULL;
 		
@@ -98,7 +118,7 @@ public:
     //FIXME: these two are now not needed anymore
     virtual inline void getNDTCellAt(int indX, int indY, int indZ, NDTCell* &cell){
 			if(indX < sizeX && indY < sizeY && indZ < sizeZ && indX >=0 && indY >=0 && indZ >=0){
-					cell = (dataArray[indX][indY][indZ]);
+					cell = (dataArray(indX,indY,indZ));
 			}else{
 				cell = NULL;
 			}
@@ -122,11 +142,6 @@ public:
     virtual void initialize();
     virtual void initializeAll() ;
 
-    NDTCell ****getDataArrayPtr()
-    {
-        return dataArray;
-    }
-
     ///reads map contents from .jff file
     virtual int loadFromJFF(FILE * jffin);
     bool traceLine(const Eigen::Vector3d &origin, const pcl::PointXYZ &endpoint, const Eigen::Vector3d &diff, const double& maxz, std::vector<NDTCell*> &cells);
@@ -138,7 +153,7 @@ public:
     }
 protected:
     bool initialized=false;
-    NDTCell ****dataArray;
+    Darray dataArray;
     //bool ***linkedCells;
     NDTCell *protoType=NULL;
     std::vector<NDTCell*> activeCells;

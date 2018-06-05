@@ -108,6 +108,7 @@ inline bool checkInLimits(size_t **in,int p,int num,int cu,int cl)
 				return true;
 	return false;
 }
+
 vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloudIn,initializer_list<vector<double> >& attributes_,initializer_list<int > distribution_tails_,initializer_list<float> disregard_, float rejectPerc)
 {
 	vector<vector<double> > attributes(attributes_);
@@ -258,13 +259,24 @@ lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolution
 	}
 	return map;
 }
+//#include <chrono>
+//#include <iomanip>
 void loadMap(lslgeneric::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range)
 {
+//    cerr<<std::setprecision(3);
+//    double one=0, two=0;
 	for(size_t i=0;i<input_clouds.size();i++)
 	{
+//        auto start = std::chrono::high_resolution_clock::now();
 		map[i]->loadPointCloud(*input_clouds[i],sensor_range);
+//        std::chrono::duration<double> elapsed1 = std::chrono::high_resolution_clock::now()- start;
+//        start = std::chrono::high_resolution_clock::now();
 		map[i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
+//        std::chrono::duration<double> elapsed2 = std::chrono::high_resolution_clock::now()- start;
+//        one+=elapsed1.count();
+//        two+=elapsed2.count();
 	}
+//    cerr<<std::fixed<<std::setprecision(3)<<one<< " "<<two<<endl;
 }
 Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> score_gradient)
 {
@@ -311,17 +323,166 @@ Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::P
 {
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud1=getSegments(cloud1,attributes1,tails,ignore,removeProbability);
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud2=getSegments(cloud2,attributes2,tails,ignore,removeProbability);
+#define USE_OMP
+#define n_threads 12
+#pragma omp parallel num_threads(n_threads)
+{
+    #pragma omp for
 	for(int i=0;i<resolutions.size();i++)
 	{
 		loadMap(map[i],laserCloud1);
 		loadMap(mapLocal[i],laserCloud2);
 	}
+}
 	for(auto i:resolutions_order)
 	{
 		matcher.current_resolution=resolutions.at(i);
 		matcher.match(map[i],mapLocal[i],Tinit,true);
 	}
 	//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
+	return Tinit;
+}
+vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegmentsFast(pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloudIn,vector<double> &attributes)
+{
+	int cloudSize = laserCloudIn->points.size();
+	int num_attributes=ignore.size();
+
+	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud;
+	for(int i=0;i<num_attributes;i++)
+	{
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudT(new pcl::PointCloud<pcl::PointXYZ>);
+		laserCloud.push_back(cloudT);
+	}
+	for(int i=0;i<cloudSize;i++)
+	{
+            int atr = int(attributes.at(i));
+            pcl::PointXYZ point;
+            point.x=laserCloudIn->points[i].x;
+            point.y=laserCloudIn->points[i].y;
+            point.z=laserCloudIn->points[i].z;
+            laserCloud[atr]->points.push_back(point);
+    }
+	return laserCloud;
+}
+vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegmentsFast(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn)
+{
+	int cloudSize = laserCloudIn->points.size();
+	int num_attributes=ignore.size();
+
+	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud;
+	for(int i=0;i<num_attributes;i++)
+	{
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudT(new pcl::PointCloud<pcl::PointXYZ>);
+		laserCloud.push_back(cloudT);
+	}
+	for(int i=0;i<cloudSize;i++)
+	{
+            auto pnt=laserCloudIn->points[i];
+            int atr = round(pnt.intensity);
+            pcl::PointXYZ point;
+            point.x=pnt.x;
+            point.y=pnt.y;
+            point.z=pnt.z;
+            laserCloud[atr]->points.push_back(point);
+    }
+	return laserCloud;
+}
+Eigen::Affine3d NDTMatch_SE::matchFast(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2,vector<double> &attributes1,vector<double> &attributes2)
+{
+    Eigen::Affine3d Tinit;
+    Tinit.setIdentity();
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud1=getSegmentsFast(cloud1,attributes1);
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud2=getSegmentsFast(cloud2,attributes2);
+#define USE_OMP
+#define n_threads 12
+#pragma omp parallel num_threads(n_threads)
+{
+    #pragma omp for
+	for(int i=0;i<resolutions.size();i++)
+	{
+		loadMap(map[i],laserCloud1);
+		loadMap(mapLocal[i],laserCloud2);
+	}
+}
+	for(auto i:resolutions_order)
+	{
+		matcher.current_resolution=resolutions.at(i);
+		matcher.match(map[i],mapLocal[i],Tinit,true);
+	}
+	//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
+	return Tinit;
+}
+
+Eigen::Affine3d NDTMatch_SE::matchFaster(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vector<double> &attributes)
+{
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegmentsFast(cloud,attributes);
+    Eigen::Affine3d Tinit;
+    Tinit.setIdentity();
+#pragma omp parallel num_threads(8)
+{
+    #pragma omp for
+	for(int i=0;i<resolutions.size();i++)
+		loadMap(mapLocal[i],laserCloud);
+}
+	if(!firstRun)
+	{
+		for(auto i:resolutions_order)
+		{
+			matcher.current_resolution=resolutions.at(i);
+			matcher.match(map[i],mapLocal[i],Tinit,true);
+		}
+		//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
+	}
+	else firstRun=false;
+	lslgeneric::NDTMap ***mapT;
+	mapT=map;
+	map=mapLocal;
+	mapLocal=mapT;
+	return Tinit;
+}
+Eigen::Affine3d NDTMatch_SE::matchFaster(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
+{
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegmentsFast(cloud);
+	for(int i=0;i<resolutions.size();i++)
+		loadMap(mapLocal[i],laserCloud);
+	if(!firstRun)
+	{
+		for(auto i:resolutions_order)
+		{
+			matcher.current_resolution=resolutions.at(i);
+			matcher.match(map[i],mapLocal[i],Tinit,true);
+		}
+		//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
+	}
+	else firstRun=false;
+	lslgeneric::NDTMap ***mapT;
+	mapT=map;
+	map=mapLocal;
+	mapLocal=mapT;
+	return Tinit;
+}
+Eigen::Affine3d NDTMatch_SE::matchFaster(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
+{
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegmentsFast(cloud);
+    Eigen::Affine3d Tinit;
+    Tinit.setIdentity();
+
+	for(int i=0;i<resolutions.size();i++)
+		loadMap(mapLocal[i],laserCloud);
+	if(!firstRun)
+	{
+		for(auto i:resolutions_order)
+		{
+			matcher.current_resolution=resolutions.at(i);
+			matcher.match(map[i],mapLocal[i],Tinit,true);
+		}
+		//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
+	}
+	else firstRun=false;
+	lslgeneric::NDTMap ***mapT;
+	mapT=map;
+	map=mapLocal;
+	mapLocal=mapT;
 	return Tinit;
 }
 struct MatchPathSeparator

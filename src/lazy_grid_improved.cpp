@@ -112,8 +112,8 @@ void LazyGrid::initializeAll()
         {
             for(int k=0; k<sizeZ; k++)
             {
-                dataArray.set(i,j,k,new NDTCell());
-                dataArray(i,j,k)->setDimensions(cellSizeX,cellSizeY,cellSizeZ);
+                dataArray[i][j][k] = new NDTCell();
+                dataArray[i][j][k]->setDimensions(cellSizeX,cellSizeY,cellSizeZ);
 
                 int idcX, idcY, idcZ;
                 pcl::PointXYZ center;
@@ -124,14 +124,13 @@ void LazyGrid::initializeAll()
                 centerCell.x = centerX + (i-idcX)*cellSizeX;
                 centerCell.y = centerY + (j-idcY)*cellSizeY;
                 centerCell.z = centerZ + (k-idcZ)*cellSizeZ;
-                dataArray(i,j,k)->setCenter(centerCell);
-                activeCells.push_back(dataArray(i,j,k));
+                dataArray[i][j][k]->setCenter(centerCell);
+                activeCells.push_back(dataArray[i][j][k]);
             }
         }
     }
 }
 
-/*   
 void LazyGrid::initialize()
 {
 
@@ -152,13 +151,7 @@ void LazyGrid::initialize()
 }
     initialized = true;
 }
-*/
-void LazyGrid::initialize()
-{
 
-    dataArray.initialize(sizeX,sizeY,sizeZ);
-    initialized = true;
-}
 LazyGrid::~LazyGrid()
 {
     if(initialized)
@@ -174,7 +167,15 @@ LazyGrid::~LazyGrid()
 		cnt++;
 	    }
 	}
-	free( dataArray.array);
+	for(int i=0; i<sizeX; i++)
+	{
+	    for(int j=0; j<sizeY; j++)
+	    {
+		delete[] dataArray[i][j];
+	    }
+	    delete[] dataArray[i];
+	}
+	delete[] dataArray;
 	if(protoType!=NULL)
 	{
 	    delete protoType;
@@ -191,8 +192,12 @@ NDTCell* LazyGrid::getCellForPoint(const pcl::PointXYZ &point)
 
     if(indX >= sizeX || indY >= sizeY || indZ >= sizeZ || indX<0 || indY<0 || indZ<0) return NULL;
     if(!initialized) return NULL;
+    if(dataArray == NULL) return NULL;
+    if(dataArray[indX] == NULL) return NULL;
+    if(dataArray[indX][indY] == NULL) return NULL;
+
     //    cout<<"LZ: "<<indX<<" "<<indY<<" "<<indZ<<endl;
-    return dataArray(indX,indY,indZ);
+    return dataArray[indX][indY][indZ];
 }
 
 NDTCell* LazyGrid::addPoint(const pcl::PointXYZ &point_c)
@@ -213,12 +218,15 @@ NDTCell* LazyGrid::addPoint(const pcl::PointXYZ &point_c)
     }
 
     if(!initialized) return NULL;
+    if(dataArray == NULL) return NULL;
+    if(dataArray[indX] == NULL) return NULL;
+    if(dataArray[indX][indY] == NULL) return NULL;
 
-    if(dataArray(indX,indY,indZ)==NULL)
+    if(dataArray[indX][indY][indZ]==NULL)
     {
         //initialize cell
-        dataArray.set(indX,indY,indZ, protoType->clone());
-        dataArray(indX,indY,indZ)->setDimensions(cellSizeX,cellSizeY,cellSizeZ);
+        dataArray[indX][indY][indZ] = protoType->clone();
+        dataArray[indX][indY][indZ]->setDimensions(cellSizeX,cellSizeY,cellSizeZ);
 
         int idcX, idcY, idcZ;
         pcl::PointXYZ center;
@@ -229,7 +237,7 @@ NDTCell* LazyGrid::addPoint(const pcl::PointXYZ &point_c)
         centerCell.x = centerX + (indX-idcX)*cellSizeX;
         centerCell.y = centerY + (indY-idcY)*cellSizeY;
         centerCell.z = centerZ + (indZ-idcZ)*cellSizeZ;
-        dataArray(indX,indY,indZ)->setCenter(centerCell);
+        dataArray[indX][indY][indZ]->setCenter(centerCell);
         /*
            cout<<"center: "<<centerX<<" "<<centerY<<" "<<centerZ<<endl;
            cout<<"size  : "<<sizeX<<" "<<sizeY<<" "<<sizeZ<<endl;
@@ -238,10 +246,10 @@ NDTCell* LazyGrid::addPoint(const pcl::PointXYZ &point_c)
            cout<<"id : "<<indX<<" "<<indY<<" "<<indZ<<endl;
            cout<<"cs : "<<cellSizeX<<" "<<cellSizeY<<" "<<cellSizeZ<<endl;
          */
-        activeCells.push_back(dataArray(indX,indY,indZ));
+        activeCells.push_back(dataArray[indX][indY][indZ]);
     }
-    dataArray(indX,indY,indZ)->addPoint(point);
-    return dataArray(indX,indY,indZ);
+    dataArray[indX][indY][indZ]->addPoint(point);
+    return dataArray[indX][indY][indZ];
 }
 
 typename SpatialIndex::CellVectorItr LazyGrid::begin()
@@ -292,17 +300,17 @@ void LazyGrid::getNeighbors(const pcl::PointXYZ &point, const double &radius, st
         return;
     }
 
-    for(int x = indX - radius/cellSizeX; x<=indX+radius/cellSizeX; x++)
+    for(int x = indX - radius/cellSizeX; x<indX+radius/cellSizeX; x++)
     {
         if(x < 0 || x >= sizeX) continue;
-        for(int y = indY - radius/cellSizeY; y<=indY+radius/cellSizeY; y++)
+        for(int y = indY - radius/cellSizeY; y<indY+radius/cellSizeY; y++)
         {
             if(y < 0 || y >= sizeY) continue;
-            for(int z = indZ - radius/cellSizeZ; z<=indZ+radius/cellSizeZ; z++)
+            for(int z = indZ - radius/cellSizeZ; z<indZ+radius/cellSizeZ; z++)
             {
                 if(z < 0 || z >= sizeZ) continue;
-                if(dataArray(x,y,z)==NULL) continue;
-                cells.push_back(dataArray(x,y,z));
+                if(dataArray[x][y][z]==NULL) continue;
+                cells.push_back(dataArray[x][y][z]);
             }
         }
     }
@@ -338,7 +346,7 @@ std::vector<NDTCell*> LazyGrid::getClosestCells(const pcl::PointXYZ &pt)
                 indZn = (z%2 == 0) ? indZ+z/2 : indZ-z/2;
                 if(checkCellforNDT(indXn,indYn,indZn,true))
                 {
-                    cells.push_back(dataArray(indXn,indYn,indZn));
+                    cells.push_back(dataArray[indXn][indYn][indZn]);
                 }
             }
         }
@@ -371,7 +379,7 @@ std::vector<NDTCell*> LazyGrid::getClosestNDTCells(const pcl::PointXYZ &point, i
                 indZn = (z%2 == 0) ? indZ+z/2 : indZ-z/2;
                 if(checkCellforNDT(indXn,indYn,indZn,checkForGaussian))
                 {
-                    cells.push_back(dataArray(indXn,indYn,indZn));
+                    cells.push_back(dataArray[indXn][indYn][indZn]);
                 }
             }
         }
@@ -393,7 +401,7 @@ NDTCell* LazyGrid::getClosestNDTCell(const pcl::PointXYZ &point, bool checkForGa
         //just give me whatever is in this cell
         if(checkCellforNDT(indX,indY,indZ,checkForGaussian))
         {
-            ret = (dataArray(indX,indY,indZ));
+            ret = (dataArray[indX][indY][indZ]);
         }
         return ret;
     }
@@ -415,7 +423,7 @@ NDTCell* LazyGrid::getClosestNDTCell(const pcl::PointXYZ &point, bool checkForGa
                 indZn = (z%2 == 0) ? indZ+z/2 : indZ-z/2;
                 if(checkCellforNDT(indXn,indYn,indZn))
                 {
-                    ret = (dataArray(indXn,indYn,indZn));
+                    ret = (dataArray[indXn][indYn][indZn]);
                     cells.push_back(ret);
                 }
             }
@@ -448,9 +456,9 @@ bool LazyGrid::checkCellforNDT(int indX, int indY, int indZ, bool checkForGaussi
     if(indX < sizeX && indY < sizeY && indZ < sizeZ &&
             indX >=0 && indY >=0 && indZ >=0)
     {
-        if(dataArray(indX,indY,indZ)!=NULL)
+        if(dataArray[indX][indY][indZ]!=NULL)
         {
-	    if(dataArray(indX,indY,indZ)->hasGaussian_ || (!checkForGaussian))
+	    if(dataArray[indX][indY][indZ]->hasGaussian_ || (!checkForGaussian))
 	    {
 		return true;
 	    }
@@ -510,7 +518,15 @@ int LazyGrid::loadFromJFF(FILE * jffin)
 			}
 		}
 		activeCells.clear();
-		free( dataArray.array);
+		for(int i=0; i<sizeX; i++)
+		{
+			for(int j=0; j<sizeY; j++)
+			{
+			delete[] dataArray[i][j];
+			}
+			delete[] dataArray[i];
+		}
+		delete[] dataArray;
 		if(protoType!=NULL)
 		{
 			delete protoType;
@@ -574,11 +590,15 @@ int LazyGrid::loadFromJFF(FILE * jffin)
         if(indY < 0 || indY >= sizeY) continue; 
         if(indZ < 0 || indZ >= sizeZ) continue; 
 		if(!initialized) return -1;
-        if(dataArray(indX,indY,indZ) != NULL)
-			delete dataArray(indX,indY,indZ);
+        if(dataArray == NULL) return -1;
+        if(dataArray[indX] == NULL) return -1;
+        if(dataArray[indX][indY] == NULL) return -1;
 
-	    dataArray.set(indX,indY,indZ, prototype_.copy());
-	    activeCells.push_back(dataArray(indX,indY,indZ));
+        if(dataArray[indX][indY][indZ] != NULL)
+			delete dataArray[indX][indY][indZ];
+
+	    dataArray[indX][indY][indZ] = prototype_.copy();
+	    activeCells.push_back(dataArray[indX][indY][indZ]);
     }
 
     return 0;
@@ -639,7 +659,7 @@ bool LazyGrid::traceLine(const Eigen::Vector3d &origin, const pcl::PointXYZ &end
 		}
 		
 		if(idx < sizeX && idy < sizeY && idz < sizeZ && idx >=0 && idy >=0 && idz >=0){
-			ptCell = dataArray(idx,idy,idz);
+			ptCell = dataArray[idx][idy][idz];
 			if(ptCell !=NULL) {
 				cells.push_back(ptCell);
 			} else {
@@ -711,7 +731,7 @@ bool LazyGrid::traceLineWithEndpoint(const Eigen::Vector3d &origin, const pcl::P
 	}
 
 	if(idx < sizeX && idy < sizeY && idz < sizeZ && idx >=0 && idy >=0 && idz >=0){
-	    ptCell = dataArray(idx,idy,idz);
+	    ptCell = dataArray[idx][idy][idz];
 	    if(ptCell !=NULL) {
 		cells.push_back(ptCell);
 	    } else {

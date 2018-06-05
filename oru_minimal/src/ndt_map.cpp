@@ -27,6 +27,7 @@ namespace lslgeneric
 */
 void NDTMap::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, double range_limit)
 {
+
     if(index_ != NULL)
     {
         //std::cout<<"CLONE INDEX\n";
@@ -61,6 +62,7 @@ void NDTMap::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, double ran
     }
 
     pcl::PointCloud<pcl::PointXYZ>::const_iterator it = pc.points.begin();
+    //guess_size_=false;
     if(guess_size_) 
     {
 	double maxDist = 0;//, distCeil = 200;
@@ -137,15 +139,15 @@ void NDTMap::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, double ran
     }
     else
     {
-	//set sizes
-	NDTCell *ptCell = new NDTCell();
-	index_->setCellType(ptCell);
-	delete ptCell;
-	index_->setCenter(centerx,centery,centerz);
-	if(map_sizex >0 && map_sizey >0 && map_sizez >0)
-	{
-	    index_->setSize(map_sizex,map_sizey,map_sizez);
-	}
+        //set sizes
+        NDTCell *ptCell = new NDTCell();
+        index_->setCellType(ptCell);
+        delete ptCell;
+        index_->setCenter(centerx,centery,centerz);
+        if(map_sizex >0 && map_sizey >0 && map_sizez >0)
+        {
+            index_->setSize(map_sizex,map_sizey,map_sizez);
+        }
     }
 
     //    ROS_INFO("centroid is %f,%f,%f", centroid(0),centroid(1),centroid(2));
@@ -1120,11 +1122,16 @@ void NDTMap::computeNDTCells(int cellupdatemode, unsigned int maxnumpoints, floa
 {
     CellVector *cv = dynamic_cast<CellVector*>(index_);
 
-    conflictPoints.clear();
-#ifdef REFACTORED
     typename std::set<NDTCell*>::iterator it = update_set.begin();
-    while (it != update_set.end())
+    unsigned int num_updates=update_set.size();
+#pragma omp parallel num_threads(12)
+{
+    #pragma omp for
+    for(int i=0;i<num_updates;i++)
     {
+        auto it = update_set.begin();
+        for(int j=0;j<i;j++)
+            it++;
         NDTCell *cell = *it;
         if(cell!=NULL)
         {
@@ -1132,7 +1139,6 @@ void NDTMap::computeNDTCells(int cellupdatemode, unsigned int maxnumpoints, floa
             ///Process the conflict points
             if(cell->points_.size()>0)
             {
-                for(unsigned int i=0; i<cell->points_.size(); i++) conflictPoints.push_back(cell->points_[i]);
                 cell->points_.clear();
             }
             if (cv!=NULL)
@@ -1147,12 +1153,8 @@ void NDTMap::computeNDTCells(int cellupdatemode, unsigned int maxnumpoints, floa
                 cell->setCenter(pt);
             }
         }
-        else
-        {
-
-        }
-        it++;
     }
+}
     update_set.clear();
 
     CellVector *cl = dynamic_cast<CellVector*>(index_);
@@ -1160,51 +1162,6 @@ void NDTMap::computeNDTCells(int cellupdatemode, unsigned int maxnumpoints, floa
     {
         cl->initKDTree();
     }
-#else
-typename SpatialIndex::CellVectorItr it = index_->begin();
-    //typename std::set<NDTCell<PointT>*>::iterator it = update_set.begin();
-    while (it != index_->end())
-    //while (it != update_set.end())
-    {
-        NDTCell *cell = (*it);
-        //NDTCell<PointT> *cell = *it;
-        if(cell!=NULL)
-        {
-            cell->computeGaussian(cellupdatemode,maxnumpoints, occupancy_limit, origin,sensor_noise);
-            ///Process the conflict points
-            if(cell->points_.size()>0)
-            {
-                for(unsigned int i=0; i<cell->points_.size(); i++) conflictPoints.push_back(cell->points_[i]);
-                cell->points_.clear();
-            }
-            if (cv!=NULL)
-            {
-                // Set the mean to the cell's centre.
-                Eigen::Vector3d mean = cell->getMean();
-                pcl::PointXYZ pt;
-                pt.x = mean[0];
-                pt.y = mean[1];
-                pt.z = mean[2];
-
-                cell->setCenter(pt);
-            }
-        }
-        else
-        {
-
-        }
-        it++;
-    }
-    //update_set.clear();
-
-    CellVector *cl = dynamic_cast<CellVector*>(index_);
-    if(cl!=NULL)
-    {
-        cl->initKDTree();
-    }
-#endif
-    
-    
 }
 
 
@@ -1215,9 +1172,6 @@ typename SpatialIndex::CellVectorItr it = index_->begin();
 void NDTMap::computeNDTCellsSimple()
 {
     CellVector *cv = dynamic_cast<CellVector*>(index_);
-
-    conflictPoints.clear();
-
     typename SpatialIndex::CellVectorItr it = index_->begin();
 
     while (it != index_->end())

@@ -13,6 +13,12 @@ class NDTMatch_SE{
  public:
 	 bool useSaved=false;
 		vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloudIn,initializer_list<vector<double> >& attributes_,initializer_list<int > distribution_tails_,initializer_list<float> disregard_, float rejectPerc);
+        Eigen::Affine3d matchFaster(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud);
+        vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegmentsFast(pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloudIn,vector<double> &attributes);
+        vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegmentsFast(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn);
+        Eigen::Affine3d matchFaster(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud);
+        Eigen::Affine3d matchFast(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2,vector<double> &attributes1,vector<double> &attributes2);
+        Eigen::Affine3d matchFaster(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vector<double> &attributes);
 		unsigned int NumInputs;
 		lslgeneric::NDTMap ***map;		 ///< da map
 		lslgeneric::NDTMap ***mapLocal;		 ///< da map

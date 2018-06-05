@@ -1,5 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(se_ndt)
+if(NOT CMAKE_BUILD_TYPE)
+      set(CMAKE_BUILD_TYPE Release)
+  endif()
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
 find_package(OpenMP REQUIRED)
 #find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
@@ -44,5 +52,12 @@ target_link_libraries(ndt_fuser ${PROJECT_NAME})
 add_executable(semanticRegister src/semanticRegister.cpp)
 target_link_libraries(semanticRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
     ndt_fuser ${ndt_registration_LIBRARIES} ${PCL_COMMON_LIBRARIES}
+    ${PCL_FILTERS_LIBRARIES}
+	${Boost_LIBRARIES} -lboost_serialization)
+
+add_executable(ros_register src/ros_register.cpp)
+target_link_libraries(ros_register ${PROJECT_NAME} ${ndt_map_LIBRARIES}
+    ndt_fuser ${ndt_registration_LIBRARIES} ${PCL_COMMON_LIBRARIES}
+    ${PCL_FILTERS_LIBRARIES}
 	${Boost_LIBRARIES} -lboost_serialization)
 
