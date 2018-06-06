@@ -12,8 +12,24 @@
 #include <ndt_registration/ndt_matcher_d2d.h>
 #include <ctime>
 
+#include <ros/ros.h>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_types.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <tf2_eigen/tf2_eigen.h>
+#include <pcl_conversions/pcl_conversions.h>
 using namespace std;
 namespace po = boost::program_options;
+void send_transform(Eigen::Affine3d &T)
+{
+    static tf2_ros::TransformBroadcaster br;
+    geometry_msgs::TransformStamped tS=tf2::eigenToTransform(T);
+    tS.header.stamp=ros::Time::now();
+    tS.header.frame_id="world";
+    tS.child_frame_id="velodyne";
+    br.sendTransform(tS);
+}
 void filt_write (pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, float max_dist)
 {
 	pcl::PointCloud<pcl::PointXYZI>::Ptr filt(new pcl::PointCloud<pcl::PointXYZI>);
@@ -261,12 +277,14 @@ int main(int argc, char** argv)
 	string transforms;
 	string p_dir;
     float val=1;
-    bool bin_in=false;
+    //bool bin_in=false;
+    string topic="velodyne_points";
 
 	po::options_description desc("Allowed options");
 	desc.add_options()
 	("help,h", "produce help message")
-	("bin,b", "Input is in binary format?")
+	//("bin,b", "Input is in binary format?")
+    ("topic,t", po::value<string>(&topic),"Topic to publish")
 	("value,v", po::value<float >(&val), "Point cloud files")
 	("pointclouds,p", po::value<std::vector<string> >()->multitoken(), "Point cloud files");
 
@@ -275,8 +293,8 @@ int main(int argc, char** argv)
     po::variables_map vm;
 	po::store(parsed_options, vm);
     po::notify(vm);
-	if(vm.count("bin"))
-        bin_in = true;
+	//if(vm.count("bin"))
+     //   bin_in = true;
 	if(vm.count("help")||!vm.count("pointclouds"))
 	{
 		cout<<desc;
@@ -309,9 +327,17 @@ int main(int argc, char** argv)
     float filter =0.8f;
 //    filter=val;
     sor.setLeafSize(filter,filter,filter);
+
+
+
+	ros::init (argc,argv,"pub_sendt");
+	ros::NodeHandle nh;
+	ros::Publisher pub = nh.advertise<pcl::PointCloud<pcl::PointXYZI> >(topic, 1);
+
 	for(int t=0; t<s_point; t++)
 	{
 		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_mv = getB(pointcloud_files[t]);
+        pcl_conversions::toPCL(ros::Time::now(),cloud_mv->header.stamp);
 		//pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_filtered ( new pcl::PointCloud<pcl::PointXYZI>);
         auto cloud_filtered=filter_class_omp(cloud_mv , 0.5);
         filt_write(cloud_mv , 0.5);
@@ -326,6 +352,12 @@ int main(int argc, char** argv)
         float time_diff=float( clock() -begin_time ) / CLOCKS_PER_SEC;
         T=T*Td;
         print_transform(T);
+        pcl::transformPointCloud(*cloud_mv, *cloud_mv, calib);
+        cloud_mv->header.frame_id="velodyne";
+        pub.publish(cloud_mv);
+        Eigen::Affine3d cor = calib.inverse()*T;
+        send_transform(cor);
+        ros::spinOnce();
     }
 	return 0;
 }

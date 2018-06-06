@@ -31,6 +31,15 @@ include(pcl_find_sse.cmake)
 PCL_CHECK_FOR_SSE()
 #find_package(Boost REQUIRED)
 
+find_package(roscpp REQUIRED)
+find_package(rosconsole REQUIRED)
+find_package(tf2_ros REQUIRED)
+set(ROS_REQUIRED
+	${roscpp_LIBRARIES}
+	${rosconsole_LIBRARIES}
+	${tf2_ros_LIBRARIES}
+	)
+
 set (${PROJECT_NAME}_LIB_SRCS
 	oru_minimal/src/ndt_map.cpp
 	oru_minimal/src/lazy_grid.cpp
@@ -59,5 +68,6 @@ add_executable(ros_register src/ros_register.cpp)
 target_link_libraries(ros_register ${PROJECT_NAME} ${ndt_map_LIBRARIES}
     ndt_fuser ${ndt_registration_LIBRARIES} ${PCL_COMMON_LIBRARIES}
     ${PCL_FILTERS_LIBRARIES}
+    ${ROS_REQUIRED}
 	${Boost_LIBRARIES} -lboost_serialization)
 
