@@ -334,7 +334,7 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh;
 	ros::Publisher pub = nh.advertise<pcl::PointCloud<pcl::PointXYZI> >(topic, 1);
 
-	for(int t=0; t<s_point; t++)
+	for(int t=0; t<s_point&&ros::ok(); t++)
 	{
 		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_mv = getB(pointcloud_files[t]);
         pcl_conversions::toPCL(ros::Time::now(),cloud_mv->header.stamp);
