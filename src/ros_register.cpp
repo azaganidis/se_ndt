@@ -276,9 +276,9 @@ int main(int argc, char** argv)
 {
 	string transforms;
 	string p_dir;
-    float val=1;
+    float val=0;
     //bool bin_in=false;
-    string topic="velodyne_points";
+    string topic="velodyne_points", posesF;
 
 	po::options_description desc("Allowed options");
 	desc.add_options()
@@ -286,6 +286,7 @@ int main(int argc, char** argv)
 	//("bin,b", "Input is in binary format?")
     ("topic,t", po::value<string>(&topic),"Topic to publish")
 	("value,v", po::value<float >(&val), "Point cloud files")
+	("poses,g", po::value<string >(&posesF), "Ground truth poses.")
 	("pointclouds,p", po::value<std::vector<string> >()->multitoken(), "Point cloud files");
 
 	po::parsed_options parsed_options = po::command_line_parser(argc, argv)
@@ -303,18 +304,12 @@ int main(int argc, char** argv)
 	vector<string> pointcloud_files;
 	pointcloud_files= vm["pointclouds"].as<vector<string> >();
     Eigen::Affine3d calib;
+    ifstream poses;
+    if(vm.count("poses"))
+        poses.open(posesF);
 
     calib.matrix() << 4.276802385584e-04,-9.999672484946e-01,-8.084491683471e-03,-1.198459927713e-02,-7.210626507497e-03,8.081198471645e-03,-9.999413164504e-01,-5.403984729748e-02,9.999738645903e-01,4.859485810390e-04,-7.206933692422e-03,-2.921968648686e-01,0,0,0,1;
     cerr<<calib.matrix()<<endl;
-	//NDTMatch_SE matcher ({100,20,4,2,1},{0,1,0,2,4,3,4},{200,200,200},{'=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,70},0.01,5);// :-D
-	//NDTMatch_SE matcher ({0.4,2,4},{2,0,1,0},{100,100,100},{'=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,70},0.01,5);// :-D
-	//NDTMatch_SE matcher ({16,2,1,val},{0,3,1,2},{200,200,200},{'=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7},0.01,5);// :-D
-	//NDTMatch_SE matcher ({16, 4,1,0.5},{0,1,2,3},{200,200,200},{'=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7},0.01,50);// :-D
-	//NDTMatch_SE matcher2 ({0.8},{0},{100,100,100},{'=','=','=','=','=','='},{0,1,2,3,4,5},0.01,1);// :-D
-	//matcher2.setNeighbours((int )1);
-	//NDTMatch_SE matcher ({16,10,4,2},{0,1,2,3},{200,200,200},{'=','=','=','=','=','=','='},{0,1,2,3,4,5,6},0.01,5);// :-D
-	NDTMatch_SE matcher ({4,0.8},{0,1},{200,200,200},{'=','=','=','=','=','='},{0,1,2,3,4,5},0.01,500);// :-D
-	matcher.setNeighbours((int )2);
 
     Eigen::Affine3d T;
     T.setIdentity();
@@ -332,51 +327,45 @@ int main(int argc, char** argv)
 
 	ros::init (argc,argv,"pub_sendt");
 	ros::NodeHandle nh;
-	ros::Publisher pub = nh.advertise<pcl::PointCloud<pcl::PointXYZI> >(topic, 1);
+	ros::Publisher pub = nh.advertise<pcl::PointCloud<pcl::PointXYZI> >(topic, 10);
 
+	NDTMatch_SE matcher ({4},{0},{100,100,100},{'=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7},0.01,500);// :-D
+	NDTMatch_SE matcher2 ({0.8},{0},{20,20,20},{'=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7},0.01,1);// :-D
+	NDTMatch_SE matcherNDT ({0.8},{0},{20,20,20},{'*'},{0},0.01,1);// :-D
+	matcher.setNeighbours((int )2);
+	matcherNDT.setNeighbours((int )1);
+	matcher2.setNeighbours((int )1);
+    ros::Rate loop_rate(val);
 	for(int t=0; t<s_point&&ros::ok(); t++)
 	{
 		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_mv = getB(pointcloud_files[t]);
-        pcl_conversions::toPCL(ros::Time::now(),cloud_mv->header.stamp);
-		//pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_filtered ( new pcl::PointCloud<pcl::PointXYZI>);
-        auto cloud_filtered=filter_class_omp(cloud_mv , 0.5);
-        filt_write(cloud_mv , 0.5);
-        //sor.setInputCloud(_remove_class);
-        //sor.filter(*cloud_filtered);
-
-        pcl::transformPointCloud(*cloud_filtered, *cloud_filtered, calib);
-        //pcl::transformPointCloud(*_remove_class, *_remove_class, calib);
+        auto r_time = ros::Time::now();
         clock_t begin_time = clock();
-		Td=matcher.matchFaster(Td,cloud_filtered);
-//        Td=matcher2.matchFaster(Td,cloud_filtered);
-        float time_diff=float( clock() -begin_time ) / CLOCKS_PER_SEC;
+		Td=matcher.matchFaster(Td,cloud_mv);
+//		Td=matcher2.matchFaster(Td,cloud_mv);
+        //pcl::PointCloud<pcl::PointXYZ>::Ptr cl(new pcl::PointCloud<pcl::PointXYZ>);
+        //pcl::copyPointCloud(*cloud_mv, *cl);
+		//Td=matcherNDT.match(Td,cl, {std::vector<double>()});
+        cout<<"1 "<<float( clock() -begin_time ) / CLOCKS_PER_SEC<<endl;begin_time=clock();
         T=T*Td;
-        print_transform(T);
-        pcl::transformPointCloud(*cloud_mv, *cloud_mv, calib);
+        pcl_conversions::toPCL(r_time,cloud_mv->header.stamp);
         cloud_mv->header.frame_id="velodyne";
+        Eigen::Affine3d ts=T;
+        if(vm.count("poses"))
+        {
+            Eigen::Matrix<double,4,4> t_Temp;
+            t_Temp.setIdentity();
+            for(int i=0;i<3;i++)
+                for(int j=0;j<4;j++)
+                    poses>>t_Temp(i,j);
+            ts.matrix()=calib.matrix().inverse()*t_Temp;
+            pcl::transformPointCloud(*cloud_mv, *cloud_mv, calib);
+        }
         pub.publish(cloud_mv);
-        Eigen::Affine3d cor = calib.inverse()*T;
-        send_transform(cor);
+        print_transform(ts);
+        send_transform(ts);
         ros::spinOnce();
+        loop_rate.sleep();
     }
 	return 0;
 }
-
-    /*
-	for(int t=0; t<s_point; t++)
-	{
-		auto t_mv = getCloud(pointcloud_files[t],5, bin_in);
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_mv=std::get<0>(t_mv);
-        pcl::transformPointCloud(*cloud_mv, *cloud_mv, calib);
-		std::vector<double> label_mv=std::get<1>(t_mv);
-
-        clock_t begin_time = clock();
-		Td=matcher.matchFaster(cloud_mv,label_mv);
-        float time_diff=float( clock() -begin_time ) / CLOCKS_PER_SEC;
-        T=T*Td;
-        print_transform(T);
-    }
-	return 0;
-}
-
-*/
