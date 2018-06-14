@@ -17,42 +17,17 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 find_package(Boost REQUIRED COMPONENTS program_options system)
 
-find_package(roscpp REQUIRED)
-find_package(rosconsole REQUIRED)
-find_package(tf2_ros REQUIRED)
-find_package(pcl_ros REQUIRED)
-find_package(VTK REQUIRED)
-set(ROS_REQUIRED_LIBS
-	${roscpp_LIBRARIES}
-	${rosconsole_LIBRARIES}
-	${tf2_ros_LIBRARIES}
-	${pcl_ros_LIBRARIES}
-    ${VTK_LIBRARIES}
-	)
-
-set(ROS_REQUIRED_DIRS
-    ${roscpp_INCLUDE_DIRS}
-    ${rosconsole_INCLUDE_DIRS}
-    ${tf2_ros_INCLUDE_DIRS}
-    ${pcl_ros_INCLUDE_DIRS}
-    ${VTK_INCLUDE_DIRS}
-	)
-
 include_directories(
   include
 	${Boost_INCLUDE_DIRS}
 	${PROJECT_SOURCE_DIR}/oru_minimal/include
-	${PCL_INCLUDE_DIRS}
 	${ndt_map_INCLUDE_DIRS}
 	${ndt_registration_INCLUDE_DIRS}
 	${EIGEN3_INCLUDE_DIR}
-    ${ROS_REQUIRED_DIRS}
 	${PCL_INCLUDE_DIRS})
-link_directories ( ${Boost_LIBRARY_DIRS} ${G2O_LIBRARY_DIRS})
+link_directories ( ${Boost_LIBRARY_DIRS})
 include(pcl_find_sse.cmake)
 PCL_CHECK_FOR_SSE()
-#find_package(Boost REQUIRED)
-
 
 set (${PROJECT_NAME}_LIB_SRCS
 	oru_minimal/src/ndt_map.cpp
@@ -72,16 +47,7 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 add_library(ndt_fuser src/ndt_fuser_hmt_se.cpp)
 target_link_libraries(ndt_fuser ${PROJECT_NAME})
 
-add_executable(semanticRegister src/semanticRegister.cpp)
-target_link_libraries(semanticRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-    ndt_fuser ${ndt_registration_LIBRARIES} ${PCL_COMMON_LIBRARIES}
-    ${PCL_FILTERS_LIBRARIES}
-	${Boost_LIBRARIES} -lboost_serialization)
-
-add_executable(ros_register src/ros_register.cpp)
-target_link_libraries(ros_register ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-    ndt_fuser ${ndt_registration_LIBRARIES} ${PCL_COMMON_LIBRARIES}
-    ${PCL_FILTERS_LIBRARIES}
-    ${ROS_REQUIRED_LIBS}
-	${Boost_LIBRARIES} -lboost_serialization)
-
+set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "include/se_ndt/se_ndt.hpp")
+INSTALL(TARGETS ${PROJECT_NAME} 
+    LIBRARY DESTINATION "lib64"
+    PUBLIC_HEADER DESTINATION "include")
