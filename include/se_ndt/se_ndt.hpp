@@ -1,11 +1,7 @@
 #ifndef SE_NDT
 #define SE_NDT
 #include <vector>
-#include <pcl/point_cloud.h>
-#include <pcl/common/io.h>
 #include <ndt_map/ndt_map.h>
-#include <ndt_map/lazy_grid.h>
-#include <ndt_map/ndt_cell.h>
 #include "se_ndt/ndt_matcher_d2d_se.h"
 using namespace std;
 Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> score_gradient);
