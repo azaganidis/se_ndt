@@ -33,8 +33,8 @@ set(NDT_FILES oru_minimal/src/ndt_map.cpp
     oru_minimal/src/ndt_matcher_d2d.cpp
     oru_minimal/src/lazy_grid.cpp)
 add_library(ndt_map SHARED ${NDT_FILES})
-target_include_directories(ndt_map PUBLIC
-    "oru_minimal/include")
+# target_include_directories(ndt_map PUBLIC
+#    "oru_minimal/include")
 target_link_libraries(ndt_map ${PCL_KDTREE_LIBRARIES} )# ${PCL_LIBRARIES} )
 install(DIRECTORY oru_minimal/include/ndt_map DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(DIRECTORY oru_minimal/include/ndt_registration DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
@@ -42,15 +42,23 @@ install(DIRECTORY oru_minimal/include/ndt_registration DESTINATION ${CMAKE_INSTA
 add_library(${PROJECT_NAME} SHARED src/se_ndt.cpp src/ndt_matcher_d2d_se.cpp)
 target_link_libraries(${PROJECT_NAME} ndt_map)
 
-target_include_directories(${PROJECT_NAME} PUBLIC
-    "include/se_ndt")
+#target_include_directories(${PROJECT_NAME} PUBLIC
+#    "${CMAKE_INSTALL_INCLUDEDIR}/include/se_ndt")
 set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER
     "include/se_ndt/ndt_matcher_d2d_se.h;include/se_ndt/se_ndt.hpp")
-INSTALL(TARGETS ${PROJECT_NAME} 
+INSTALL(TARGETS ${PROJECT_NAME} ndt_map EXPORT ${PROJECT_NAME} 
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_ARCHIVEDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
-INSTALL(TARGETS ndt_map
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_ARCHIVEDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ndt_map)
+list(APPEND se_ndt_LIBRARIES lib${PROJECT_NAME}.so)
+list(APPEND se_ndt_LIBRARIES libndt_map.so)
+configure_file(se_ndt-config.cmake se_ndtConfig.cmake @ONLY)
+install(FILES ${CMAKE_BINARY_DIR}/se_ndtConfig.cmake DESTINATION
+    "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}")
+install(EXPORT ${PROJECT_NAME} DESTINATION
+   ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME} 
+   )
+#install(FILES se_ndt-config.cmake DESTINATION
+#   ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME})
+
+export(PACKAGE ${PROJECT_NAME})
