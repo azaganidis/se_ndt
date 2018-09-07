@@ -22,6 +22,8 @@ find_package(rosconsole REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(pcl_ros REQUIRED)
 find_package(VTK REQUIRED)
+find_package(GLUT REQUIRED)
+find_package(OpenGL REQUIRED)
 set(ROS_REQUIRED_LIBS
 	${roscpp_LIBRARIES}
 	${rosconsole_LIBRARIES}
@@ -65,6 +67,8 @@ set (${PROJECT_NAME}_LIB_SRCS
 	src/ndt_matcher_p2d_se.cpp
 	src/se_ndt.cpp
 	)
+add_library(NDTVizGlut oru_minimal/src/NDTVizGlut.cc)
+target_link_libraries(NDTVizGlut ${GLUT_LIBRARY} ${OPENGL_LIBRARIES})
 
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_LIB_SRCS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
@@ -76,12 +80,14 @@ add_executable(semanticRegister src/semanticRegister.cpp)
 target_link_libraries(semanticRegister ${PROJECT_NAME} ${ndt_map_LIBRARIES}
     ndt_fuser ${ndt_registration_LIBRARIES} ${PCL_COMMON_LIBRARIES}
     ${PCL_FILTERS_LIBRARIES}
+    NDTVizGlut
 	${Boost_LIBRARIES} -lboost_serialization)
 
 add_executable(ros_register src/ros_register.cpp)
 target_link_libraries(ros_register ${PROJECT_NAME} ${ndt_map_LIBRARIES}
     ndt_fuser ${ndt_registration_LIBRARIES} ${PCL_COMMON_LIBRARIES}
     ${PCL_FILTERS_LIBRARIES}
+    NDTVizGlut
     ${ROS_REQUIRED_LIBS}
 	${Boost_LIBRARIES} -lboost_serialization)
 

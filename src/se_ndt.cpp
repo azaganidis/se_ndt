@@ -313,12 +313,46 @@ NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initi
 
 	map=new lslgeneric::NDTMap ** [resolutions.size()];
 	mapLocal=new lslgeneric::NDTMap ** [resolutions.size()];
-	for(auto i=0;i<resolutions.size();i++)
+	for(unsigned int i=0;i<resolutions.size();i++)
 	{
 		map[i]=initMap(NumInputs,{resolutions.at(i)},size);
 		mapLocal[i]=initMap(NumInputs,{resolutions.at(i)},size);
 	}
 }
+#ifdef VISUALIZE
+void NDTMatch_SE::visualize()
+{
+    thread t1(&NDTMatch_SE::visualize_thread, this);
+    t1.detach();
+}
+void NDTMatch_SE::visualize_thread()
+{
+    if(viewer==NULL)
+    {
+        viewer = new NDTViz(true);
+        viewer->win3D->start_main_loop_own_thread();
+    }
+    float occupancy=128;
+    viewer->plotNDTSAccordingToOccupancy(occupancy, map,std::vector<int>{0}, std::vector<int>{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14});
+    while(viewer->win3D->isOpen())
+    {
+         usleep(10000);
+        if (viewer->win3D->keyHit())
+        {
+            int key = viewer->win3D->getPushedKey();
+            switch (key){
+                case '+':occupancy++;break;
+                case '-':occupancy--;break;
+                case '*':occupancy*=2;break;
+                case '/':occupancy/=2;break;
+                case 'q':delete viewer;break;
+            }
+            viewer->plotNDTSAccordingToOccupancy(occupancy, map,std::vector<int>{0}, std::vector<int>{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14});
+            viewer->win3D->keyHitReset();
+        }
+    }
+}
+#endif
 Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2,initializer_list<vector<double> > attributes1,initializer_list<vector<double> > attributes2)
 {
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud1=getSegments(cloud1,attributes1,tails,ignore,removeProbability);
@@ -328,7 +362,7 @@ Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::P
 #pragma omp parallel num_threads(n_threads)
 {
     #pragma omp for
-	for(int i=0;i<resolutions.size();i++)
+	for(unsigned int i=0;i<resolutions.size();i++)
 	{
 		loadMap(map[i],laserCloud1);
 		loadMap(mapLocal[i],laserCloud2);
@@ -398,7 +432,7 @@ Eigen::Affine3d NDTMatch_SE::matchFast(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud
 #pragma omp parallel num_threads(n_threads)
 {
     #pragma omp for
-	for(int i=0;i<resolutions.size();i++)
+	for(unsigned int i=0;i<resolutions.size();i++)
 	{
 		loadMap(map[i],laserCloud1);
 		loadMap(mapLocal[i],laserCloud2);
@@ -421,7 +455,7 @@ Eigen::Affine3d NDTMatch_SE::matchFaster(pcl::PointCloud<pcl::PointXYZ>::Ptr clo
 #pragma omp parallel num_threads(8)
 {
     #pragma omp for
-	for(int i=0;i<resolutions.size();i++)
+	for(unsigned int i=0;i<resolutions.size();i++)
 		loadMap(mapLocal[i],laserCloud);
 }
 	if(!firstRun)
@@ -443,7 +477,7 @@ Eigen::Affine3d NDTMatch_SE::matchFaster(pcl::PointCloud<pcl::PointXYZ>::Ptr clo
 Eigen::Affine3d NDTMatch_SE::matchFaster(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
 {
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegmentsFast(cloud);
-	for(int i=0;i<resolutions.size();i++)
+	for(unsigned int i=0;i<resolutions.size();i++)
 		loadMap(mapLocal[i],laserCloud);
 	if(!firstRun)
 	{
@@ -467,7 +501,7 @@ Eigen::Affine3d NDTMatch_SE::matchFaster(pcl::PointCloud<pcl::PointXYZI>::Ptr cl
     Eigen::Affine3d Tinit;
     Tinit.setIdentity();
 
-	for(int i=0;i<resolutions.size();i++)
+	for(unsigned int i=0;i<resolutions.size();i++)
 		loadMap(mapLocal[i],laserCloud);
 	if(!firstRun)
 	{
@@ -485,6 +519,37 @@ Eigen::Affine3d NDTMatch_SE::matchFaster(pcl::PointCloud<pcl::PointXYZI>::Ptr cl
 	mapLocal=mapT;
 	return Tinit;
 }
+Eigen::Affine3d NDTMatch_SE::matchFaster_OM(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
+{
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegmentsFast(cloud);
+	for(unsigned int i=0;i<resolutions.size();i++)
+		loadMap(mapLocal[i],laserCloud);
+	if(!firstRun)
+	{
+		for(auto i:resolutions_order)
+		{
+			matcher.current_resolution=resolutions.at(i);
+			matcher.match(map[i],mapLocal[i],Tinit,true);
+		}
+	}
+	else firstRun=false;
+
+    vector<thread> tc;
+    for(size_t i=0;i<laserCloud.size();i++)
+        tc.push_back( std::thread([i,&Tinit, laserCloud](){
+                    lslgeneric::transformPointCloudInPlace(Tinit, *laserCloud[i]);
+                }));
+    for(auto& t:tc)t.join();
+    for(size_t i=0;i<laserCloud.size();i++)
+    {
+		for(auto rez:resolutions_order)
+		{
+            map[rez][i]->addPointCloud(Tinit.translation(), *laserCloud[i],0.06, 2.5);
+            map[rez][i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE,1e5,255,Tinit.translation(),0.1);
+        }
+    }
+	return Tinit;
+}
 struct MatchPathSeparator
 {
     bool operator()( char ch ) const
@@ -498,9 +563,9 @@ std::string basename(std::string const& pathname)
 }
 Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, std::string cloudF1, std::string cloudF2,initializer_list<vector<double> > attributes1,initializer_list<vector<double> > attributes2)//Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2)
 {
-	for(int i=0;i<resolutions.size();i++)
+	for(unsigned int i=0;i<resolutions.size();i++)
 	{
-		for(int j=0;j<NumInputs;j++)
+		for(unsigned int j=0;j<NumInputs;j++)
 		{
 			std::string fname=cloudF1;
 			std::string fname_jff=precomputed_ndt_folder+
@@ -533,7 +598,7 @@ Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, std::string cloudF1, s
 				}
 			}
 		}
-		for(int j=0;j<NumInputs;j++)
+		for(unsigned int j=0;j<NumInputs;j++)
 		{
 			std::string fname=cloudF2;
 			std::string fname_jff=precomputed_ndt_folder+
@@ -586,7 +651,7 @@ Eigen::Matrix<double, 6,6> NDTMatch_SE::getPoseCovariance(Eigen::Affine3d T)
 Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes)
 {
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegments(cloud,attributes,tails,ignore,removeProbability);
-	for(int i=0;i<resolutions.size();i++)
+	for(unsigned int i=0;i<resolutions.size();i++)
 		loadMap(mapLocal[i],laserCloud);
 	if(!firstRun)
 	{

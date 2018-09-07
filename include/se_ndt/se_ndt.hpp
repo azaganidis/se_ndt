@@ -6,7 +6,13 @@
 #include <ndt_map/ndt_map.h>
 #include <ndt_map/lazy_grid.h>
 #include <ndt_map/ndt_cell.h>
+#include <ndt_map/pointcloud_utils.h>
 #include "se_ndt/ndt_matcher_d2d_se.h"
+#define VISUALIZE
+#ifdef VISUALIZE
+#include "ndt_visualisation/ndt_viz.h"
+#include <thread>
+#endif
 using namespace std;
 Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> score_gradient);
 class NDTMatch_SE{
@@ -21,6 +27,7 @@ class NDTMatch_SE{
         Eigen::Affine3d matchFaster(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vector<double> &attributes);
 		unsigned int NumInputs;
 		lslgeneric::NDTMap ***map;		 ///< da map
+        Eigen::Affine3d matchFaster_OM(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud);
 		lslgeneric::NDTMap ***mapLocal;		 ///< da map
 		vector<float> resolutions;
 		initializer_list<float> ignore,size;
@@ -60,6 +67,13 @@ class NDTMatch_SE{
 		std::vector<int> semantic_labels;
 
 		Eigen::Vector3d localMapSize;
+#ifdef VISUALIZE
+    public:
+        NDTViz *viewer = NULL;
+        void visualize();
+    private:
+        void visualize_thread();
+#endif
 };
 typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;
 size_t count_tails(vector<int>& distribution_tails);
