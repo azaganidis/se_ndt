@@ -42,14 +42,14 @@
 #include <ndt_map/lazy_grid.h>
 
 #include <cstdlib>
-//#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 #include <sys/stat.h>
 #include <sys/dir.h>
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
-namespace lslgeneric
+namespace perception_oru
 {
 
 /**
@@ -255,12 +255,12 @@ public:
      * Returns all computed cells from the map
      * This method gives all the vectors that contain a gaussian within a cell (hasGaussian is true).
      */
-    virtual std::vector<lslgeneric::NDTCell*> getAllCells() const;
+    virtual std::vector<perception_oru::NDTCell*> getAllCells() const;
     /**
      * Returns all cells that have been initialized (including ones that do not contain gaussian at the moment).
      * This is useful if you want to use the empty cells or dynamic cells
      */
-    virtual std::vector<lslgeneric::NDTCell*> getAllInitializedCells();
+    virtual std::vector<perception_oru::NDTCell*> getAllInitializedCells();
 
     int numberOfActiveCells();
     void setInsertPosition(const Eigen::Vector3d &newPos);
@@ -281,7 +281,7 @@ protected:
     std::set<NDTCell*> update_set;
 
     double max_range_;
-    lslgeneric::LazyGrid* grid_[3][3];
+    perception_oru::LazyGrid* grid_[3][3];
     //helper functions
     void initializeGrids();
     

@@ -40,7 +40,7 @@
 #include "pcl/point_cloud.h"
 #include "Eigen/Core"
 
-namespace lslgeneric
+namespace perception_oru
 {
 
 /**

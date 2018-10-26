@@ -43,7 +43,7 @@
 #include <stdio.h>
 #include <math.h>
 
-namespace lslgeneric
+namespace perception_oru
 {
 
 /**
@@ -72,14 +72,16 @@ public:
         this->init(other.isIrregularGrid,false,other.resolutions);
     }
 
+    
+    // TODO: const the target
     /**
      * Register two point clouds. Use only 2D rotations This method builds an NDT
      * representation of the "fixed" point cloud and uses that for
      * registering the "moving" point cloud.
-     * \param  fixed
+     * \param  target
      *   Reference data. NDT structure is built for this point cloud.
-     * \param  moving
-     *   The output transformation registers this point cloud to \c fixed.
+     * \param  source
+     *   The output transformation registers this point cloud to \c target.
      * \param  T
      *   This is an input/output parameter. The initial value of \c T
      *   gives the initial pose estimate of \c moving. When the
@@ -92,10 +94,10 @@ public:
 
     /**
      * Registers a two ndt maps using only 2D rotation/translation.
-     * \param  fixed
+     * \param  target
      *   Reference data.
-     * \param  moving
-     *   The output transformation registers this point cloud to \c fixed.
+     * \param  source
+     *   The output transformation registers this point cloud to \c target.
      * \param  T
      *   This is an input/output parameter. The initial value of \c T
      *   gives the initial pose estimate of \c moving. When the
@@ -125,6 +127,8 @@ public:
     bool step_control;
     ///the change in score after which we converge. Set to 1e-3 in constructor
     double DELTA_SCORE;
+    //how many neighbours to use in the objective
+    int n_neighbours;
 protected:
 
     Eigen::Matrix<double,3,3> Jest;

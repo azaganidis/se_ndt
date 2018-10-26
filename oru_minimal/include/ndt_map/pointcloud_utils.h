@@ -39,7 +39,7 @@
 #include <pcl/point_types.h>
 #include <Eigen/Core>
 
-namespace lslgeneric
+namespace perception_oru
 {
 /* \brief Routines to read/write point clouds from VRML files */
 

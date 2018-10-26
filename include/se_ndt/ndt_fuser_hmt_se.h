@@ -17,7 +17,7 @@
 
 //#define BASELINE
 
-namespace lslgeneric {
+namespace perception_oru {
 /**
   * \brief This class fuses new point clouds into a common ndt map reference, keeping tack of the 
   * camera postion.
@@ -27,8 +27,8 @@ class NDTFuserHMT_SE : NDTMatch_SE{
     public:
 		unsigned int NumInputs;
 		Eigen::Affine3d Tnow, Tlast_fuse, Todom; ///< current pose
-		lslgeneric::NDTMap ***map;		 ///< da map
-		lslgeneric::NDTMap ***mapLocal;		 ///< da map
+		perception_oru::NDTMap ***map;		 ///< da map
+		perception_oru::NDTMap ***mapLocal;		 ///< da map
 		bool checkConsistency;			 ///perform a check for consistency against initial estimate
 		vector<float> resolutions;
 		initializer_list<float> ignore,size;
@@ -87,7 +87,7 @@ class NDTFuserHMT_SE : NDTMatch_SE{
 			{
 			for(unsigned int i=0;i<NumInputs;i++)
 			{
-				lslgeneric::NDTMapHMT *map_hmt = dynamic_cast<lslgeneric::NDTMapHMT*> (map[j][i]);
+				perception_oru::NDTMapHMT *map_hmt = dynamic_cast<perception_oru::NDTMapHMT*> (map[j][i]);
 				if(map_hmt==NULL) return false;
 				result&=(map_hmt->writeTo()==0);
 			}
@@ -117,14 +117,14 @@ class NDTFuserHMT_SE : NDTMatch_SE{
 	Eigen::Affine3d match(Eigen::Affine3d Tmotion, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,initializer_list<vector<double> > attributes);
 	bool updateMap();
 	Eigen::Matrix<double,6,6> getPoseCovariance(Eigen::Affine3d T);
-	lslgeneric::NDTMatcherD2D_SE matcher;
+	perception_oru::NDTMatcherD2D_SE matcher;
     private:
 
 	double translation_fuse_delta, rotation_fuse_delta;
 	bool visualize,firstRun;
 
 	Eigen::Affine3d sensor_pose;
-	lslgeneric::NDTMatcherD2D_2D matcher2D;
+	perception_oru::NDTMatcherD2D_2D matcher2D;
 	Eigen::Vector3d localMapSize;
 
     public:

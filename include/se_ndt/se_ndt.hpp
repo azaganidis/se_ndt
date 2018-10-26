@@ -8,13 +8,13 @@
 #include <ndt_map/ndt_cell.h>
 #include <ndt_map/pointcloud_utils.h>
 #include "se_ndt/ndt_matcher_d2d_se.h"
-#define VISUALIZE
-#ifdef VISUALIZE
-#include "ndt_visualisation/ndt_viz.h"
-#include <thread>
+#ifdef GL_VISUALIZE
+    #include "ndt_visualisation/ndt_viz.h"
 #endif
+#include <thread>
 using namespace std;
 Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> score_gradient);
+void loadMap(perception_oru::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range=100);
 class NDTMatch_SE{
  public:
 	 bool useSaved=false;
@@ -26,9 +26,9 @@ class NDTMatch_SE{
         Eigen::Affine3d matchFast(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2,vector<double> &attributes1,vector<double> &attributes2);
         Eigen::Affine3d matchFaster(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vector<double> &attributes);
 		unsigned int NumInputs;
-		lslgeneric::NDTMap ***map;		 ///< da map
+		perception_oru::NDTMap ***map;		 ///< da map
         Eigen::Affine3d matchFaster_OM(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud);
-		lslgeneric::NDTMap ***mapLocal;		 ///< da map
+		perception_oru::NDTMap ***mapLocal;		 ///< da map
 		vector<float> resolutions;
 		initializer_list<float> ignore,size;
 		initializer_list<int> resolutions_order,tails;
@@ -55,7 +55,7 @@ class NDTMatch_SE{
 		Eigen::Affine3d match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes);
 		Eigen::Affine3d match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2, initializer_list<vector<double> > attributes1, initializer_list<vector<double> > attributes2);
 		Eigen::Affine3d match(Eigen::Affine3d Tinit, std::string cloudF1, std::string cloudF2,initializer_list<vector<double> > attributes1,initializer_list<vector<double> > attributes2);
-		lslgeneric::NDTMatcherD2D_SE matcher;
+		perception_oru::NDTMatcherD2D_SE matcher;
 		Eigen::Matrix<double,6,6> getPoseCovariance(Eigen::Affine3d T);
 		void setNeighbours(short int i){matcher.n_neighbours=i;};
 		char IFS=',';
@@ -67,7 +67,7 @@ class NDTMatch_SE{
 		std::vector<int> semantic_labels;
 
 		Eigen::Vector3d localMapSize;
-#ifdef VISUALIZE
+#ifdef GL_VISUALIZE
     public:
         NDTViz *viewer = NULL;
         void visualize();
@@ -81,8 +81,7 @@ size_t* sort_pointcloud(vector<double> &in,float disregard);
 Eigen::Affine3d readTransform(istream &infile);
 inline size_t index_selector(size_t **I,int p,int num,std::vector<int> Tails,size_t number_points);
 inline bool checkInLimits(size_t **in,int p,int num,int cu,int cl);
-lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_);
-void loadMap(lslgeneric::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range=100);
+perception_oru::NDTMap **initMap(int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_);
 template <typename T> typename pcl::PointCloud<T>::Ptr getCloud(string filename,char IFS, bool skip);
 
 Eigen::Matrix<double,7,6> getJacobian(Eigen::VectorXd v);

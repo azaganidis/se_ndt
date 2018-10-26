@@ -21,7 +21,6 @@
 #include <pcl_conversions/pcl_conversions.h>
 
 #include <pcl/registration/icp.h>
-#include "rviz_ndt.h"
 
 
 using namespace std;
@@ -52,14 +51,9 @@ class Registration{
         pcl::IterativeClosestPoint<pcl::PointXYZI,pcl::PointXYZI> icp;
         pcl::PointCloud<pcl::PointXYZI>::Ptr prev_cloud;
         int numreg=0;
-        ros::Time r_time;
-        ndt_rviz rvNDT;
-        //Registration(ros::Publisher& pub_):matcher({4,1,0.5},{0,1,2},{50,50,10},{'=','=','=','=','=','=','=','=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14},0.01,5)
-        Registration(ros::NodeHandle& nh, std::string topic_out):
-            matcher({4,0.8},{0,1},{200,200,50},{'=','=','=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7,8,9},0.01,5),
-            rvNDT(nh, 2)
+        Registration(ros::Publisher& pub_):matcher({2},{0},{200,200,200},{'*'},{0},0.01,5)
         {
-            pub = nh.advertise<pcl::PointCloud<pcl::PointXYZI> >(topic_out, 100);
+            pub=pub_;
             matcher.setNeighbours((int )2);
             Td.setIdentity();
             T.setIdentity();
@@ -67,19 +61,16 @@ class Registration{
 #ifdef GL_VISUALIZE
             matcher.visualize();
 #endif
-            //matcher.initV(&nh);
         }
         void callback(const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud_msg)
         {
-            pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_mv(new pcl::PointCloud<pcl::PointXYZI>);
+            pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_mv(new pcl::PointCloud<pcl::PointXYZ>);
             pcl::copyPointCloud(*cloud_msg, *cloud_mv);
+            auto r_time = ros::Time::now();
             clock_t begin_time = clock();
-            r_time = ros::Time::now();
-            Td=matcher.matchFaster(Td,cloud_mv);
-            //rvNDT.plotNDTs(matcher.map, matcher.resolutions.size(), matcher.NumInputs, r_time); 
-            rvNDT.plotNDTs(matcher.map, 2, matcher.NumInputs, r_time); 
+            Td=matcher.match(Td,cloud_mv, {std::vector<double>()});
             //T=matcher.matchFaster_OM(T,cloud_mv);
-            cerr<<"1 "<<float( clock() -begin_time ) / CLOCKS_PER_SEC<<endl;begin_time=clock();
+            cout<<"1 "<<float( clock() -begin_time ) / CLOCKS_PER_SEC<<endl;begin_time=clock();
             ///ICP
             /*
             if(numreg>0){
@@ -107,9 +98,8 @@ class Registration{
             cloud_mv->header.frame_id="velodyne";
             Eigen::Affine3d ts=T;
             pub.publish(cloud_mv);
-            send_transform(ts);
-            ts.matrix()=calib.matrix()*ts.matrix();
             print_transform(ts);
+            send_transform(ts);
         }
 };
 int main(int argc, char** argv)
@@ -130,12 +120,13 @@ int main(int argc, char** argv)
     po::variables_map vm;
 	po::store(parsed_options, vm);
     po::notify(vm);
-	if(vm.count("help"))
+	if(vm.count("help")||!(vm.count("topic_out")&&vm.count("topic_in")))
         { cout<<desc; return 0; }
 
 	ros::init (argc,argv,"pub_sendt");
 	ros::NodeHandle nh;
-    Registration registration(nh, topic_out);
+	ros::Publisher pub = nh.advertise<pcl::PointCloud<pcl::PointXYZI> >(topic_out, 100);
+    Registration registration(pub);
     ros::Subscriber sub = nh.subscribe(topic_in, 1000, &Registration::callback, &registration);
     ros::spin();
     return 0;

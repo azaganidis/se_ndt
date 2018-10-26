@@ -1,7 +1,7 @@
 #include <se_ndt/ndt_fuser_hmt_se.h>
 using namespace std;
 
-namespace lslgeneric {
+namespace perception_oru {
 NDTFuserHMT_SE::NDTFuserHMT_SE(Eigen::Affine3d a,initializer_list<float> b,initializer_list<int> c,initializer_list<float> d,initializer_list<int> e,initializer_list<float> ig,float removeP,int max_iter):Tnow(a),resolutions(b),resolutions_order(c),size(d),tails(e),ignore(ig),removeProbability(removeP)
 {
 	//unimplemented
@@ -57,8 +57,8 @@ NDTFuserHMT_SE::NDTFuserHMT_SE(Eigen::Affine3d a,initializer_list<float> b,initi
 		}
 		*/
 		//else{
-	map=new lslgeneric::NDTMap ** [resolutions.size()];
-	mapLocal=new lslgeneric::NDTMap ** [resolutions.size()];
+	map=new perception_oru::NDTMap ** [resolutions.size()];
+	mapLocal=new perception_oru::NDTMap ** [resolutions.size()];
 	for(auto i=0;i<resolutions.size();i++)
 	{
 		map[i]=initMap(NumInputs,{resolutions.at(i)},size);
@@ -92,7 +92,7 @@ Eigen::Affine3d NDTFuserHMT_SE::update(Eigen::Affine3d Tmotion, pcl::PointCloud<
 	Todom = Todom * Tmotion; //we track this only for display purposes!
 	double t0=0,t1=0,t2=0,t3=0,t4=0,t5=0,t6=0;
 	///Set the cloud to sensor frame with respect to base
-	lslgeneric::transformPointCloudInPlace(sensor_pose, *cloud);
+	perception_oru::transformPointCloudInPlace(sensor_pose, *cloud);
 	t0 = getDoubleTime();
 	///Create local map
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegments(cloud,attributes,tails,ignore,removeProbability);
@@ -147,7 +147,7 @@ Eigen::Affine3d NDTFuserHMT_SE::update(Eigen::Affine3d Tmotion, pcl::PointCloud<
 		//std::cout<<Tinit.translation().norm()<<std::endl;
 		//Tnow = Tnow * Tmotion;
 		for(int j=0;j<NumInputs;j++)
-			lslgeneric::transformPointCloudInPlace(Tnow, *laserCloud[j]);
+			perception_oru::transformPointCloudInPlace(Tnow, *laserCloud[j]);
 		Eigen::Affine3d spose = Tnow*sensor_pose;
 		Eigen::Affine3d diff_fuse = Tlast_fuse.inverse()*Tnow;
 		if(diff_fuse.translation().norm() > translation_fuse_delta ||
@@ -208,7 +208,7 @@ Eigen::Affine3d NDTFuserHMT_SE::update(Eigen::Affine3d Tmotion, pcl::PointCloud<
 Eigen::Affine3d NDTFuserHMT_SE::match(Eigen::Affine3d Tmotion, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,initializer_list<vector<double> > attributes)
 {
 	Todom = Todom * Tmotion; //we track this only for display purposes!
-	lslgeneric::transformPointCloudInPlace(sensor_pose, *cloud);
+	perception_oru::transformPointCloudInPlace(sensor_pose, *cloud);
 	laserCloud_c.clear();
 	laserCloud_c=getSegments(cloud,attributes,tails,ignore,removeProbability);
 	for(int i=0;i<resolutions.size();i++)
@@ -235,7 +235,7 @@ Eigen::Affine3d NDTFuserHMT_SE::match(Eigen::Affine3d Tmotion, pcl::PointCloud<p
 		{
 			Tnow = Tinit;
 			for(int j=0;j<NumInputs;j++)
-				lslgeneric::transformPointCloudInPlace(Tnow, *laserCloud_c[j]);
+				perception_oru::transformPointCloudInPlace(Tnow, *laserCloud_c[j]);
 			Eigen::Affine3d diff_fuse = Tlast_fuse.inverse()*Tnow;
 			if(diff_fuse.translation().norm() > translation_fuse_delta ||
 				diff_fuse.rotation().eulerAngles(0,1,2).norm() > rotation_fuse_delta ||firstRun)

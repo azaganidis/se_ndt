@@ -1,0 +1,87 @@
+#include <ndt_map/ndt_map.h>
+#include <ros/ros.h>
+#include <visualization_msgs/Marker.h>
+std::array<float,3> value_to_rgb(float i, float max)
+{
+    float H=i/max*360;
+    float C=1;
+    float X=1-abs( int(H/60)%2 - 1);
+    std::array<float,3> r;
+    if(H<60){ r[0]=C; r[1]=X; r[2]=0;}
+    else if(H<120){ r[0]=X; r[1]=C; r[2]=0;}
+    else if(H<180){ r[0]=0; r[1]=C; r[2]=X;}
+    else if(H<240){ r[0]=0; r[1]=X; r[2]=C;}
+    else if(H<300){ r[0]=X; r[1]=0; r[2]=C;}
+    else if(H<360){ r[0]=C; r[1]=0; r[2]=X;}
+    return r;
+}
+class ndt_rviz{
+    std::vector<ros::Publisher> marker_pub;
+    int NumSem;
+    public:
+    ros::Duration dur;
+    ndt_rviz(ros::NodeHandle &n, int n_res):dur()
+    {
+        for(int i=0;i<n_res;i++)
+            marker_pub.push_back(n.advertise<visualization_msgs::Marker>("vm_res"+std::to_string(i),1));
+    }
+    void show_cell(const Eigen::Matrix3d &m_cov, const Eigen::Vector3d &m_mean,float occupancy,ros::Time& cl_time,int iRes, int iSem, int ID){
+        const double d=m_cov.determinant();
+        if (d==0 || d!=d) // Note: "d!=d" is a great test for invalid numbers, don't remove!
+            return;
+        Eigen::EigenSolver<Eigen::Matrix3d> es(m_cov);
+        Eigen::Matrix3d m_eigVal, m_eigVec;
+        m_eigVal = es.pseudoEigenvalueMatrix();
+        m_eigVec = es.pseudoEigenvectors();
+        m_eigVal = m_eigVal.cwiseSqrt();
+        //if(!(m_eigVal(0,0) != 0.0 && m_eigVal(1,1) != 0.0 && m_eigVal(2,2) != 0.0))
+        //    return;
+        Eigen::Quaterniond qR(m_eigVec);
+        visualization_msgs::Marker marker;
+        marker.header.frame_id = "/velodyne";
+        marker.header.stamp = cl_time;
+        marker.ns = "sem"+std::to_string(iSem);
+        marker.id=ID;
+        marker.type=visualization_msgs::Marker::SPHERE;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.position.x = m_mean(0);
+        marker.pose.position.y = m_mean(1);
+        marker.pose.position.z = m_mean(2);
+        marker.pose.orientation.x = qR.x();
+        marker.pose.orientation.y = qR.y();
+        marker.pose.orientation.z = qR.z();
+        marker.pose.orientation.w = qR.w();
+        marker.scale.x = m_eigVal(0,0);
+        marker.scale.y = m_eigVal(1,1)>0.1?m_eigVal(1,1):(m_eigVal(0,0)/10);
+        marker.scale.z = m_eigVal(2,2)>0.1?m_eigVal(2,2):(m_eigVal(1,1)/10);
+        marker.scale.x*=3;
+        marker.scale.y*=3;
+        marker.scale.z*=3;
+        std::array<float,3> rgb_val=value_to_rgb(iSem,NumSem );
+        marker.color.r = rgb_val[0];
+        marker.color.g = rgb_val[1];
+        marker.color.b = rgb_val[2];
+        marker.color.a = sqrt(occupancy/150);
+        marker.color.a = 1;
+        if(marker.color.a<0.5)
+            marker.color.a=0.5;
+        marker.lifetime = dur;
+        marker_pub[iRes].publish(marker);
+    }
+	void plotNDTs(perception_oru::NDTMap ***maps,int n_res, int n_sem, ros::Time cl_time){
+        NumSem=n_sem;
+        for(int iRes=0;iRes<n_res;iRes++)
+            for(int iSem=0;iSem<n_sem;iSem++)
+            {
+				std::vector<perception_oru::NDTCell*> tempMap=(maps[iRes][iSem]->getAllCells());
+				for(unsigned int i=0;i<tempMap.size();i++)
+                {
+					Eigen::Vector3d m = tempMap[i]->getMean();
+					if(!tempMap[i]->hasGaussian_) continue;
+					float occupancy = tempMap[i]->getOccupancy();
+                    Eigen::Matrix3d cov = tempMap[i]->getCov();
+                    show_cell(cov, m, occupancy,cl_time,iRes, iSem, i);
+				}
+            }
+    }
+};

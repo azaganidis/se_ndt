@@ -39,8 +39,8 @@
 #include <iostream>
 
 #include <ndt_map/ndt_cell.h>
-
-namespace lslgeneric
+#include "boost/serialization/serialization.hpp"
+namespace perception_oru
 {
 
 /** \brief Base class for all spatial indexing structures
@@ -59,6 +59,7 @@ protected:
 public:
     typedef std::vector<NDTCell*> CellPtrVector;
     typedef typename CellPtrVector::iterator CellVectorItr;
+    typedef typename CellPtrVector::const_iterator CellVectorConstItr;
 
     virtual ~SpatialIndex()
     {
@@ -70,8 +71,11 @@ public:
 
     ///iterator through all cells in index, points at the begining
     virtual CellVectorItr begin() = 0;
+    virtual CellVectorConstItr begin() const = 0;
     ///iterator through all cells in index, points at the end
     virtual CellVectorItr end() = 0;
+    virtual CellVectorConstItr end() const = 0;
+    
     // should be 'pure'?
     virtual int size() const
     {
@@ -100,6 +104,12 @@ public:
         std::cerr << "Calling from SpatialIndex.h\n";
         return -1;
     }
+  virtual std::string ToString(){return "SpatialIndex base class";}
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+  }
 };
 
 } //end namespace

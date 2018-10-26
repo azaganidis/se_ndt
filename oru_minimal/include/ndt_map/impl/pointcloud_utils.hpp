@@ -1,4 +1,4 @@
-namespace lslgeneric
+namespace perception_oru
 {
 
 template< typename PointT>
@@ -25,7 +25,6 @@ void transformPointCloudInPlace(Eigen::Transform<double,3,Eigen::Affine,Eigen::C
     for(unsigned int pit=0; pit<pc.points.size(); ++pit)
     {
         Eigen::Map<Eigen::Vector3f> pt((float*)&pc.points[pit],3);
-		//std::cout<<-atan2(pc.points[pit].y,pc.points[pit].x)<<std::endl;
         pt = T*pt;
     }
 }

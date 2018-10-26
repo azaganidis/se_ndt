@@ -234,7 +234,7 @@ size_t count_tails(vector<int>& distribution_tails)
 	return distribution_tails.size()+number_tails3-number_tails0;
 }
 
-lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_)
+perception_oru::NDTMap **initMap(int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_)
 {
 	vector<float> size(size_),resolutions(resolutions_);
 	if(number_tails!=resolutions.size()&&resolutions.size()!=1)
@@ -248,11 +248,11 @@ lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolution
 		size[2]=max_size;
 		cerr<<"Wrong size parameter. Using size x=y=z="<<max_size<<endl;
 	}
-	lslgeneric::NDTMap **map = new lslgeneric::NDTMap * [number_tails];
+	perception_oru::NDTMap **map = new perception_oru::NDTMap * [number_tails];
 	for(size_t i=0;i<number_tails;i++)
 	{
-		lslgeneric::LazyGrid *grid = new lslgeneric::LazyGrid(resolutions[i%resolutions.size()]);
-		lslgeneric::NDTMap *mapTMP=new lslgeneric::NDTMap(grid);
+		perception_oru::LazyGrid *grid = new perception_oru::LazyGrid(resolutions[i%resolutions.size()]);
+		perception_oru::NDTMap *mapTMP=new perception_oru::NDTMap(grid);
 		map[i]=mapTMP;
 		map[i]->guessSize(0,0,0,size[0],size[1],size[2]);
 		map[i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
@@ -261,22 +261,13 @@ lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolution
 }
 //#include <chrono>
 //#include <iomanip>
-void loadMap(lslgeneric::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range)
+void loadMap(perception_oru::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range)
 {
-//    cerr<<std::setprecision(3);
-//    double one=0, two=0;
 	for(size_t i=0;i<input_clouds.size();i++)
 	{
-//        auto start = std::chrono::high_resolution_clock::now();
 		map[i]->loadPointCloud(*input_clouds[i],sensor_range);
-//        std::chrono::duration<double> elapsed1 = std::chrono::high_resolution_clock::now()- start;
-//        start = std::chrono::high_resolution_clock::now();
 		map[i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
-//        std::chrono::duration<double> elapsed2 = std::chrono::high_resolution_clock::now()- start;
-//        one+=elapsed1.count();
-//        two+=elapsed2.count();
 	}
-//    cerr<<std::fixed<<std::setprecision(3)<<one<< " "<<two<<endl;
 }
 Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> score_gradient)
 {
@@ -311,15 +302,15 @@ NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initi
 		matcher.step_control=true;
 		matcher.n_neighbours=2;
 
-	map=new lslgeneric::NDTMap ** [resolutions.size()];
-	mapLocal=new lslgeneric::NDTMap ** [resolutions.size()];
+	map=new perception_oru::NDTMap ** [resolutions.size()];
+	mapLocal=new perception_oru::NDTMap ** [resolutions.size()];
 	for(unsigned int i=0;i<resolutions.size();i++)
 	{
 		map[i]=initMap(NumInputs,{resolutions.at(i)},size);
 		mapLocal[i]=initMap(NumInputs,{resolutions.at(i)},size);
 	}
 }
-#ifdef VISUALIZE
+#ifdef GL_VISUALIZE
 void NDTMatch_SE::visualize()
 {
     thread t1(&NDTMatch_SE::visualize_thread, this);
@@ -333,7 +324,7 @@ void NDTMatch_SE::visualize_thread()
         viewer->win3D->start_main_loop_own_thread();
     }
     float occupancy=128;
-    viewer->plotNDTSAccordingToOccupancy(occupancy, map,std::vector<int>{0}, std::vector<int>{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14});
+    viewer->plotNDTSAccordingToOccupancy(occupancy, map,std::vector<int>{0}, std::vector<int>{0});
     while(viewer->win3D->isOpen())
     {
          usleep(10000);
@@ -347,7 +338,7 @@ void NDTMatch_SE::visualize_thread()
                 case '/':occupancy/=2;break;
                 case 'q':delete viewer;break;
             }
-            viewer->plotNDTSAccordingToOccupancy(occupancy, map,std::vector<int>{0}, std::vector<int>{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14});
+            viewer->plotNDTSAccordingToOccupancy(occupancy, map,std::vector<int>{0}, std::vector<int>{0});
             viewer->win3D->keyHitReset();
         }
     }
@@ -468,7 +459,7 @@ Eigen::Affine3d NDTMatch_SE::matchFaster(pcl::PointCloud<pcl::PointXYZ>::Ptr clo
 		//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
 	}
 	else firstRun=false;
-	lslgeneric::NDTMap ***mapT;
+	perception_oru::NDTMap ***mapT;
 	mapT=map;
 	map=mapLocal;
 	mapLocal=mapT;
@@ -489,7 +480,7 @@ Eigen::Affine3d NDTMatch_SE::matchFaster(Eigen::Affine3d Tinit, pcl::PointCloud<
 		//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
 	}
 	else firstRun=false;
-	lslgeneric::NDTMap ***mapT;
+	perception_oru::NDTMap ***mapT;
 	mapT=map;
 	map=mapLocal;
 	mapLocal=mapT;
@@ -513,7 +504,7 @@ Eigen::Affine3d NDTMatch_SE::matchFaster(pcl::PointCloud<pcl::PointXYZI>::Ptr cl
 		//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
 	}
 	else firstRun=false;
-	lslgeneric::NDTMap ***mapT;
+	perception_oru::NDTMap ***mapT;
 	mapT=map;
 	map=mapLocal;
 	mapLocal=mapT;
@@ -537,7 +528,7 @@ Eigen::Affine3d NDTMatch_SE::matchFaster_OM(Eigen::Affine3d Tinit, pcl::PointClo
     vector<thread> tc;
     for(size_t i=0;i<laserCloud.size();i++)
         tc.push_back( std::thread([i,&Tinit, laserCloud](){
-                    lslgeneric::transformPointCloudInPlace(Tinit, *laserCloud[i]);
+                    perception_oru::transformPointCloudInPlace(Tinit, *laserCloud[i]);
                 }));
     for(auto& t:tc)t.join();
     for(size_t i=0;i<laserCloud.size();i++)
@@ -579,8 +570,8 @@ Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, std::string cloudF1, s
 				map[i][j]->unsetFirstLoad();
 				delete map[i][j];
 				}
-				lslgeneric::LazyGrid *grid = new lslgeneric::LazyGrid(resolutions[i]);
-				map[i][j]=new lslgeneric::NDTMap(grid);
+				perception_oru::LazyGrid *grid = new perception_oru::LazyGrid(resolutions[i]);
+				map[i][j]=new perception_oru::NDTMap(grid);
 				*/
 				map[i][j]->loadFromJFF((fname_jff).c_str());
 			}
@@ -612,8 +603,8 @@ Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, std::string cloudF1, s
 				mapLocal[i][j]->unsetFirstLoad();
 				delete mapLocal[i][j];
 				}
-				lslgeneric::LazyGrid *grid = new lslgeneric::LazyGrid(resolutions[i]);
-				mapLocal[i][j]=new lslgeneric::NDTMap(grid);
+				perception_oru::LazyGrid *grid = new perception_oru::LazyGrid(resolutions[i]);
+				mapLocal[i][j]=new perception_oru::NDTMap(grid);
 				*/
 				mapLocal[i][j]->loadFromJFF((fname_jff).c_str());
 			}
@@ -663,7 +654,7 @@ Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::P
 		//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
 	}
 	else firstRun=false;
-	lslgeneric::NDTMap ***mapT;
+	perception_oru::NDTMap ***mapT;
 	mapT=map;
 	map=mapLocal;
 	mapLocal=mapT;

@@ -2,24 +2,40 @@
 #include <cstring>
 #include <cstdio>
 
-namespace lslgeneric
+namespace perception_oru
 {
 
 
 bool NDTCell::parametersSet_ = false;
-double NDTCell::EVAL_ROUGH_THR;
-double NDTCell::EVEC_INCLINED_THR;
-double NDTCell::EVAL_FACTOR;
+double NDTCell::EVAL_ROUGH_THR=0;
+double NDTCell::EVEC_INCLINED_THR=0;
+double NDTCell::EVAL_FACTOR=0;
+int NDTCell::MIN_NB_POINTS_FOR_GAUSSIAN=0;
+bool NDTCell::CLEAR_MIN_NB_POINTS=false;
+bool NDTCell::MIN_NB_POINTS_SET_UNIFORM=false;
 
+std::string NDTCell::ToString(){
+  std::stringstream ss;
+  ss <<"\n<<NDTCell: type= "<<cl_<<"ParametersSet_="<<parametersSet_<<"\nHasGaussian_="<<hasGaussian_<< "\nCost="<<cost<<"\nIsEmpty="<<(bool)isEmpty<<"\nConsistency_score="<<consistency_score;
+  ss<<"\nCenter_.x="<<center_.x<<", center_.y="<<center_.y<<", center_.z="<<center_.z<<"\nXsize_="<<xsize_<<", ysize_="<<ysize_<<", zsize_="<<zsize_<<std::endl;
+  ss<<"mean_=\n"<<mean_<<"\ncov_="<<cov_<<">>"<<std::endl;
+  return ss.str();
+}
 void NDTCell::setParameters(double _EVAL_ROUGH_THR   ,
                                     double _EVEC_INCLINED_THR,
-                                    double _EVAL_FACTOR
-                                   )
+                                    double _EVAL_FACTOR,
+                                    int _MIN_NB_POINTS_FOR_GAUSSIAN,
+                                    bool _CLEAR_MIN_NB_POINTS,
+                                    bool _MIN_NB_POINTS_SET_UNIFORM)
 {
 
     NDTCell::EVAL_ROUGH_THR    = _EVAL_ROUGH_THR   ;
     NDTCell::EVEC_INCLINED_THR = cos(_EVEC_INCLINED_THR);
     NDTCell::EVAL_FACTOR       = _EVAL_FACTOR      ;
+    NDTCell::MIN_NB_POINTS_FOR_GAUSSIAN = _MIN_NB_POINTS_FOR_GAUSSIAN;
+    NDTCell::CLEAR_MIN_NB_POINTS = _CLEAR_MIN_NB_POINTS;
+    NDTCell::MIN_NB_POINTS_SET_UNIFORM = _MIN_NB_POINTS_SET_UNIFORM;
+
     parametersSet_ = true;
 }
 
@@ -28,6 +44,7 @@ void NDTCell::setParameters(double _EVAL_ROUGH_THR   ,
 */
 NDTCell* NDTCell::clone() const
 {
+
     NDTCell *ret = new NDTCell();
     ret->setDimensions(this->xsize_,this->ysize_,this->zsize_);
     ret->setCenter(this->center_);
@@ -46,7 +63,6 @@ NDTCell* NDTCell::clone() const
 NDTCell* NDTCell::copy() const
 {
     NDTCell *ret = new NDTCell();
-
     ret->setDimensions(this->xsize_,this->ysize_,this->zsize_);
     ret->setCenter(this->center_);
 
@@ -79,7 +95,7 @@ void NDTCell::updateSampleVariance(const Eigen::Matrix3d &cov2,const Eigen::Vect
 
     if(numpointsindistribution<=2){
 	fprintf(stderr,"updateSampleVariance:: INVALID NUMBER OF POINTS\n");
-	return;
+  //return;
     }
     if(this->hasGaussian_)
     {
@@ -101,10 +117,17 @@ void NDTCell::updateSampleVariance(const Eigen::Matrix3d &cov2,const Eigen::Vect
 	    return;
 	}
 	mean_ = (msum1 + msum2) / (divider);
-
+#if 1
 	double w1 =  ((double) N / (double)(numpointsindistribution*(N+numpointsindistribution)));
 	double w2 = (double) (numpointsindistribution)/(double) N;
-	Eigen::Matrix3d	csum3 = csum1 + csum2 + w1 * (w2 * msum1 - msum2) * ( w2 * msum1 - msum2).transpose();
+        Eigen::Matrix3d	csum3 = csum1 + csum2 + w1 * (w2 * msum1 - msum2) * ( w2 * msum1 - msum2).transpose();
+#else
+        // Modifications from Ulf.
+        Eigen::Vector3d d1 = msum1/(double) N - mean_;
+        Eigen::Vector3d d2 = msum2/(double)numpointsindistribution - mean_;
+        Eigen::Matrix3d csum3 = csum1 + csum2 + N*d1*d1.transpose() + numpointsindistribution*d2*d2.transpose();
+#endif
+        // Modifications from Ulf - end
 	N = N + numpointsindistribution;
 	cov_ = 1.0/((double)N-1.0)  * csum3;
 	if(updateOccupancyFlag){
@@ -133,39 +156,60 @@ void NDTCell::updateSampleVariance(const Eigen::Matrix3d &cov2,const Eigen::Vect
     rescaleCovariance();
 }
 
+inline void computeMeanFromPoints(Eigen::Vector3d &mean_, const std::vector<pcl::PointXYZ,Eigen::aligned_allocator<pcl::PointXYZ> >& points_) {
+
+  Eigen::Vector3d meanSum_;
+  mean_<<0,0,0;
+  for(unsigned int i=0; i< points_.size(); i++)
+  {
+      Eigen::Vector3d tmp;
+      tmp<<points_[i].x,points_[i].y,points_[i].z;
+      mean_ += tmp;
+  }
+  meanSum_ = mean_;
+  mean_ /= (points_.size());
+
+}
+
+inline void computeCovFromPoints(Eigen::Matrix3d &cov_, const Eigen::Vector3d &mean_, const std::vector<pcl::PointXYZ,Eigen::aligned_allocator<pcl::PointXYZ> >& points_) {
+
+  Eigen::MatrixXd mp;
+
+  mp.resize(points_.size(),3);
+  for(unsigned int i=0; i< points_.size(); i++)
+  {
+      mp(i,0) = points_[i].x - mean_(0);
+      mp(i,1) = points_[i].y - mean_(1);
+      mp(i,2) = points_[i].z - mean_(2);
+  }
+  Eigen::Matrix3d covSum_ = mp.transpose()*mp;
+  cov_ = covSum_/(points_.size()-1);
+}
+
 ///Just computes the normal distribution parameters from the points and leaves the points into the map 
 void NDTCell::computeGaussianSimple(){
-        Eigen::Vector3d meanSum_;
-        Eigen::Matrix3d covSum_;
-			
-				if(points_.size()<6){
-					points_.clear();
-					return;
-				}
-				
-        mean_<<0,0,0;
-        for(unsigned int i=0; i< points_.size(); i++)
-        {
-            Eigen::Vector3d tmp;
-            tmp<<points_[i].x,points_[i].y,points_[i].z;
-            mean_ += tmp;
-        }
-        meanSum_ = mean_;
-        mean_ /= (points_.size());
-        Eigen::MatrixXd mp;
-        mp.resize(points_.size(),3);
-        for(unsigned int i=0; i< points_.size(); i++)
-        {
-            mp(i,0) = points_[i].x - mean_(0);
-            mp(i,1) = points_[i].y - mean_(1);
-            mp(i,2) = points_[i].z - mean_(2);
-        }
-        covSum_ = mp.transpose()*mp;
-        cov_ = covSum_/(points_.size()-1);
-        this->rescaleCovariance();
-        N = points_.size();	
-				R = 0; G = 0; B = 0;
-				updateColorInformation();
+
+  if(points_.size()<MIN_NB_POINTS_FOR_GAUSSIAN){
+    if (MIN_NB_POINTS_SET_UNIFORM){
+      computeMeanFromPoints(mean_, points_);
+      cov_ = Eigen::MatrixXd::Identity(3, 3);
+    }
+    if (CLEAR_MIN_NB_POINTS) {
+      points_.clear();
+      return;
+    }
+    if (!MIN_NB_POINTS_SET_UNIFORM) {
+      return;
+    }
+  }
+  else {
+    computeMeanFromPoints(mean_, points_);
+    computeCovFromPoints(cov_, mean_, points_);
+  }
+  this->rescaleCovariance();
+  N = points_.size();
+  R = 0; G = 0; B = 0;
+  updateColorInformation();
 }
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -338,10 +382,22 @@ void NDTCell::computeGaussian(int mode, unsigned int maxnumpoints, float occupan
         }
     }
     ***/
-    
-		if((hasGaussian_==false && points_.size()< 3) || points_.size()==0){
-			points_.clear();
-			return; ///< not enough to compute the gaussian
+    if (points_.empty()) {
+      return;
+    }
+
+    bool clear_points = true;
+    bool min_nb_points = false;
+    if((hasGaussian_==false && points_.size()< MIN_NB_POINTS_FOR_GAUSSIAN)){
+      if (!MIN_NB_POINTS_SET_UNIFORM && CLEAR_MIN_NB_POINTS) {
+        points_.clear();
+        return;
+      }
+      if (!MIN_NB_POINTS_SET_UNIFORM)
+        return;
+      if (!CLEAR_MIN_NB_POINTS)
+        clear_points = false;
+      min_nb_points = true;
 		}
 		
 		if(mode==CELL_UPDATE_MODE_STUDENT_T){
@@ -352,32 +408,15 @@ void NDTCell::computeGaussian(int mode, unsigned int maxnumpoints, float occupan
 
     if(!hasGaussian_)
     {
-        Eigen::Vector3d meanSum_;
-        Eigen::Matrix3d covSum_;
-
-        mean_<<0,0,0;
-        for(unsigned int i=0; i< points_.size(); i++)
-        {
-            Eigen::Vector3d tmp;
-            tmp<<points_[i].x,points_[i].y,points_[i].z;
-            mean_ += tmp;
+        computeMeanFromPoints(mean_, points_);
+        if (min_nb_points && MIN_NB_POINTS_SET_UNIFORM) {
+          cov_ = Eigen::MatrixXd::Identity(3, 3);
+        } else {
+          computeCovFromPoints(cov_, mean_, points_);
         }
-        meanSum_ = mean_;
-        mean_ /= (points_.size());
-        Eigen::MatrixXd mp;
-        mp.resize(points_.size(),3);
-        for(unsigned int i=0; i< points_.size(); i++)
-        {
-            mp(i,0) = points_[i].x - mean_(0);
-            mp(i,1) = points_[i].y - mean_(1);
-            mp(i,2) = points_[i].z - mean_(2);
-        }
-        covSum_ = mp.transpose()*mp;
-        cov_ = covSum_/(points_.size()-1);
         this->rescaleCovariance();
         N = points_.size();
         
-
         /////////////////////////////////////////////////////////////////////////////
         /////////////////////////////////////////////////////////////////////////////
     }
@@ -614,8 +653,8 @@ void NDTCell::computeGaussian(int mode, unsigned int maxnumpoints, float occupan
     /////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////
     updateColorInformation();
-		
-		points_.clear();
+    if (clear_points)
+      points_.clear();
 		/*
     if( !(hasGaussian_ && occ < 0))
     {

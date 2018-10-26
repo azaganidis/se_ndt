@@ -43,7 +43,7 @@
 #include <stdio.h>
 #include <math.h>
 
-namespace lslgeneric
+namespace perception_oru
 {
 
 /**
@@ -74,12 +74,12 @@ public:
 
     /**
      * Register two point clouds. This method builds an NDT
-     * representation of the "fixed" point cloud and uses that for
-     * registering the "moving" point cloud.
-     * \param  fixed
+     * representation of the "target" point cloud and uses that for
+     * registering the "source" point cloud.
+     * \param  target
      *   Reference data. NDT structure is built for this point cloud.
-     * \param  moving
-     *   The output transformation registers this point cloud to \c fixed.
+     * \param  source
+     *   The output transformation registers this point cloud to \c target.
      * \param  T
      *   This is an input/output parameter. The initial value of \c T
      *   gives the initial pose estimate of \c moving. When the
@@ -92,10 +92,10 @@ public:
 
     /**
      * Registers a point cloud to an NDT structure.
-     * \param  fixed
+     * \param  target
      *   Reference data.
-     * \param  moving
-     *   The output transformation registers this point cloud to \c fixed.
+     * \param  source
+     *   The output transformation registers this point cloud to \c source.
      * \param  T
      *   This is an input/output parameter. The initial value of \c T
      *   gives the initial pose estimate of \c moving. When the
@@ -105,9 +105,9 @@ public:
                 NDTMap& source,
                 Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>& T,
                 bool useInitialGuess = false);
-    
+
     /**
-      * computes the covariance of the match between moving and fixed, at T.
+      * @brief computes the covariance of the match between target and source, at T.
       * note --- computes NDT distributions based on the resolution in res
       * result is returned in cov
       */
@@ -127,7 +127,7 @@ public:
                      Eigen::MatrixXd &cov
                    );
 
-    //compute the score of a point cloud to an NDT //UNUSED
+    //compute the score of a point cloud to an NDT
     virtual double scoreNDT(std::vector<NDTCell*> &source, NDTMap &target);
 
     virtual double scoreNDT_OM(NDTMap &source, NDTMap &target);
@@ -135,7 +135,7 @@ public:
 
     virtual double scoreNDTPositive(std::vector<NDTCell*> &sourceNDT, NDTMap &targetNDT,
                                     Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>& T);
-	//
+
     //compute the score gradient & hessian of a point cloud + transformation to an NDT
     // input: moving, fixed, tr, computeHessian
     //output: score_gradient, Hessian, returns: score!
@@ -146,7 +146,6 @@ public:
         Eigen::MatrixXd &Hessian,
         bool computeHessian
     );
-
     /*
         void generateScoreDebug(const char* out, pcl::PointCloud<pcl::PointXYZ>& fixed,
     			    pcl::PointCloud<pcl::PointXYZ>& moving);
@@ -171,6 +170,20 @@ public:
         Eigen::Matrix<double,6,1> &increment,
         std::vector<NDTCell*> &source,
         NDTMap &target) ;
+
+
+    //auxiliary functions for MoreThuente line search
+    struct MoreThuente
+    {
+        static double min(double a, double b);
+        static double max(double a, double b);
+        static double absmax(double a, double b, double c);
+        static int cstep(double& stx, double& fx, double& dx,
+                         double& sty, double& fy, double& dy,
+                         double& stp, double& fp, double& dp,
+                         bool& brackt, double stmin, double stmax);
+    }; //end MoreThuente
+
 
 protected:
 
@@ -226,18 +239,6 @@ protected:
                                  Eigen::Matrix<double,18,18> &_ZHest,
                                  bool computeHessian);
 
-    //auxiliary functions for MoreThuente line search
-    struct MoreThuente
-    {
-        static double min(double a, double b);
-        static double max(double a, double b);
-        static double absmax(double a, double b, double c);
-        static int cstep(double& stx, double& fx, double& dx,
-                         double& sty, double& fy, double& dy,
-                         double& stp, double& fp, double& dp,
-                         bool& brackt, double stmin, double stmax);
-    }; //end MoreThuente
-
     //perform a subsampling depending on user choice
     int NUMBER_OF_POINTS;
     /*
@@ -262,6 +263,11 @@ protected:
     //vars for hessian
     Eigen::Matrix<double,6,6> JtBJ, xtBZBJ, xtBH, xtBZBZBx, xtBZhBx;
     Eigen::Matrix<double,1,3> TMP1, xtB;
+
+public:
+    int nb_match_calls;
+    int nb_success_reg;
+
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

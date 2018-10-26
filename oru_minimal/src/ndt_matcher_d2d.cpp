@@ -7,7 +7,7 @@
 #include <fstream>
 #include <omp.h>
 #include <sys/time.h>
-namespace lslgeneric
+namespace perception_oru
 {
 
 //#define DO_DEBUG_PROC
@@ -34,7 +34,7 @@ void NDTMatcherD2D::init(bool _isIrregularGrid,
         resolutions = _resolutions;
     }
 
-    current_resolution = 0.1; // Argggg!!! This is very important to have initiated! (one day debugging later) :-) TODO do we need to set it to anything better?
+    current_resolution = 0.1; // TODO do we need to set it to anything better?
     lfd1 = 1; //lfd1/(double)sourceNDT.getMyIndex()->size(); //current_resolution*2.5;
     lfd2 = 0.05; //0.1/current_resolution;
     ITR_MAX = 30;
@@ -45,6 +45,8 @@ void NDTMatcherD2D::init(bool _isIrregularGrid,
     //how many neighbours to use in the objective
     n_neighbours =2;
 
+    nb_match_calls = 0;
+    nb_success_reg = 0;
 }
 
 bool NDTMatcherD2D::match( pcl::PointCloud<pcl::PointXYZ>& target,
@@ -65,7 +67,7 @@ bool NDTMatcherD2D::match( pcl::PointCloud<pcl::PointXYZ>& target,
     Tinit.setIdentity();
     if(useInitialGuess)
     {
-        lslgeneric::transformPointCloudInPlace(T,sourceCloud);
+        perception_oru::transformPointCloudInPlace(T,sourceCloud);
 	Tinit = T;
     }
 
@@ -117,7 +119,7 @@ bool NDTMatcherD2D::match( pcl::PointCloud<pcl::PointXYZ>& target,
 
             gettimeofday(&tv_start,NULL);
             ret = this->match( targetNDT, sourceNDT, Temp );
-            lslgeneric::transformPointCloudInPlace(Temp,sourceCloud);
+            perception_oru::transformPointCloudInPlace(Temp,sourceCloud);
             gettimeofday(&tv_end,NULL);
 
             time_match += (tv_end.tv_sec-tv_start.tv_sec)*1000.+(tv_end.tv_usec-tv_start.tv_usec)/1000.;
@@ -793,7 +795,7 @@ double NDTMatcherD2D::scoreNDT(std::vector<NDTCell*> &sourceNDT, NDTMap &targetN
         point.x = meanMoving(0);
         point.y = meanMoving(1);
         point.z = meanMoving(2);
-        std::vector<NDTCell*> cells = targetNDT.getCellsForPoint(point,2); //targetNDT.getAllCells(); //
+        std::vector<NDTCell*> cells = targetNDT.getCellsForPoint(point,n_neighbours); //targetNDT.getAllCells(); //
         for(unsigned int j=0; j<cells.size(); j++)
         {
             cell = cells[j];
@@ -866,7 +868,7 @@ double NDTMatcherD2D::scoreNDT_OM(NDTMap &sourceNDT, NDTMap &targetNDT)
         NDTCell* cell=NULL;
         point = source->getCenter();
         //SWITCHME
-        std::vector<NDTCell*> all_cells = targetNDT.getCellsForPoint(point,2,false);
+        std::vector<NDTCell*> all_cells = targetNDT.getCellsForPoint(point,n_neighbours,false);
 
         for(unsigned int j=0; j<all_cells.size(); j++) {
             cell = all_cells[j];
@@ -2003,7 +2005,7 @@ bool NDTMatcherD2D::covariance( NDTMap& targetNDT,
     TR.setIdentity();
 
     std::vector<NDTCell*> sourceNDTN = sourceNDT.pseudoTransformNDT(T);
-    std::vector<NDTCell*> targetNDTN = targetNDT.pseudoTransformNDT(T);
+    std::vector<NDTCell*> targetNDTN = targetNDT.pseudoTransformNDT(T); // WHY T? // HENRIK T-> TR    //    std::vector<NDTCell*> targetNDTN = targetNDT.pseudoTransformNDT(TR); // WHY T? // HENRIK T-> TR.
 
     Eigen::MatrixXd scg(6,1); //column vectors
     int NM = sourceNDTN.size() + targetNDTN.size();
@@ -2105,26 +2107,37 @@ bool NDTMatcherD2D::covariance( NDTMap& targetNDT,
     Eigen::MatrixXd JK(6,6);
     JK = sigmaS*Jdpdz.transpose()*Jdpdz;
 
-    //cout<<"J*J'\n"<<JK<<endl;
-    //cout<<"H\n"<<cov<<endl;
+    std::cout<<"J*J'\n"<<JK<<std::endl;
+    std::cout<<"H\n"<<cov<<std::endl;
 
-    cov = cov.inverse()*JK*cov.inverse();
-    //cov = cov.inverse();//*fabsf(scoreNDT(sourceNDTN,targetNDT)*2/3);
-    //cout<<"cov\n"<<cov<<endl;
+    std::cout << "cov 1 : " << cov.inverse()*JK*cov.inverse() << std::endl;
+    //    cov = cov.inverse()*JK*cov.inverse();
+    std::cout << "cov 2 : " << cov.inverse()*fabsf(scoreNDT(sourceNDTN,targetNDT)*2/3) << std::endl;
+    cov = cov.inverse();
+
+    //cov = cov.inverse()*fabsf(scoreNDT(sourceNDTN,targetNDT)*2/3);
+    
+    //    std::cout<<"cov\n"<<cov<<std::endl;
+    //    std::cout << "invcov\n"<<cov.inverse() << std::endl;
+
+    // currently cov is the hessian
+    // cov = sigmaS *Jdpdz * cov.inverse() * Jdpdz.transpose(); 
+    // std::cout << "cov henrik : " << cov << std::endl;
 
     for(unsigned int q=0; q<sourceNDTN.size(); q++)
     {
         delete sourceNDTN[q];
     }
     sourceNDTN.clear();
-	for(unsigned int q=0; q<targetNDTN .size(); q++)
+    for(unsigned int q=0; q<targetNDTN.size(); q++)
     {
         delete targetNDTN[q];
     }
-    targetNDTN .clear();
+    targetNDTN.clear();
 
-
-    return true;
+    if (cov.allFinite())
+        return true;
+    return false;
 }
 bool NDTMatcherD2D::covariance( pcl::PointCloud<pcl::PointXYZ>& target,
         pcl::PointCloud<pcl::PointXYZ>& source,
@@ -2136,7 +2149,7 @@ bool NDTMatcherD2D::covariance( pcl::PointCloud<pcl::PointXYZ>& target,
     Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> TR;
     TR.setIdentity();
 
-    pcl::PointCloud<pcl::PointXYZ> sourceCloud = lslgeneric::transformPointCloud(T,source);
+    pcl::PointCloud<pcl::PointXYZ> sourceCloud = perception_oru::transformPointCloud(T,source);
 
     LazyGrid prototypeSource(resolutions.front());
     LazyGrid prototypeTarget(resolutions.front());

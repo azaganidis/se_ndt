@@ -2,7 +2,7 @@
 #include <pcl/common/distances.h>
 #include <ndt_map/cell_vector.h>
 
-namespace lslgeneric
+namespace perception_oru
 {
 
 CellVector::CellVector():mp(new pcl::PointCloud<pcl::PointXYZ>())
@@ -18,7 +18,7 @@ CellVector::CellVector(NDTCell* cellPrototype):mp(new pcl::PointCloud<pcl::Point
     treeUpdated = false;
 }
 
-CellVector::CellVector(const CellVector& other)
+CellVector::CellVector(const CellVector& other):protoType(NULL)
 {
     for(unsigned int i =0; i< other.activeCells.size(); i++)
     {
@@ -107,7 +107,18 @@ typename SpatialIndex::CellVectorItr CellVector::begin()
     return activeCells.begin();
 }
 
+typename SpatialIndex::CellVectorConstItr CellVector::begin() const
+{
+    //cout<<"active cells "<<activeCells.size()<<endl;
+    return activeCells.begin();
+}
+
 typename SpatialIndex::CellVectorItr CellVector::end()
+{
+    return activeCells.end();
+}
+
+typename SpatialIndex::CellVectorConstItr CellVector::end() const
 {
     return activeCells.end();
 }
@@ -235,11 +246,11 @@ void CellVector::cleanCellsAboveSize(double size)
 {
     //clean cells with variance more then x meters in any direction
     Eigen::Vector3d evals;
-    lslgeneric::SpatialIndex::CellVectorItr it = this->begin();
-    lslgeneric::SpatialIndex::CellVectorItr it_tmp;
+    perception_oru::SpatialIndex::CellVectorItr it = this->begin();
+    perception_oru::SpatialIndex::CellVectorItr it_tmp;
     while(it!=this->end())
     {
-        lslgeneric::NDTCell *ndcell = (*it);
+        perception_oru::NDTCell *ndcell = (*it);
         if(ndcell != NULL)
         {
             if(ndcell->hasGaussian_)

@@ -44,7 +44,7 @@
 #include <stdio.h>
 #include <math.h>
 
-namespace lslgeneric
+namespace perception_oru
 {
 
 /**

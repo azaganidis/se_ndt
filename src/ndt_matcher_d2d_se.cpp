@@ -8,7 +8,7 @@
 #include <omp.h>
 #include <sys/time.h>
 #define NUM_MAX 50
-namespace lslgeneric
+namespace perception_oru
 {
 
 bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
