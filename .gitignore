@@ -1,3 +1,6 @@
 .*
 lib/*
 build/
+release/
+debug/
+data/
