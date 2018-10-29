@@ -1,41 +1,21 @@
-Run with 
-semanticRegister -p ~/Dataset/pointclouds/01571* -s ~/Dataset/ceilingness/01571* -s ~/Dataset/floorness/01571* -s ~/Dataset/wallness/01571* --pcl_out_folder transformed/
+Implementation of SE-NDT laser odometry, presented in "Integrating deep semantic segmentation into 3D point cloud registration", Robotics and Automation Letters, Oct. 2018
 
+This version uses PointNet++ instead of PointNet, and is integrated with ROS. The model is pretrained for use with HDL64.
 
----------------OLD---------------------------
-An example of the registration is in "semanticRegister".
-The point clouds must be in csv form, and contain intensity. Intensity is only necessary for reading the files, the code can be modified. 
-The semantic should be separate from the point clouds, one file per cloud, one line per point.
-example:
+Dependencies: Eigen, Tensorflow, ROS, PCL
 
-   semanticRegister --pointclouds ./pointclouds/pointcloud_{00..99}.csv --sem ./semantics/semantic_{00..99}.csv
+To use:
 
-To not keep track of the final transform, and only display the relative between the clouds (Td instead of T, if T=T*Td), add the parameter --nc
+git clone --recurse-submodules https://github.com/azaganidis/se_ndt
+mkdir se_ndt/build
+cd se_ndt/build
+cmake ..
+make -j4
+./ros_register 
 
-Modifying:
-	The class for simple matching is the NDTMatch_SE.
-	All the parameters are provided in the initialization.
-	NDTMatch_SE matcher ({1,2,0.5},{0,1,0,2},{100,100,100},{'*','>'},{0,3},0.01,52);
-	This line, defines a matcher with resolutions 1,2,0.5 meters, applied in the order 0,1,0,2. So the final order
-	of resolutions that are applied is 1,2,1,0.5.
-	The size of the point cloud/map is defined as 100x100x100 meters.
-	For the semantics, there are two categories in the example, '*','>' with parameters 0,3. 
-	Other options: '<','>','e','u',1,2,3,0.
-	'<' symbolizes a semantic category that the points belong to if the measure value is less than a constant.
-	'>' symbolizes a semantic category that the points belong to if the measure value is more than a constant.
-	'e' or '=' symbolizes a semantic category that the points belong to if the measure value is equal to a constant.
-	'u' (unique) symbolizes that every different value of the semantic gets assigned a different category.
-	1  use the lower tail of the distribution as a category.
-	2  use the upper tail of the distribution as a category.
-	3  use upper and lower tail of the distribution as categories.
-	0  completely ignore this semantic.
-	'*' symbolizes all points that dont belong in any semantic. If the option exists, those points are assigned to a separate category. Otherwise they are discarded.
+On a new terminal:
 
-	the following parameter, 0.01, is the probability of rejecting points. Only used in tail-based segmentation (1,2,3).
-	The last parameter is the number of iterations.
+cd se_ndt/pointnet2
+python RosClassify.py
 
-	The registration happens in 
-		Tt=matcher.match(cloud1,{std::vector<double>(),getMeasure(sem_files[0][i]});
-	with input the new cloud, and an initializer list with the vectors of the semantics. An empty vector can be passed if the parameter '*' is set on this index. 
-
-
+If python complains about not finding shared object files, you have to rebuild the PointNet++ libs, in the folder tf_ops.
