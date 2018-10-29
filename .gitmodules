@@ -1,0 +1,4 @@
+[submodule "pointnet2"]
+	path = pointnet2
+	url = https://github.com/azaganidis/pointnet2
+	branch = se_ndt
