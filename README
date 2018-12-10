@@ -1,8 +1,9 @@
 Implementation of SE-NDT laser odometry, presented in "Integrating deep semantic segmentation into 3D point cloud registration", Robotics and Automation Letters, Oct. 2018
 
 This version uses PointNet++ instead of PointNet, and is integrated with ROS. The model is pretrained for use with HDL64.
+Pointcloud segmentation and registration are done in realtime for HDL-64 at 10Hz.
 
-Dependencies: Eigen, Tensorflow, ROS, PCL
+Dependencies: Eigen, PCL, Tensorflow(only if pointnet is used), ROS (if integration is required).
 
 To use:
 
@@ -15,7 +16,6 @@ make -j4
 
 On a new terminal:
 
-cd se_ndt/pointnet2
-python RosClassify.py
-
-If python complains about not finding shared object files, you have to rebuild the PointNet++ libs, in the folder tf_ops.
+cd se_ndt/pointnet2/deploy/build
+cmake ..
+./deploy
