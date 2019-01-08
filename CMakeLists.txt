@@ -41,6 +41,7 @@ set(${PROJECT_NAME}_LIB_SRCS
 	src/ndt_matcher_d2d_se.cpp
 	src/ndt_matcher_p2d_se.cpp
 	src/se_ndt.cpp
+	src/ndt_histogram.cpp
     )
 
 

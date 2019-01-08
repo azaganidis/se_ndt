@@ -22,6 +22,7 @@
 
 #include <pcl/registration/icp.h>
 #include "rviz_ndt.h"
+#include "se_ndt/ndt_histogram.h"
 
 
 using namespace std;
@@ -54,6 +55,8 @@ class Registration{
         int numreg=0;
         ros::Time r_time;
         ndt_rviz rvNDT;
+        std::vector<perception_oru::NDTHistogram> hists;
+        std::vector<Eigen::Vector3d> poses;
         //Registration(ros::Publisher& pub_):matcher({4,1,0.5},{0,1,2},{50,50,10},{'=','=','=','=','=','=','=','=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14},0.01,5)
         Registration(ros::NodeHandle& nh, std::string topic_out):
             matcher({4,0.8},{0,1},{200,200,50},{'=','=','=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7,8,9},0.01,5),
@@ -69,15 +72,40 @@ class Registration{
 #endif
             //matcher.initV(&nh);
         }
+        void loop_close_check(){
+            if(poses.size()<1)
+                return;
+            Eigen::Vector3d pose_last=poses.back();
+            perception_oru::NDTHistogram hist_last=hists.back();
+            int num_poses=poses.size();
+            for(int i=0;i<num_poses-50;i++)
+            {
+                auto pD=pose_last-poses.at(i);
+                double dist=pD.dot(pD);
+                dist=sqrt(dist);
+                if(dist<55)
+                {
+                    double similarity=hist_last.getSimilarity(hists.at(i));
+                    if(similarity>1)
+                        continue;
+                    cerr<<"LC\t"<<similarity<<"\t"<<dist<<endl;
+                }
+            }
+
+        }
         void callback(const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud_msg)
         {
             pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_mv(new pcl::PointCloud<pcl::PointXYZI>);
             pcl::copyPointCloud(*cloud_msg, *cloud_mv);
             clock_t begin_time = clock();
             r_time = ros::Time::now();
+            std::thread loop_check(&Registration::loop_close_check, this);
             Td=matcher.matchFaster(Td,cloud_mv);
             //rvNDT.plotNDTs(matcher.map, matcher.resolutions.size(), matcher.NumInputs, r_time); 
             rvNDT.plotNDTs(matcher.map, 2, matcher.NumInputs, r_time); 
+            hists.push_back(perception_oru::NDTHistogram (matcher.map[1], 1, 40, 10, 8,2, 5));
+            poses.push_back((T*Td).translation());
+            loop_check.join();
             //T=matcher.matchFaster_OM(T,cloud_mv);
             cerr<<"1 "<<float( clock() -begin_time ) / CLOCKS_PER_SEC<<endl;begin_time=clock();
             ///ICP
@@ -109,7 +137,7 @@ class Registration{
             pub.publish(cloud_mv);
             send_transform(ts);
             ts.matrix()=calib.matrix()*ts.matrix();
-            print_transform(ts);
+            //print_transform(ts);
         }
 };
 int main(int argc, char** argv)
