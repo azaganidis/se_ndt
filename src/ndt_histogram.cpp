@@ -125,7 +125,12 @@ namespace perception_oru{
         // double LINEAR_FACTOR = 50;
         // double FLAT_FACTOR = 50;
 
-        typename std::vector<NDTCell*>::iterator it = si->begin();
+        typename std::set<NDTCell*>::iterator it = si->begin();
+        if(dynamic_cast<LazyGrid *>(si)->size()<1)
+        {
+            std::cerr<<"Empty map in histogram. (Semantic No "<<cl_ind<<")"<<std::endl;
+            continue;
+        }
         while(it!=si->end())
           {
 

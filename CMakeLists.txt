@@ -85,11 +85,11 @@ if(WITH_GL)
     list(APPEND LINK_LIBS "NDTVizGlut")
 endif()
 
-add_executable(semanticRegister src/semanticRegister.cpp)
-target_link_libraries(semanticRegister ${PROJECT_NAME} 
-    ${PCL_FILTERS_LIBRARIES}
-    ${LINK_LIBS}
-	)
+# add_executable(semanticRegister src/semanticRegister.cpp)
+# target_link_libraries(semanticRegister ${PROJECT_NAME} 
+#    ${PCL_FILTERS_LIBRARIES}
+#    ${LINK_LIBS}
+#	)
 
 if(WITH_ROS)
     add_executable(ros_register src/ros_register.cpp)
@@ -98,15 +98,21 @@ if(WITH_ROS)
         ${ROS_REQUIRED_LIBS}
         )
 
-    add_executable(ros_receive_tf src/ros_receive_tf.cpp)
-    target_link_libraries(ros_receive_tf ${PROJECT_NAME} 
-        ${LINK_LIBS}
-        ${ROS_REQUIRED_LIBS}
-        )
+    #add_executable(loader_test src/loader_test.cpp)
+    #target_link_libraries(loader_test ${PROJECT_NAME} 
+    #    ${LINK_LIBS}
+    #    ${ROS_REQUIRED_LIBS}
+    #    )
 
-    add_executable(ros_d2dndt src/ros_register_d2d_ndt.cpp)
-    target_link_libraries(ros_d2dndt ${PROJECT_NAME} 
-        ${LINK_LIBS}
-        ${ROS_REQUIRED_LIBS}
-        )
+    #    add_executable(ros_receive_tf src/ros_receive_tf.cpp)
+    #    target_link_libraries(ros_receive_tf ${PROJECT_NAME} 
+    #        ${LINK_LIBS}
+    #    ${ROS_REQUIRED_LIBS}
+    #    )
+
+    #add_executable(ros_d2dndt src/ros_register_d2d_ndt.cpp)
+    #target_link_libraries(ros_d2dndt ${PROJECT_NAME} 
+    #    ${LINK_LIBS}
+    #    ${ROS_REQUIRED_LIBS}
+    #    )
 endif()

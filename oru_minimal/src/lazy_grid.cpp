@@ -1,4 +1,5 @@
 #include <cstring>
+#include <sys/stat.h>
 #include <cstdio>
 #include <ndt_map/lazy_grid.h>
 
@@ -111,45 +112,35 @@ void LazyGrid::setSize(const double &sx, const double &sy, const double &sz)
     }
 }
 
-void LazyGrid::initializeAll()
-{
-    if(!initialized)
+void makeFolder(std::string path){
+    if (mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1)
     {
-        this->initialize();
-    }
-
-    int idcX, idcY, idcZ;
-    pcl::PointXYZ center;
-    center.x = centerX;
-    center.y = centerY;
-    center.z = centerZ;
-    this->getIndexForPoint(center, idcX,idcY,idcZ);
-    
-    pcl::PointXYZ centerCell;
-    for(int i=0; i<sizeX; i++)
-    {
-        for(int j=0; j<sizeY; j++)
-        {
-            for(int k=0; k<sizeZ; k++)
-            {
-                dataArray.set(i,j,k,new NDTCell());
-                dataArray(i,j,k)->setDimensions(cellSizeX,cellSizeY,cellSizeZ);
-
-                centerCell.x = centerX + (i-idcX)*cellSizeX;
-                centerCell.y = centerY + (j-idcY)*cellSizeY;
-                centerCell.z = centerZ + (k-idcZ)*cellSizeZ;
-                dataArray(i,j,k)->setCenter(centerCell);
-                activeCells.push_back(dataArray(i,j,k));
-            }
+        if( errno == EEXIST ) {
+           // alredy exists
+        } else {
+           // something else
+            std::cout << "cannot create map folder error:" << strerror(errno) << std::endl;
         }
     }
 }
+
 
 void LazyGrid::initialize()
 {
 
     dataArray.initialize(sizeX,sizeY,sizeZ);
     initialized = true;
+    sensor_pose[0] = floor((0 - centerX)/cellSizeX+0.5);// + sizeX/2.0;
+    sensor_pose[1] = floor((0 - centerY)/cellSizeY+0.5);// + sizeY/2.0;
+    sensor_pose[2] = floor((0 - centerZ)/cellSizeZ+0.5);// + sizeZ/2.0;
+    initial_sensor_pose[0]=sensor_pose[0];
+    initial_sensor_pose[1]=sensor_pose[1];
+    initial_sensor_pose[2]=sensor_pose[2];
+    makeFolder("maps");
+    finalpath="maps/s_"+std::to_string(semantic_index);
+    makeFolder(finalpath);
+    finalpath=finalpath+"/r_"+std::to_string(cellSizeX);
+    makeFolder(finalpath);
 }
 
 LazyGrid::~LazyGrid()
@@ -159,14 +150,9 @@ LazyGrid::~LazyGrid()
         //fprintf(stderr,"LAZY GRID DESTRUCTION -- ");
         int cnt = 0;
         //go through all cells and delete the non-NULL ones
-        for(unsigned int i=0; i<activeCells.size(); ++i)
-        {
-            if(activeCells[i])
-            {
-                delete activeCells[i];
-                cnt++;
-            }
-        }
+        for(std::set<NDTCell*>::iterator it=activeCells.begin();it!=activeCells.end();++it)
+            if(*it)
+                delete *it;
         free( dataArray.array);
         if(protoType!=NULL)
         {
@@ -175,18 +161,136 @@ LazyGrid::~LazyGrid()
         //fprintf(stderr,"Deleted %d cells and array of (%d x %d)!!!\n",cnt, sizeX, sizeY);
     }
 }
+void LazyGrid::loadCells(int index_start, int index_end)
+{
+    boost::filesystem::path p(finalpath);
+    boost::filesystem::directory_iterator it{p};
+    while(it!=boost::filesystem::directory_iterator{})
+    {
+        std::string fname = it->path().filename().string();
+        int t = stoi(fname.substr(0,fname.find('_')));
+        if(t<=index_end&&t>=index_start)
+        {
+            std::ifstream ifs(it->path().string());
+            //assert(ifs.good());
+            boost::archive::text_iarchive ia(ifs);
+            while(ifs.good())
+            {
+                NDTCell* ndc_ = protoType->clone();
+                ia>>*ndc_;
+                pcl::PointXYZ cellCenter = ndc_->getCenter();
+                if(     ndc_->cloud_index<=index_end &&
+                        ndc_->cloud_index>=index_start &&
+                        abs(centerX - cellCenter.x)<sizeX/2 && 
+                        abs(centerY - cellCenter.y)<sizeY/2 && 
+                        abs(centerZ - cellCenter.z)<sizeZ/2)
+                {
+                    std::cout<<".";
+                    int indX,indY,indZ;
+                    this->getIndexForPoint(cellCenter,indX,indY,indZ);
+                    dataArray.set(indX,indY,indZ, ndc_);
+                    activeCells.insert(ndc_);
+                }
 
+            }
+        }
+        it++;
+    }
+}
+
+void LazyGrid::dealocateCells(int dim_ind, int newP, boost::archive::text_oarchive& oa, unsigned int &min_index)// newP only -1 or +1
+{
+    if(newP>0)
+        newP=1;
+    else if(newP<0)
+        newP=-1;
+    else
+        return;
+    int start_val[3]={0,0,0};
+    int end_val[3]={0,0,0};
+    for(int i=0;i<3;i++)
+        end_val[i]=dataArray.size[i];
+    start_val[dim_ind]=newP==1?0:dataArray.size[dim_ind]-1;
+    end_val[dim_ind]=start_val[dim_ind]+1;
+    int bH[3]={0,0,0};
+    bH[dim_ind]=newP;
+    for(int i=start_val[0];i<end_val[0];i++)
+        for(int j=start_val[1];j<end_val[1];j++)
+            for(int k=start_val[2];k<end_val[2];k++)
+            {
+                if(dataArray(i,j,k)==NULL)
+                    continue;
+                if(true || dataArray(i,j,k)->hasGaussian_)
+                {
+                    if ( dataArray(i,j,k)->cloud_index < min_index)
+                        min_index = dataArray(i,j,k)->cloud_index ;
+                    oa << *dataArray(i,j,k);
+                }
+                SpatialIndex::CellVectorItr del_iter=activeCells.find(dataArray(i,j,k));
+                if(del_iter!=activeCells.end())
+                    activeCells.erase(del_iter);
+                delete dataArray(i,j,k);
+                dataArray.set(i,j,k, NULL);
+            }
+    sensor_pose[dim_ind]+=newP;
+    return ;
+}
+bool fexists(const std::string& filename)
+{
+    std::ifstream ifile(filename.c_str());
+    return (bool)ifile;
+}
+
+void LazyGrid::setSensorPose(const double *pose)
+{
+    cloud_index++;
+    int indPose[3];
+    indPose[0] = floor((pose[0] - centerX)/cellSizeX+0.5);// + sizeX/2.0;
+    indPose[1] = floor((pose[1] - centerY)/cellSizeY+0.5);// + sizeY/2.0;
+    indPose[2] = floor((pose[2] - centerZ)/cellSizeZ+0.5);// + sizeZ/2.0;
+    unsigned int min_index=UINT_MAX;
+    std::string tmp_name  = finalpath+"/tmp_" + std::to_string(rand()%1000);
+    std::ofstream ofs(tmp_name);
+    boost::archive::text_oarchive oa(ofs);
+    for(int i=0;i<3;i++)
+        while(sensor_pose[i]!=indPose[i])
+            dealocateCells(i, indPose[i]-sensor_pose[i], oa, min_index);
+    ofs.close();
+    if(min_index<UINT_MAX)
+    {
+        std::string fname=(finalpath+"/"+std::to_string(min_index))+"_";
+        int i=0;
+        while(fexists(fname+std::to_string(i)))
+            i++;
+        fname = fname+std::to_string(i);
+        std::rename(tmp_name.c_str(), fname.c_str());
+    }
+    else
+        std::remove(tmp_name.c_str());
+    //loadCells(0, cloud_index);
+
+}
+bool LazyGrid::isValid(const pcl::PointXYZ &p, NDTCell* cell)
+{
+    auto c = cell->getCenter();
+    if(abs(c.x-p.x)>cellSizeX ||abs(c.y-p.y)>cellSizeY ||abs(c.z-p.z)>cellSizeZ)
+        return false;
+    return true;
+}
 NDTCell* LazyGrid::getCellForPoint(const pcl::PointXYZ &point)
 {
 
     int indX,indY,indZ;
     this->getIndexForPoint(point,indX,indY,indZ);
 
-    if(indX >= sizeX || indY >= sizeY || indZ >= sizeZ || indX<0 || indY<0 || indZ<0) return NULL;
     if(!initialized) return NULL;
     if(dataArray.array==NULL) return NULL;
     //    cout<<"LZ: "<<indX<<" "<<indY<<" "<<indZ<<endl;
-    return dataArray(indX,indY,indZ);
+    auto rval = dataArray(indX, indY, indZ);
+    if(!isValid(point, rval))
+        return NULL;
+    std::cout<< rval->cloud_index<<std::endl;
+    return rval;
 }
 
 
@@ -202,10 +306,7 @@ void LazyGrid::getCellAtAllocate(const pcl::PointXYZ &pt, NDTCell* &cell)
     this->getIndexForPoint(point,indX,indY,indZ);
     pcl::PointXYZ centerCell;
 
-    if(indX >= sizeX || indY >= sizeY || indZ >= sizeZ || indX<0 || indY<0 || indZ<0)
-    {
-        return;
-    }
+    //if(indX >= sizeX || indY >= sizeY || indZ >= sizeZ || indX<0 || indY<0 || indZ<0)
 
     if(dataArray.array==NULL) return;
     if(!initialized) return;
@@ -214,6 +315,7 @@ void LazyGrid::getCellAtAllocate(const pcl::PointXYZ &pt, NDTCell* &cell)
     {
         //initialize cell
         dataArray.set(indX,indY,indZ, protoType->clone());
+        activeCells.insert(dataArray(indX,indY,indZ));
         dataArray(indX,indY,indZ)->setDimensions(cellSizeX,cellSizeY,cellSizeZ);
 
         int idcX, idcY, idcZ;
@@ -226,6 +328,7 @@ void LazyGrid::getCellAtAllocate(const pcl::PointXYZ &pt, NDTCell* &cell)
         centerCell.y = centerY + (indY-idcY)*cellSizeY;
         centerCell.z = centerZ + (indZ-idcZ)*cellSizeZ;
         dataArray(indX,indY,indZ)->setCenter(centerCell);
+        dataArray(indX,indY,indZ)->cloud_index = cloud_index;
         /*
            cout<<"center: "<<centerX<<" "<<centerY<<" "<<centerZ<<endl;
            cout<<"size  : "<<sizeX<<" "<<sizeY<<" "<<sizeZ<<endl;
@@ -234,8 +337,9 @@ void LazyGrid::getCellAtAllocate(const pcl::PointXYZ &pt, NDTCell* &cell)
            cout<<"id : "<<indX<<" "<<indY<<" "<<indZ<<endl;
            cout<<"cs : "<<cellSizeX<<" "<<cellSizeY<<" "<<cellSizeZ<<endl;
          */
-        activeCells.push_back(dataArray(indX,indY,indZ));
     }
+    else if (!isValid(point, dataArray(indX,indY,indZ)))
+        return;
     cell = dataArray(indX,indY,indZ);
 }
 
@@ -276,15 +380,16 @@ int LazyGrid::size()
 
 SpatialIndex* LazyGrid::clone() const
 {
-    return new LazyGrid(cellSizeX);
+    LazyGrid * rt = new LazyGrid(cellSizeX);
+    rt->semantic_index = semantic_index;
+    return dynamic_cast<SpatialIndex *>(rt);
 }
 
 SpatialIndex* LazyGrid::copy() const
 {
     LazyGrid *ret = new LazyGrid(cellSizeX);
     typename std::vector<NDTCell*>::const_iterator it;
-    it = activeCells.begin();
-    while(it!=activeCells.end())
+    for(std::set<NDTCell*>::iterator it=activeCells.begin();it!=activeCells.end();++it)
     {
         NDTCell* r = (*it);
         if(r == NULL) continue;
@@ -292,13 +397,14 @@ SpatialIndex* LazyGrid::copy() const
         {
             ret->addPoint(r->points_[i]);
         }
-        it++;
     }
     return ret;
 }
 
 void LazyGrid::getNeighbors(const pcl::PointXYZ &point, const double &radius, std::vector<NDTCell*> &cells)
 {
+    ///NOT TESTED, not modified
+    std::cerr<<"OH NO! SHOULDNT BE HERE! LazyGrid:N4578"<<std::endl;
     int indX,indY,indZ;
     this->getIndexForPoint(point, indX,indY,indZ);
     if(indX >= sizeX || indY >= sizeY || indZ >= sizeZ)
@@ -326,6 +432,8 @@ void LazyGrid::getNeighbors(const pcl::PointXYZ &point, const double &radius, st
 
 void LazyGrid::getNeighborsShared(const pcl::PointXYZ &point, const double &radius, std::vector<boost::shared_ptr< NDTCell > > &cells)
 {
+    ///NOT TESTED, not modified
+    std::cerr<<"OH NO! SHOULDNT BE HERE! LazyGrid:N4579"<<std::endl;
     int indX,indY,indZ;
     this->getIndexForPoint(point, indX,indY,indZ);
     if(indX >= sizeX || indY >= sizeY || indZ >= sizeZ)
@@ -414,7 +522,7 @@ std::vector< NDTCell* > LazyGrid::getClosestNDTCells(const pcl::PointXYZ &point,
             for(int z=1; z<2*i+2; z++)
             {
                 indZn = (z%2 == 0) ? indZ+z/2 : indZ-z/2;
-                if(checkCellforNDT(indXn,indYn,indZn,checkForGaussian))
+                if(checkCellforNDT(indXn,indYn,indZn,checkForGaussian)) //FIXME should check wrap
                 {
                     cells.push_back(dataArray(indXn,indYn,indZn));
                 }
@@ -494,7 +602,7 @@ NDTCell* LazyGrid::getClosestNDTCell(const pcl::PointXYZ &point, bool checkForGa
             for(int z=1; z<2*i+2; z++)
             {
                 indZn = (z%2 == 0) ? indZ+z/2 : indZ-z/2;
-                if(checkCellforNDT(indXn,indYn,indZn))
+                if(checkCellforNDT(indXn,indYn,indZn)) //FIXME should check wrap
                 {
                     ret = (dataArray(indXn,indYn,indZn));
                     cells.push_back(ret);
@@ -526,16 +634,10 @@ NDTCell* LazyGrid::getClosestNDTCell(const pcl::PointXYZ &point, bool checkForGa
 bool LazyGrid::checkCellforNDT(int indX, int indY, int indZ, bool checkForGaussian)
 {
 
-    if(indX < sizeX && indY < sizeY && indZ < sizeZ &&
-            indX >=0 && indY >=0 && indZ >=0)
+    if(dataArray(indX,indY,indZ)!=NULL)
     {
-        if(dataArray(indX,indY,indZ)!=NULL)
-        {
-	    if(dataArray(indX,indY,indZ)->hasGaussian_ || (!checkForGaussian))
-	    {
-		return true;
-	    }
-        }
+	    if( dataArray(indX,indY,indZ)->hasGaussian_ || (!checkForGaussian))
+            return true;
     }
     return false;
 }
@@ -584,13 +686,9 @@ int LazyGrid::loadFromJFF(FILE * jffin)
 {
     if(initialized)
     {
-		for(unsigned int i=0; i<activeCells.size(); ++i)
-		{
-			if(activeCells[i])
-			{
-			delete activeCells[i];
-			}
-		}
+        for(std::set<NDTCell*>::iterator it=activeCells.begin();it!=activeCells.end();++it)
+            if(*it)
+                delete *it;
 		activeCells.clear();
 		free( dataArray.array);
 		if(protoType!=NULL)
@@ -660,7 +758,7 @@ int LazyGrid::loadFromJFF(FILE * jffin)
 			delete dataArray(indX,indY,indZ);
 
 	    dataArray.set(indX,indY,indZ, prototype_.copy());
-	    activeCells.push_back(dataArray(indX,indY,indZ));
+	    activeCells.insert(dataArray(indX,indY,indZ));
     }
 
     return 0;
@@ -720,98 +818,16 @@ bool LazyGrid::traceLine(const Eigen::Vector3d &origin, const pcl::PointXYZ &end
 			idzo = idz;
 		}
 		
-		if(idx < sizeX && idy < sizeY && idz < sizeZ && idx >=0 && idy >=0 && idz >=0){
-			ptCell = dataArray(idx,idy,idz);
-			if(ptCell !=NULL) {
-				cells.push_back(ptCell);
-			} else {
-				this->addPoint(pt); ///Add fake point to initialize!
-			}
-		}
+        ptCell = dataArray(idx,idy,idz);
+        if(ptCell !=NULL) {
+            cells.push_back(ptCell);
+        } else {
+            this->addPoint(pt); ///Add fake point to initialize!
+        }
 	}
 	return true;
 	
 }
-
-bool LazyGrid::traceLineWithEndpoint(const Eigen::Vector3d &origin, const pcl::PointXYZ &endpoint,const Eigen::Vector3d &diff_ ,const double& maxz, std::vector<NDTCell*> &cells, Eigen::Vector3d &final_point)
-{
-    if(endpoint.z>maxz)
-    {
-	return false;
-    }
-
-    double min1 = std::min(cellSizeX,cellSizeY);
-    double min2 = std::min(cellSizeZ,cellSizeY);
-    double resolution = std::min(min1,min2); ///Select the smallest resolution
-
-    if(resolution<0.01)
-    {
-	fprintf(stderr,"Resolution very very small (%lf) :( \n",resolution);
-	return false;
-    }
-    double l = diff_.norm();
-    int N = l / (resolution);
-    NDTCell* ptCell = NULL;    
-    pcl::PointXYZ pt;
-    pcl::PointXYZ po;
-    po.x = origin(0); po.y = origin(1); po.z = origin(2);
-    if(N == 0)
-    {
-	//fprintf(stderr,"N=%d (r=%lf l=%lf) :( ",N,resolution,l);
-	//return false;
-	this->getNDTCellAt(po,ptCell);
-	if(ptCell!=NULL) {
-	    cells.push_back(ptCell);
-	}
-	return true;
-    }
-
-    Eigen::Vector3d diff = diff_/(float)N;
-
-    int idxo=0, idyo=0,idzo=0;
-    bool complete = true;
-    for(int i=0; i<N-2; i++)
-    {
-	pt.x = origin(0) + ((float)(i+1)) *diff(0);
-	pt.y = origin(1) + ((float)(i+1)) *diff(1);
-	pt.z = origin(2) + ((float)(i+1)) *diff(2);
-	int idx,idy,idz;
-	idx = floor((pt.x - centerX)/cellSizeX+0.5) + sizeX/2.0;
-	idy = floor((pt.y - centerY)/cellSizeY+0.5) + sizeY/2.0;
-	idz = floor((pt.z - centerZ)/cellSizeZ+0.5) + sizeZ/2.0;
-	///We only want to check every cell once, so
-	///increase the index if we are still in the same cell
-	if(idx == idxo && idy==idyo && idz ==idzo)
-	{
-	    continue;
-	}
-	else
-	{
-	    idxo = idx;
-	    idyo = idy;
-	    idzo = idz;
-	}
-
-	if(idx < sizeX && idy < sizeY && idz < sizeZ && idx >=0 && idy >=0 && idz >=0){
-	    ptCell = dataArray(idx,idy,idz);
-	    if(ptCell !=NULL) {
-		cells.push_back(ptCell);
-	    } else {
-		this->addPoint(pt); ///Add fake point to initialize!
-	    }
-	} else {
-	    //out of the map, we won't be coming back any time soon
-	    complete = false;
-	    final_point = origin+(float(i))*diff;
-	    break;
-	}
-    }
-    if(complete) final_point = origin+diff_;
-    return true;
-
-}
-
-
 
 
 bool LazyGrid::insertCell(NDTCell cell){
@@ -823,9 +839,6 @@ bool LazyGrid::insertCell(NDTCell cell){
     unsigned int N;
     centerCell = cell.getCenter();
     this->getIndexForPoint(centerCell, indX, indY, indZ);
-    if(indX < 0 || indX >= sizeX) return false;
-    if(indY < 0 || indY >= sizeY) return false;
-    if(indZ < 0 || indZ >= sizeZ) return false;
     if(!initialized) return false;
     if(dataArray.array == NULL) return false;
 
@@ -852,7 +865,7 @@ bool LazyGrid::insertCell(NDTCell cell){
       //initialize cell
      // std::cerr<<"NEW CELL\n";
       dataArray.set(indX,indY,indZ,cell.copy());
-      activeCells.push_back(dataArray(indX,indY,indZ));
+      activeCells.insert(dataArray(indX,indY,indZ));
     }
     return true;
     }

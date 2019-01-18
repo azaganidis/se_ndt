@@ -141,75 +141,6 @@ public:
     }
   }
 
-  /**
-     * Construct with given centroid and sizes
-     * @param cenx, ceny, cenz; (x,y,z) of the center of the map
-     * @param sizex, sizey, sizez: The size of the map in each respective direction
-     * NOTE: Implementation only for the laze grid
-     **/
-  NDTMap(SpatialIndex *idx, float cenx, float ceny, float cenz, float sizex, float sizey, float sizez, bool dealloc = false)
-  {
-    if(idx == NULL)
-    {
-      fprintf(stderr,"Idx == NULL - abort()\n");
-      exit(1);
-    }
-    index_ = idx;
-
-    //this is used to prevent memory de-allocation of the *si
-    //si was allocated outside the NDT class and should be deallocated outside
-    isFirstLoad_=!dealloc;//////////////////////////////////////////////////////////////////////////////false; Henrik - was false, but why?
-
-    NDTCell *ptCell = new NDTCell();
-    index_->setCellType(ptCell);
-    delete ptCell;
-    index_->setCenter(cenx,ceny,cenz);
-    index_->setSize(sizex,sizey,sizez);
-    map_sizex = sizex;
-    map_sizey = sizey;
-    map_sizez = sizez;
-    is3D=true;
-    LazyGrid *lz = dynamic_cast<LazyGrid*>(index_);
-    if(lz == NULL)
-    {
-      fprintf(stderr,"Unfortunately This constructor works only with Lazygrid!\n");
-      exit(1);
-    }
-    lz->initializeAll();
-    guess_size_ = false;
-  }
-   
-  
-
-  /**
-      * Initilize with known values - normally this is done automatically, but in some cases you want to
-      * influence these - call only once and before calling any other function
-      */
-  void initialize(double cenx, double ceny, double cenz, double sizex, double sizey, double sizez)
-  {
-    isFirstLoad_=false;
-
-    NDTCell *ptCell = new NDTCell();
-    index_->setCellType(ptCell);
-    delete ptCell;
-    index_->setCenter(cenx,ceny,cenz);
-    index_->setSize(sizex,sizey,sizez);
-    map_sizex = sizex;
-    map_sizey = sizey;
-    map_sizez = sizez;
-    is3D=true;
-    LazyGrid *lz = dynamic_cast<LazyGrid*>(index_);
-    if(lz == NULL)
-    {
-      fprintf(stderr,"Unfortunately This constructor works only with Lazygrid!\n");
-      exit(1);
-    }
-    //        lz->initializeAll();
-    lz->initializeAll();
-    guess_size_ = false;
-  }
-
-
 
   /**
     * Default destructor
@@ -239,6 +170,7 @@ public:
 			}
     }
   }
+    void loadFromFile(int start_index, int stop_index);
 
   void setMode(bool is3D_)
   {

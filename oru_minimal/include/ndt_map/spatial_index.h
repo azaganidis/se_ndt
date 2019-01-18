@@ -36,6 +36,7 @@
 #define SPATIAL_INDEX_HH
 
 #include <vector>
+#include <set>
 #include <iostream>
 
 #include <ndt_map/ndt_cell.h>
@@ -57,7 +58,7 @@ class SpatialIndex
 protected:
 
 public:
-    typedef std::vector<NDTCell*> CellPtrVector;
+    typedef std::set<NDTCell*> CellPtrVector;
     typedef typename CellPtrVector::iterator CellVectorItr;
     typedef typename CellPtrVector::const_iterator CellVectorConstItr;
 

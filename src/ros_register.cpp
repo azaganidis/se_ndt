@@ -22,7 +22,6 @@
 
 #include <pcl/registration/icp.h>
 #include "rviz_ndt.h"
-#include "se_ndt/ndt_histogram.h"
 
 
 using namespace std;
@@ -55,14 +54,17 @@ class Registration{
         int numreg=0;
         ros::Time r_time;
         ndt_rviz rvNDT;
-        std::vector<perception_oru::NDTHistogram> hists;
-        std::vector<Eigen::Vector3d> poses;
+//#define STOP_AFTERN
+#ifdef STOP_AFTERN
+        int stop_down_timer=1;
+#endif
         //Registration(ros::Publisher& pub_):matcher({4,1,0.5},{0,1,2},{50,50,10},{'=','=','=','=','=','=','=','=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14},0.01,5)
         Registration(ros::NodeHandle& nh, std::string topic_out):
-            matcher({4,0.8},{0,1},{200,200,50},{'=','=','=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7,8,9},0.01,5),
+            //matcher({4,0.8},{0,1},{200,200,50},{'=','=','=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7,8,9},0.01,5),
+            matcher({4, 0.8},{0,1},{100,100,50},{1,1,1,1,1,1,1,1},5),
             rvNDT(nh, 2)
         {
-            pub = nh.advertise<pcl::PointCloud<pcl::PointXYZI> >(topic_out, 100);
+            pub = nh.advertise<pcl::PointCloud<pcl::PointXYZI> >(topic_out, 1000);
             matcher.setNeighbours((int )2);
             Td.setIdentity();
             T.setIdentity();
@@ -72,6 +74,7 @@ class Registration{
 #endif
             //matcher.initV(&nh);
         }
+        /*
         void loop_close_check(){
             if(poses.size()<1)
                 return;
@@ -93,21 +96,28 @@ class Registration{
             }
 
         }
+        */
         void callback(const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud_msg)
         {
             pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_mv(new pcl::PointCloud<pcl::PointXYZI>);
             pcl::copyPointCloud(*cloud_msg, *cloud_mv);
             clock_t begin_time = clock();
             r_time = ros::Time::now();
-            std::thread loop_check(&Registration::loop_close_check, this);
-            Td=matcher.matchFaster(Td,cloud_mv);
+            //std::thread loop_check(&Registration::loop_close_check, this);
+            //Td=matcher.matchFaster(Td,cloud_mv);
+            //T=T*Td;
+            T=matcher.mapUpdate(cloud_mv, true);
             //rvNDT.plotNDTs(matcher.map, matcher.resolutions.size(), matcher.NumInputs, r_time); 
-            rvNDT.plotNDTs(matcher.map, 2, matcher.NumInputs, r_time); 
-            hists.push_back(perception_oru::NDTHistogram (matcher.map[1], 1, 40, 10, 8,2, 5));
-            poses.push_back((T*Td).translation());
-            loop_check.join();
+            //rvNDT.plotNDTs(matcher.map, 2, matcher.NumInputs, r_time); 
+            //hists.push_back(perception_oru::NDTHistogram (matcher.map[1], 1, 40, 10, 8,2, 5));
+            //poses.push_back((T*Td).translation());
+            //loop_check.join();
             //T=matcher.matchFaster_OM(T,cloud_mv);
             cerr<<"1 "<<float( clock() -begin_time ) / CLOCKS_PER_SEC<<endl;begin_time=clock();
+#ifdef STOP_AFTERN
+            if(stop_down_timer--==0)
+                ros::shutdown();
+#endif
             ///ICP
             /*
             if(numreg>0){
@@ -130,7 +140,6 @@ class Registration{
 
 
 
-            T=T*Td;
             pcl_conversions::toPCL(r_time,cloud_mv->header.stamp);
             cloud_mv->header.frame_id="velodyne";
             Eigen::Affine3d ts=T;
@@ -161,7 +170,7 @@ int main(int argc, char** argv)
 	if(vm.count("help"))
         { cout<<desc; return 0; }
 
-	ros::init (argc,argv,"pub_sendt");
+	ros::init (argc,argv,"pub_sendt_r");
 	ros::NodeHandle nh;
     Registration registration(nh, topic_out);
     ros::Subscriber sub = nh.subscribe(topic_in, 1000, &Registration::callback, &registration);

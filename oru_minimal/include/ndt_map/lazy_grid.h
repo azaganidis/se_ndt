@@ -47,6 +47,9 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/split_member.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/filesystem.hpp>
+#include <set>
 namespace perception_oru
 {
 class CellVector3d {
@@ -94,6 +97,10 @@ private:
 class LazyGrid : public SpatialIndex
 {
 public:
+    unsigned int cloud_index=0;
+    int semantic_index;
+    std::string finalpath;
+    void loadNDTs(int index);
     LazyGrid(double cellSize);
     LazyGrid(double cellSizeX_, double cellSizeY_, double cellSizeZ_);
     LazyGrid(LazyGrid *prot);
@@ -103,28 +110,41 @@ public:
              NDTCell *cellPrototype );
     virtual ~LazyGrid();
 
+    bool isValid(const pcl::PointXYZ &p, NDTCell* cell);
     virtual NDTCell* getCellForPoint(const pcl::PointXYZ &point);
     virtual NDTCell* addPoint(const pcl::PointXYZ &point);
 
     struct Darray
     {
-        int sX, sY,sZ;
+        int size[3];
         NDTCell** array;
         void initialize(int x,int y,int z){
-            sX=x;
-            sY=y;
-            sZ=z;
+            size[0]=x;
+            size[1]=y;
+            size[2]=z;
             array=(NDTCell**) calloc(x*y*z, sizeof(NDTCell*));
         };
+        void xyzBound(int &x,int &y,int &z)
+        {
+            x=x%size[0];
+            y=y%size[1];
+            z=z%size[2];
+            while(x<0)x+=size[0];
+            while(y<0)y+=size[1];
+            while(z<0)z+=size[2];
+        }
         NDTCell* operator()(int x, int y, int z)
         {
-            return array[z+y*sZ+x*sZ*sY];
+            xyzBound(x,y,z);
+            return array[z+y*size[2]+x*size[2]*size[1]];
         }
         void set(int x, int y, int z, NDTCell* c)
         {
-            array[z+y*sZ+x*sZ*sY] = c;
+            xyzBound(x,y,z);
+            array[z+y*size[2]+x*size[2]*size[1]] = c;
         }
     };
+    void setSensorPose(const double *pose);
  
     //these two don't make much sense...
     ///iterator through all cells in index, points at the begining
@@ -157,11 +177,7 @@ public:
     virtual std::vector<NDTCell*> getClosestCells(const pcl::PointXYZ &pt);
 
     virtual inline void getCellAt(int indX, int indY, int indZ, NDTCell* &cell){
-	if(indX < sizeX && indY < sizeY && indZ < sizeZ && indX >=0 && indY >=0 && indZ >=0){ 
-          cell = dataArray(indX,indY,indZ);
-        } else {
-          cell = NULL;
-        }
+      cell = dataArray(indX,indY,indZ);
     }
   
     virtual inline void getCellAt(const pcl::PointXYZ& pt, NDTCell* &cell){
@@ -176,11 +192,7 @@ public:
 
     //FIXME: these two are now not needed anymore
     virtual inline void getNDTCellAt(int indX, int indY, int indZ, NDTCell* &cell){
-			if(indX < sizeX && indY < sizeY && indZ < sizeZ && indX >=0 && indY >=0 && indZ >=0){
-					cell = (dataArray(indX,indY,indZ));
-			}else{
-				cell = NULL;
-			}
+        cell = (dataArray(indX,indY,indZ));
     }
     virtual inline void getNDTCellAt(const pcl::PointXYZ& pt, NDTCell* &cell){
 			int indX,indY,indZ;
@@ -199,7 +211,6 @@ public:
     }
 
     virtual void initialize();
-    virtual void initializeAll() ;
 
 //    NDTCell ****getDataArrayPtr()
 //    {
@@ -216,12 +227,6 @@ public:
         return traceLine(origin, ep, diff, maxz, cells);
     }
 
-    bool traceLineWithEndpoint(const Eigen::Vector3d &origin, const pcl::PointXYZ &endpoint, const Eigen::Vector3d &diff, const double& maxz, std::vector<NDTCell*> &cells, Eigen::Vector3d &final_point);
-    bool isInside(const pcl::PointXYZ& pt) {
-			int indX,indY,indZ;
-			this->getIndexForPoint(pt,indX,indY,indZ);
-			return(indX < sizeX && indY < sizeY && indZ < sizeZ && indX >=0 && indY >=0 && indZ >=0);
-    }
     void InitializeDefaultValues();
     std::string GetDataString();
     std::string ToString();
@@ -230,7 +235,7 @@ protected:
     Darray dataArray;
     //bool ***linkedCells;
     NDTCell *protoType=NULL;
-    std::vector<NDTCell*> activeCells;
+    std::set<NDTCell*> activeCells;
     bool centerIsSet, sizeIsSet;
 
     double sizeXmeters, sizeYmeters, sizeZmeters;
@@ -240,6 +245,10 @@ protected:
 
     virtual bool checkCellforNDT(int indX, int indY, int indZ, bool checkForGaussian=true);
 private:
+    volatile int sensor_pose[3];
+    int initial_sensor_pose[3];
+    void dealocateCells(int i, int d, boost::archive::text_oarchive& oa, unsigned int &min_index);
+    void loadCells(int index_start, int index_end);
     LazyGrid(){InitializeDefaultValues();}
 
     friend class boost::serialization::access;
