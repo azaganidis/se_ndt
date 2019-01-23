@@ -81,6 +81,7 @@ namespace perception_oru{
 
     D1 = other.D1;
     D2 = other.D2;
+    ENTROPY=other.ENTROPY;
 
     averageDirections = other.averageDirections;
     directions = other.directions;
@@ -111,7 +112,6 @@ namespace perception_oru{
     }
   }
 
-
   void NDTHistogram::constructHistogram(NDTMap **map,
                                         double linear_factor,
                                         double flat_factor
@@ -131,6 +131,15 @@ namespace perception_oru{
             std::cerr<<"Empty map in histogram. (Semantic No "<<cl_ind<<")"<<std::endl;
             continue;
         }
+        volatile int *sensor_pose = dynamic_cast<LazyGrid *>(si)->sensor_pose;
+        double cellSizeX=dynamic_cast<LazyGrid *>(si)->cellSizeX;
+        double cellSizeY=dynamic_cast<LazyGrid *>(si)->cellSizeY;
+        double cellSizeZ=dynamic_cast<LazyGrid *>(si)->cellSizeZ;
+        Eigen::Vector3d sensor_poseV;
+        sensor_poseV(0)=sensor_pose[0]*cellSizeX;
+        sensor_poseV(1)=sensor_pose[1]*cellSizeX;
+        sensor_poseV(2)=sensor_pose[2]*cellSizeX;
+        ///std::cerr<<cl_ind<<"\t NCELLS "<< dynamic_cast<LazyGrid *>(si)->size()<<std::endl;
         while(it!=si->end())
           {
 
@@ -157,7 +166,7 @@ namespace perception_oru{
                 idMid = j;
               }
             }
-            double dist = (*it)->getMean().norm();
+            double dist = ((*it)->getMean()-sensor_poseV).norm();
             //three cases:
             //maxEval >> midEval -> linear
             if(maxEval > midEval*linear_factor){
@@ -187,6 +196,7 @@ namespace perception_oru{
       }
       for(int i=0; i<averageDirections.size(); i++)
           averageDirections[i].normalize();
+      //std::cerr<<"H\t"<<histogramBinsFlat.sum()<<" "<<histogramBinsSphere.sum()<<" "<<histogramBinsLine.sum()<<std::endl;
   }
 
   void NDTHistogram::incrementLineBin(double d, int c){
@@ -541,31 +551,61 @@ namespace perception_oru{
     return this->getSimilarity(other,T);
   }
 
+double NDTHistogram::calculateEntropy()
+{
+    double sum=0;
+    double entropy=0;
+    for(int r=0;r<2;r++)
+    {
+        sum+= this->dist_histogramBinsFlat[r].sum();
+        sum+= this->dist_histogramBinsSphere[r].sum();
+        sum+= this->dist_histogramBinsLine[r].row(0).sum();
+    }
+    for(int r=0;r<2;r++)
+    {
+        Eigen::MatrixXd F_=(dist_histogramBinsFlat[r].cast<double>()/sum);
+        entropy+=(F_.array()*F_.array().log().unaryExpr([](double v) { return std::isfinite(v)? v : 0.0; })).sum();
+
+        Eigen::MatrixXd S_=(dist_histogramBinsSphere[r].cast<double>()/sum);
+        entropy+=(S_.array()*S_.array().log().unaryExpr([](double v) { return std::isfinite(v)? v : 0.0; })).sum();
+
+        Eigen::MatrixXd L_=(dist_histogramBinsLine[r].row(0).cast<double>()/sum);
+        entropy+=(L_.array()*L_.array().log().unaryExpr([](double v) { return std::isfinite(v)? v : 0.0; })).sum();
+    }
+//    return -entropy;
+    if(isnan(entropy))
+        std::cout<<sum<<" "<<std::endl;
+    assert(!isnan(entropy));
+    double num_el=N_LINE_BINS*N_SPHERE_BINS*N_FLAT_BINS*N_CLASSES*2;
+    double max_entropy=-log(1/num_el);
+    double normalized_entropy = -entropy/max_entropy;
+    ENTROPY=normalized_entropy;
+    return normalized_entropy;
+}
+
 
   double NDTHistogram::getSimilarity(NDTHistogram &other, Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> &T){
     double score[3];
     double score_final[3]={0,0,0};
-    double N_THIS[3], N_OTHER[3];
+    Eigen::MatrixXd N_THIS=Eigen::MatrixXd::Zero(3, N_CLASSES);
+    Eigen::MatrixXd N_OTHER=Eigen::MatrixXd::Zero(3, N_CLASSES);
+    Eigen::MatrixXd scoreM=Eigen::MatrixXd::Zero(3, N_CLASSES);
+    for(unsigned int r = 0; r<3; r++){
+        N_THIS.row(r)= this->dist_histogramBinsFlat[r].colwise().sum().cast<double> ();
+        N_OTHER.row(r)= other.dist_histogramBinsFlat[r].colwise().sum().cast<double> ();
+
+        N_THIS.row(r)+= this->dist_histogramBinsSphere[r].colwise().sum().cast<double> ();
+        N_OTHER.row(r)+= other.dist_histogramBinsSphere[r].colwise().sum().cast<double> ();
+
+        N_THIS.row(r)+= this->dist_histogramBinsLine[r].row(0).cast<double> ();
+        N_OTHER.row(r)+= other.dist_histogramBinsLine[r].row(0).cast<double> ();
+    }
     for(int i_class=0;i_class<N_CLASSES;i_class++)
     {
         for(unsigned int r = 0; r<3; r++){
-          N_THIS[r] = 0;
-          N_OTHER[r] = 0;
           score[r]=0;
-          for(int i=0; i<N_FLAT_BINS; i++)
-            {
-              N_THIS[r] += dist_histogramBinsFlat[r](i, i_class);
-              N_OTHER[r] += other.dist_histogramBinsFlat[r](i,i_class);
-            }
-          for(int i=0; i<N_SPHERE_BINS; i++)
-            {
-              N_THIS[r] += dist_histogramBinsSphere[r](i, i_class) ;
-              N_OTHER[r] += other.dist_histogramBinsSphere[r](i, i_class) ;
-            }
-          N_THIS[r] += dist_histogramBinsLine[r](0, i_class);
-          N_OTHER[r]+= other.dist_histogramBinsLine[r](0, i_class) ;
-          N_THIS[r] = N_THIS[r]==0 ? INT_MAX : N_THIS[r];
-          N_OTHER[r] = N_OTHER[r]==0 ? INT_MAX : N_OTHER[r];
+          N_THIS(r, i_class) = N_THIS(r,i_class)==0 ? INT_MAX : N_THIS(r,i_class);
+          N_OTHER(r,i_class) = N_OTHER(r,i_class)==0 ? INT_MAX : N_OTHER(r,i_class);
         }
         for(int q = 0; q<averageDirections.size(); q++)
           {
@@ -597,27 +637,31 @@ namespace perception_oru{
 
             for(unsigned int r = 0; r<3; r++)
               {
-                score[r] += pow((double)this->dist_histogramBinsFlat[r](q, i_class)/N_THIS[r] - (double)other.dist_histogramBinsFlat[r](idmin, i_class)/N_OTHER[r],2);
+                score[r] += pow(((double)this->dist_histogramBinsFlat[r](q, i_class))/N_THIS(r,i_class) - ((double)other.dist_histogramBinsFlat[r](idmin, i_class))/N_OTHER(r,i_class),2);
               }
 
           }
         for(unsigned int r = 0; r<3; r++)
           {
+              //scoreM.row(r)=(this->dist_histogramBinsSphere[r].cast<double>().array()/N_THIS.row(r).array() - other.dist_histogramBinsSphere[r].cast<double>().array()/N_OTHER.row(r).array()).pow(2).colwise().sum();
             for(int i=0; i<N_SPHERE_BINS; i++)
               {
-                score[r] += pow( (double)this->dist_histogramBinsSphere[r](i, i_class)/N_THIS[r] - (double)other.dist_histogramBinsSphere[r](i, i_class)/N_OTHER[r] ,2);
+                score[r] += pow( ((double)this->dist_histogramBinsSphere[r](i, i_class))/N_THIS(r,i_class) - ((double)other.dist_histogramBinsSphere[r](i, i_class))/N_OTHER(r,i_class) ,2);
               }
+            //score[r]+=scoreM(r,i_class);
 
-            score[r] += pow( (double)this->dist_histogramBinsLine[r](0, i_class)/N_THIS[r] - (double)other.dist_histogramBinsLine[r](0, i_class)/N_OTHER[r] ,2);
+            score[r] += pow( ((double)this->dist_histogramBinsLine[r](0, i_class))/N_THIS(r,i_class) - ((double)other.dist_histogramBinsLine[r](0, i_class))/N_OTHER(r,i_class) ,2);
             double maxN, minN;
-            maxN = (N_THIS[r] > N_OTHER[r]) ? N_THIS[r] : N_OTHER[r];
-            minN = (N_THIS[r] < N_OTHER[r]) ? N_THIS[r] : N_OTHER[r];
+            maxN = (N_THIS(r,i_class) > N_OTHER(r,i_class)) ? N_THIS(r,i_class) : N_OTHER(r,i_class);
+            minN = (N_THIS(r,i_class) < N_OTHER(r,i_class)) ? N_THIS(r,i_class) : N_OTHER(r,i_class);
             minN = (minN < 1) ? 1 : minN;
 
             score_final[r] += maxN*sqrt(score[r])/minN;
           }
     }
 
+//    if(score_final[0]+score_final[1]==0)
+//        std::cout<<"EDW"<<std::endl;
 
 
     return score_final[0]+score_final[1];

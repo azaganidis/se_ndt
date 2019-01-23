@@ -489,6 +489,7 @@ void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<
 			fprintf(stderr,"NOT LAZY GRID!!!\n");
 			exit(1);
     }
+    //auto cA=lz->size();
     lz->setSensorPose(origin.data());
     pcl::PointXYZ po, pt;
     po.x = origin(0); po.y = origin(1); po.z = origin(2);
@@ -576,6 +577,8 @@ void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<
 	it++;
     }
     isFirstLoad_ = false;
+    //auto cB=lz->size();
+    //std::cerr<<"SIZEDIFF  "<<cA<<"\t"<<cB<<"\t"<<cB-cA<<std::endl;
 
 #else
     double centerX,centerY,centerZ;

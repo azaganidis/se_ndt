@@ -50,6 +50,7 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/filesystem.hpp>
 #include <set>
+#include <pcl/common/geometry.h>
 namespace perception_oru
 {
 class CellVector3d {
@@ -113,11 +114,13 @@ public:
     bool isValid(const pcl::PointXYZ &p, NDTCell* cell);
     virtual NDTCell* getCellForPoint(const pcl::PointXYZ &point);
     virtual NDTCell* addPoint(const pcl::PointXYZ &point);
+    void clearCells();
 
     struct Darray
     {
         int size[3];
         NDTCell** array;
+        Darray(): array(NULL), size{}{}
         void initialize(int x,int y,int z){
             size[0]=x;
             size[1]=y;
@@ -145,6 +148,7 @@ public:
         }
     };
     void setSensorPose(const double *pose);
+    bool inRange(const pcl::PointXYZ& p);
  
     //these two don't make much sense...
     ///iterator through all cells in index, points at the begining
@@ -188,7 +192,7 @@ public:
 
 
   ///automatically allocate the cell if needed (checks that the indexes etc. are correct).
-  virtual void getCellAtAllocate(const pcl::PointXYZ& pt, NDTCell* &cell);
+  virtual bool getCellAtAllocate(const pcl::PointXYZ& pt, NDTCell* &cell);
 
     //FIXME: these two are now not needed anymore
     virtual inline void getNDTCellAt(int indX, int indY, int indZ, NDTCell* &cell){
@@ -227,28 +231,28 @@ public:
         return traceLine(origin, ep, diff, maxz, cells);
     }
 
+    void loadCells(int index_start, int index_end);
     void InitializeDefaultValues();
     std::string GetDataString();
     std::string ToString();
+    volatile int sensor_pose[3];
+    Darray dataArray;
+    double cellSizeX, cellSizeY, cellSizeZ;
 protected:
     bool initialized=false;
-    Darray dataArray;
     //bool ***linkedCells;
     NDTCell *protoType=NULL;
     std::set<NDTCell*> activeCells;
     bool centerIsSet, sizeIsSet;
 
     double sizeXmeters, sizeYmeters, sizeZmeters;
-    double cellSizeX, cellSizeY, cellSizeZ;
     double centerX, centerY, centerZ;
     int sizeX,sizeY,sizeZ;
 
     virtual bool checkCellforNDT(int indX, int indY, int indZ, bool checkForGaussian=true);
 private:
-    volatile int sensor_pose[3];
     int initial_sensor_pose[3];
     void dealocateCells(int i, int d, boost::archive::text_oarchive& oa, unsigned int &min_index);
-    void loadCells(int index_start, int index_end);
     LazyGrid(){InitializeDefaultValues();}
 
     friend class boost::serialization::access;

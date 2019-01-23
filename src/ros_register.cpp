@@ -56,12 +56,12 @@ class Registration{
         ndt_rviz rvNDT;
 //#define STOP_AFTERN
 #ifdef STOP_AFTERN
-        int stop_down_timer=1;
+        int stop_down_timer=5;
 #endif
         //Registration(ros::Publisher& pub_):matcher({4,1,0.5},{0,1,2},{50,50,10},{'=','=','=','=','=','=','=','=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14},0.01,5)
         Registration(ros::NodeHandle& nh, std::string topic_out):
             //matcher({4,0.8},{0,1},{200,200,50},{'=','=','=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7,8,9},0.01,5),
-            matcher({4, 0.8},{0,1},{100,100,50},{1,1,1,1,1,1,1,1},5),
+            matcher({4, 0.8},{0,1},{50,50,50},{1,1,1,1,1,1,1,1},5),
             rvNDT(nh, 2)
         {
             pub = nh.advertise<pcl::PointCloud<pcl::PointXYZI> >(topic_out, 1000);
@@ -107,13 +107,13 @@ class Registration{
             //Td=matcher.matchFaster(Td,cloud_mv);
             //T=T*Td;
             T=matcher.mapUpdate(cloud_mv, true);
-            //rvNDT.plotNDTs(matcher.map, matcher.resolutions.size(), matcher.NumInputs, r_time); 
+            rvNDT.plotNDTs(matcher.map, matcher.resolutions.size(), matcher.NumInputs, r_time); 
             //rvNDT.plotNDTs(matcher.map, 2, matcher.NumInputs, r_time); 
             //hists.push_back(perception_oru::NDTHistogram (matcher.map[1], 1, 40, 10, 8,2, 5));
             //poses.push_back((T*Td).translation());
             //loop_check.join();
             //T=matcher.matchFaster_OM(T,cloud_mv);
-            cerr<<"1 "<<float( clock() -begin_time ) / CLOCKS_PER_SEC<<endl;begin_time=clock();
+            //cerr<<"1 "<<float( clock() -begin_time ) / CLOCKS_PER_SEC<<endl;begin_time=clock();
 #ifdef STOP_AFTERN
             if(stop_down_timer--==0)
                 ros::shutdown();
@@ -170,7 +170,7 @@ int main(int argc, char** argv)
 	if(vm.count("help"))
         { cout<<desc; return 0; }
 
-	ros::init (argc,argv,"pub_sendt_r");
+	ros::init (argc,argv,"pub_sendt");
 	ros::NodeHandle nh;
     Registration registration(nh, topic_out);
     ros::Subscriber sub = nh.subscribe(topic_in, 1000, &Registration::callback, &registration);

@@ -23,7 +23,7 @@ class ndt_rviz{
     ndt_rviz(ros::NodeHandle &n, int n_res):dur()
     {
         for(int i=0;i<n_res;i++)
-            marker_pub.push_back(n.advertise<visualization_msgs::Marker>("vm_res"+std::to_string(i),1));
+            marker_pub.push_back(n.advertise<visualization_msgs::Marker>("vm_res"+std::to_string(i),1000));
     }
     void show_cell(const Eigen::Matrix3d &m_cov, const Eigen::Vector3d &m_mean,float occupancy,ros::Time& cl_time,int iRes, int iSem, int ID){
         const double d=m_cov.determinant();
@@ -38,7 +38,7 @@ class ndt_rviz{
         //    return;
         Eigen::Quaterniond qR(m_eigVec);
         visualization_msgs::Marker marker;
-        marker.header.frame_id = "/velodyne";
+        marker.header.frame_id = "/world";
         marker.header.stamp = cl_time;
         marker.ns = "sem"+std::to_string(iSem);
         marker.id=ID;
@@ -68,7 +68,16 @@ class ndt_rviz{
         marker.lifetime = dur;
         marker_pub[iRes].publish(marker);
     }
+    void clearMarkers(int n_res){
+        visualization_msgs::Marker marker;
+        marker.header.frame_id = "/world";
+        marker.header.stamp = ros::Time();
+        marker.action = visualization_msgs::Marker::DELETEALL;
+        for(int i=0;i<n_res;i++)
+            marker_pub[i].publish(marker);
+    }
 	void plotNDTs(perception_oru::NDTMap ***maps,int n_res, int n_sem, ros::Time cl_time){
+        clearMarkers(n_res);
         NumSem=n_sem;
         for(int iRes=0;iRes<n_res;iRes++)
             for(int iSem=0;iSem<n_sem;iSem++)
@@ -81,6 +90,7 @@ class ndt_rviz{
 					float occupancy = tempMap[i]->getOccupancy();
                     Eigen::Matrix3d cov = tempMap[i]->getCov();
                     show_cell(cov, m, occupancy,cl_time,iRes, iSem, i);
+                    delete tempMap[i];
 				}
             }
     }

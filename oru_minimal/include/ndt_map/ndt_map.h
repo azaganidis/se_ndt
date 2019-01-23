@@ -140,6 +140,16 @@ public:
       isFirstLoad_ = false;
     }
   }
+  void loadSaved(int start, int stop, int poseX, int poseY, int poseZ)
+  {
+        perception_oru::LazyGrid *lz = dynamic_cast<perception_oru::LazyGrid *> (index_);
+        lz->clearCells();
+        lz->initialize();
+        lz->sensor_pose[0]=poseX;
+        lz->sensor_pose[1]=poseY;
+        lz->sensor_pose[2]=poseZ;
+        lz->loadCells(start, stop);
+  }
 
 
   /**

@@ -146,6 +146,8 @@ namespace perception_oru{
      * Copy constructor.
      */
     NDTHistogram (const NDTHistogram& other);
+    double calculateEntropy();
+    double ENTROPY;
     
     /**
      * Get the transform that brings me close to target.

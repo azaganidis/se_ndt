@@ -3,6 +3,7 @@
 #include <vector>
 #include <pcl/point_cloud.h>
 #include <pcl/common/io.h>
+#include <pcl/common/geometry.h>
 #include <ndt_map/ndt_map.h>
 #include <ndt_map/lazy_grid.h>
 #include <ndt_map/ndt_cell.h>
@@ -21,7 +22,7 @@ class NDTMatch_SE{
         bool useSaved=false;
         unsigned int NumInputs;
 		perception_oru::NDTMap ***map;
-		//perception_oru::NDTMap ***mapLocal_prev;
+		perception_oru::NDTMap ***mapLocal_prev;
 		perception_oru::NDTMap ***mapLocal;
 		vector<float> resolutions,size;
 		vector<int> inputs,resolutions_order;
@@ -47,6 +48,7 @@ class NDTMatch_SE{
 		void setNeighbours(short int i){matcher.n_neighbours=i;};
 		float sensor_range=100;
     private:
+        void matchToSaved(int pose_index);
 		bool firstRun;
 #ifdef GL_VISUALIZE
     public:
