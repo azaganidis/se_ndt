@@ -140,11 +140,15 @@ public:
       isFirstLoad_ = false;
     }
   }
+    void transformNDTMap(Eigen::Transform<double, 3, Eigen::Affine, Eigen::ColMajor> T);
   void loadSaved(int start, int stop, int poseX, int poseY, int poseZ)
   {
         perception_oru::LazyGrid *lz = dynamic_cast<perception_oru::LazyGrid *> (index_);
-        lz->clearCells();
-        lz->initialize();
+        NDTCell *ptCell = new NDTCell();
+        index_->setCellType(ptCell);
+        delete ptCell;
+        lz->setCenter(0,0,0);
+        lz->setSize(map_sizex, map_sizey, map_sizez);
         lz->sensor_pose[0]=poseX;
         lz->sensor_pose[1]=poseY;
         lz->sensor_pose[2]=poseZ;

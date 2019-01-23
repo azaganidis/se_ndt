@@ -256,18 +256,44 @@ void NDTMatch_SE::matchToSaved(int pose_index)
     int start_pi=pose_index;
     while(--start_pi>=0 && pcl::geometry::distance(pose, poses->points.at(start_pi))<max_size/2);
     start_pi++;
+    perception_oru::NDTMap ***mapT;
+	mapT=new perception_oru::NDTMap ** [resolutions.size()];
     for(unsigned int i=0;i<resolutions.size();i++)
     {
+        mapT[i]= new perception_oru::NDTMap * [NumInputs];
         for(unsigned int j=0;j<NumInputs;j++)
         {
-            mapLocal[i][j]->loadSaved(start_pi, pose_index, pose.x, pose.y, pose.z);
+            perception_oru::LazyGrid* grid = new perception_oru::LazyGrid(resolutions[i]);
+            grid->semantic_index=j;
+            mapT[i][j]=new perception_oru::NDTMap(grid);
+            mapT[i][j]->guessSize(0,0,0,size[0],size[1],size[2]);
+            //mapT[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
+            mapT[i][j]->loadSaved(start_pi, pose_index, pose.x, pose.y, pose.z);
         }
     }
+//    std::cerr<<"LOADED"<<std::endl;
+    Eigen::Affine3d Td_;
+    Td_.setIdentity();
     for(auto i:resolutions_order)
     {
         matcher.current_resolution=resolutions.at(i);
-        matcher.match(mapLocal[i],map[i],T,true);
+        if(!matcher.match(mapT[i],map[i],Td_,true))
+            std::cerr<<"NOT GOOD"<<std::endl;
     }
+    std::cerr<<"MATCHED"<<std::endl;
+    for(unsigned int i=0;i<resolutions.size();i++)
+    {
+        for(auto j=0;j<NumInputs;j++)
+            delete mapT[i][j];
+        delete[] mapT[i];
+    }
+    delete[] mapT;
+//    std::cerr<<"FREED"<<std::endl;
+
+    for(unsigned int i=0;i<resolutions.size();i++)
+        for(unsigned int j=0;j<NumInputs;j++)
+            map[i][j]->transformNDTMap(Td_);
+    std::cerr<<"TRANSFORMED"<<std::endl;
     /*perception_oru::NDTMap ***mapT;
     mapT=map;
     map=mapLocal;
@@ -303,16 +329,17 @@ Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr clou
     }
     if(constant_velocity&&!ignore_map)
         Td=T_prev.inverse()*T;
+    //Td.translation()<<8,0,0;
     if(ignore_map)
         T=T_prev*Td;
-    else
-        T_prev=T;
+    T_prev=T;
     std::vector<thread> tc;
     for(size_t i=0;i<laserCloud.size();i++)
         tc.push_back( std::thread([i,&T_prev, laserCloud](){
                     perception_oru::transformPointCloudInPlace(T_prev, *laserCloud[i]);
                 }));
     for(auto& t:tc)t.join();
+//    std::cerr<<"START_LOADING"<<std::endl;
     for(size_t i=0;i<laserCloud.size();i++)
     {
 		for(int rez=0;rez<resolutions.size();rez++)
@@ -325,6 +352,7 @@ Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr clou
             //mapLocal_prev[rez][i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE,1e9,255,T.translation(),0.01);
         }
     }
+//    std::cerr<<"END_LOADING"<<std::endl;
     Eigen::Vector3d p_=T.translation();
     pcl::PointXYZL pose_current;
     pose_current.x=p_[0];
@@ -361,6 +389,8 @@ Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr clou
         pose_kdtree.setInputCloud(poses);
         double minimum_similarity = INT_MAX;
         int ms_i=0;
+        if(poses->size()>1)
+            matchToSaved(0);
         //std::cerr<<poses->size()<<std::endl;
         if(pose_kdtree.radiusSearch(pose_current, max_size, poseIdxSearch, poseDistSearch))
         {
@@ -385,7 +415,7 @@ Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr clou
 
                     */
                     ofLog<<similarity<<" "<<p_.transpose()<<" "<<poses->at(i).x<<" "<<poses->at(i).y<<" "<<poses->at(i).z<<" "<<poses->at(i).label<<" "<<endl;
-                    if(similarity<6)
+                    if(similarity<9)
                         matchToSaved(i);
                 }
             }
@@ -399,6 +429,7 @@ Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr clou
             poses->push_back(pose_current);
     }
     num_clouds++;
+//    std::cerr<<"NEXT CLOUD"<<std::endl;
 	return T;
 }
 Eigen::Matrix<double, 6,6> NDTMatch_SE::getPoseCovariance(Eigen::Affine3d T)

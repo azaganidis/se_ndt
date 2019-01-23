@@ -235,9 +235,11 @@ public:
     void InitializeDefaultValues();
     std::string GetDataString();
     std::string ToString();
-    volatile int sensor_pose[3];
+    volatile int sensor_pose[3]={0,0,0};
     Darray dataArray;
     double cellSizeX, cellSizeY, cellSizeZ;
+    Eigen::Vector3d translation;
+    void addNDTCell(NDTCell* cell);
 protected:
     bool initialized=false;
     //bool ***linkedCells;
@@ -251,7 +253,6 @@ protected:
 
     virtual bool checkCellforNDT(int indX, int indY, int indZ, bool checkForGaussian=true);
 private:
-    int initial_sensor_pose[3];
     void dealocateCells(int i, int d, boost::archive::text_oarchive& oa, unsigned int &min_index);
     LazyGrid(){InitializeDefaultValues();}
 

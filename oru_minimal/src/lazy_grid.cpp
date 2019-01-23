@@ -131,16 +131,9 @@ void LazyGrid::initialize()
     sizeY=ceil(sizeY/2)*2;
     sizeZ=ceil(sizeZ/2)*2;
 
-    if(dataArray.array!=NULL)
-        clearCells();
+    clearCells();
     dataArray.initialize(sizeX,sizeY,sizeZ);
     initialized = true;
-    sensor_pose[0] = 0;
-    sensor_pose[1] = 0;
-    sensor_pose[2] = 0;
-    initial_sensor_pose[0]=sensor_pose[0];
-    initial_sensor_pose[1]=sensor_pose[1];
-    initial_sensor_pose[2]=sensor_pose[2];
     makeFolder("maps");
     finalpath="maps/s_"+std::to_string(semantic_index);
     makeFolder(finalpath);
@@ -152,7 +145,8 @@ void LazyGrid::clearCells(){
             if(*it)
                 delete *it;
         activeCells.clear();
-        free( dataArray.array);
+        if(dataArray.array!=NULL)
+            free( dataArray.array);
 }
 
 LazyGrid::~LazyGrid()
@@ -167,39 +161,51 @@ LazyGrid::~LazyGrid()
         //fprintf(stderr,"Deleted %d cells and array of (%d x %d)!!!\n",cnt, sizeX, sizeY);
     }
 }
+void LazyGrid::addNDTCell(NDTCell* cell)
+{
+    pcl::PointXYZ cellCenter = cell->getCenter();
+    if(inRange(cellCenter))
+    {
+        //std::cout<<".";
+        int indX,indY,indZ;
+        this->getIndexForPoint(cellCenter,indX,indY,indZ);
+        if(dataArray(indX, indY, indZ)==NULL)//If it is not NULL, the cell could have been re-initiated on a different iteration. Or a memory leak...
+        {
+            dataArray.set(indX,indY,indZ, cell);
+            activeCells.insert(cell);
+            return; //cell must not be deleted here.
+        }
+    }
+    delete cell;
+}
 void LazyGrid::loadCells(int index_start, int index_end)
 {
     boost::filesystem::path p(finalpath);
     boost::filesystem::directory_iterator it{p};
+//    std::cerr<<index_start<<" "<<index_end<<std::endl;
     while(it!=boost::filesystem::directory_iterator{})
     {
         std::string fname = it->path().filename().string();
+//        std::cerr<<"FNAME: "<<fname<<std::endl;
         int t = stoi(fname.substr(0,fname.find('_')));
         if(t<=index_end&&t>=index_start)
         {
             std::ifstream ifs(it->path().string());
-            //assert(ifs.good());
+            assert(ifs.good());
             boost::archive::text_iarchive ia(ifs);
             while(ifs.good())
             {
-                NDTCell* ndc_ = protoType->clone();
-                ia>>*ndc_;
-                pcl::PointXYZ cellCenter = ndc_->getCenter();
-                if(inRange(cellCenter)&& ndc_->cloud_index<=index_end && ndc_->cloud_index>=index_start )
-                {
-                    std::cout<<".";
-                    int indX,indY,indZ;
-                    this->getIndexForPoint(cellCenter,indX,indY,indZ);
-                    assert(dataArray(indX, indY, indZ)==NULL);
-                    dataArray.set(indX,indY,indZ, ndc_);
-                    activeCells.insert(ndc_);
-                }
+                NDTCell* cell = protoType->clone();
+                ia>>*cell;
+                if(cell->cloud_index<=index_end && cell->cloud_index>=index_start )
+                    addNDTCell(cell);
                 else
-                    delete ndc_;
+                    delete cell;
             }
         }
         it++;
     }
+//    std::cerr<<"D"<<std::endl;
 }
 
 void LazyGrid::dealocateCells(int dim_ind, int newP, boost::archive::text_oarchive& oa, unsigned int &min_index)// newP only -1 or +1
@@ -262,6 +268,7 @@ void LazyGrid::setSensorPose(const double *pose)
 {
     cloud_index++;
     int indPose[3];
+    translation<<pose[0],pose[1],pose[2];
     indPose[0] = floor(pose[0]/cellSizeX);
     indPose[1] = floor(pose[1]/cellSizeY);
     indPose[2] = floor(pose[2]/cellSizeZ);
