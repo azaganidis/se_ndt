@@ -573,7 +573,7 @@ double NDTHistogram::calculateEntropy()
         entropy+=(L_.array()*L_.array().log().unaryExpr([](double v) { return std::isfinite(v)? v : 0.0; })).sum();
     }
 //    return -entropy;
-    if(isnan(entropy))
+    if(isnan(entropy))//FIXME sum=0
         std::cout<<sum<<" "<<std::endl;
     assert(!isnan(entropy));
     double num_el=N_LINE_BINS*N_SPHERE_BINS*N_FLAT_BINS*N_CLASSES*2;

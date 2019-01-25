@@ -169,12 +169,11 @@ void LazyGrid::addNDTCell(NDTCell* cell)
         //std::cout<<".";
         int indX,indY,indZ;
         this->getIndexForPoint(cellCenter,indX,indY,indZ);
-        if(dataArray(indX, indY, indZ)==NULL)//If it is not NULL, the cell could have been re-initiated on a different iteration. Or a memory leak...
-        {
-            dataArray.set(indX,indY,indZ, cell);
-            activeCells.insert(cell);
-            return; //cell must not be deleted here.
-        }
+        if(dataArray(indX, indY, indZ)!=NULL)
+            deallocateCell(indX,indY,indZ);
+        dataArray.set(indX,indY,indZ, cell);
+        activeCells.insert(cell);
+        return; //cell must not be deleted here.
     }
     delete cell;
 }
@@ -191,13 +190,14 @@ void LazyGrid::loadCells(int index_start, int index_end)
         if(t<=index_end&&t>=index_start)
         {
             std::ifstream ifs(it->path().string());
+            //std::cerr<<it->path().string()<<std::endl;
             assert(ifs.good());
             boost::archive::text_iarchive ia(ifs);
             while(ifs.good())
             {
                 NDTCell* cell = protoType->clone();
                 ia>>*cell;
-                if(cell->cloud_index<=index_end && cell->cloud_index>=index_start )
+                if(cell->cloud_index>=index_start && cell->cloud_index<=index_end )
                     addNDTCell(cell);
                 else
                     delete cell;
@@ -207,7 +207,15 @@ void LazyGrid::loadCells(int index_start, int index_end)
     }
 //    std::cerr<<"D"<<std::endl;
 }
-
+void LazyGrid::deallocateCell(int i,int j, int k)
+{
+    SpatialIndex::CellVectorItr del_iter=activeCells.find(dataArray(i,j,k));
+    if(del_iter!=activeCells.end())
+        activeCells.erase(del_iter);
+    delete dataArray(i,j,k);
+    dataArray.set(i,j,k, NULL);
+ 
+}
 void LazyGrid::dealocateCells(int dim_ind, int newP, boost::archive::text_oarchive& oa, unsigned int &min_index)// newP only -1 or +1
 {
     if(newP>0)
@@ -249,11 +257,7 @@ void LazyGrid::dealocateCells(int dim_ind, int newP, boost::archive::text_oarchi
                         min_index = dataArray(i,j,k)->cloud_index ;
                     oa << *dataArray(i,j,k);
                 }
-                SpatialIndex::CellVectorItr del_iter=activeCells.find(dataArray(i,j,k));
-                if(del_iter!=activeCells.end())
-                    activeCells.erase(del_iter);
-                delete dataArray(i,j,k);
-                dataArray.set(i,j,k, NULL);
+                deallocateCell(i,j,k);
             }
     sensor_pose[dim_ind]+=newP;
     return ;

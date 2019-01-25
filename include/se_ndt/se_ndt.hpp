@@ -18,6 +18,7 @@ using namespace std;
 Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> score_gradient);
 class NDTMatch_SE{
     public:
+        std::vector<perception_oru::NDTCell*> toRVIZ;
         perception_oru::NDTMap** loadSavedMap(int index);
         bool useSaved=false;
         unsigned int NumInputs;
@@ -48,7 +49,9 @@ class NDTMatch_SE{
 		void setNeighbours(short int i){matcher.n_neighbours=i;};
 		float sensor_range=100;
     private:
-        void matchToSaved(int pose_index);
+        int last_loop_close_id=0;
+        double last_loop_close_sim=0;
+        Eigen::Affine3d matchToSaved(int pose_index, pcl::PointXYZL pose_current);
 		bool firstRun;
 #ifdef GL_VISUALIZE
     public:

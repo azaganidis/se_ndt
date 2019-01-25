@@ -158,6 +158,7 @@ public:
     virtual typename SpatialIndex::CellVectorItr end();
     virtual typename SpatialIndex::CellVectorConstItr end() const;
     virtual int size();
+    void deallocateCell(int i,int j, int k);
 
     ///clone - create an empty object with same type
     virtual SpatialIndex* clone() const;

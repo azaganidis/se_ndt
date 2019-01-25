@@ -7,11 +7,15 @@ using namespace std;
 
 void NDTMatch_SE::loadMap(perception_oru::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range)
 {
-	for(size_t i=0;i<input_clouds.size();i++)
-	{
-		map[i]->loadPointCloud(*input_clouds[i],sensor_range);
-		map[i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
-	}
+    #pragma omp parallel num_threads(8)
+    {
+        #pragma omp for
+        for(size_t i=0;i<input_clouds.size();i++)
+        {
+            map[i]->loadPointCloud(*input_clouds[i],sensor_range);
+            map[i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
+        }
+    }
 }
 Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> score_gradient)
 {
@@ -250,14 +254,25 @@ Eigen::Affine3d NDTMatch_SE::matchFaster_OM(Eigen::Affine3d Tinit, pcl::PointClo
     }
 	return Tinit;
 }
-void NDTMatch_SE::matchToSaved(int pose_index)
+Eigen::Affine3d NDTMatch_SE::matchToSaved(int pose_index, pcl::PointXYZL pose_current)
 {
     pcl::PointXYZL pose=poses->points.at(pose_index);
     int start_pi=pose_index;
-    while(--start_pi>=0 && pcl::geometry::distance(pose, poses->points.at(start_pi))<max_size/2);
-    start_pi++;
+    while(start_pi>=0)
+    {
+        if( abs(poses->points.at(start_pi).x-pose.x)<max_size/2 &&
+            abs(poses->points.at(start_pi).y-pose.y)<max_size/2 &&
+            abs(poses->points.at(start_pi).z-pose.z)<max_size/2)
+            start_pi--;
+        else
+            break;
+    }
+    int start_index=start_pi>=0?poses->points.at(start_pi).label:0;
+    int stop_index=poses->points.at(pose_index).label;
     perception_oru::NDTMap ***mapT;
 	mapT=new perception_oru::NDTMap ** [resolutions.size()];
+    int sum_dist_local=0;
+    int sum_dist_load=0;
     for(unsigned int i=0;i<resolutions.size();i++)
     {
         mapT[i]= new perception_oru::NDTMap * [NumInputs];
@@ -268,19 +283,26 @@ void NDTMatch_SE::matchToSaved(int pose_index)
             mapT[i][j]=new perception_oru::NDTMap(grid);
             mapT[i][j]->guessSize(0,0,0,size[0],size[1],size[2]);
             //mapT[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
-            mapT[i][j]->loadSaved(start_pi, pose_index, pose.x, pose.y, pose.z);
+            mapT[i][j]->loadSaved(start_index, stop_index, pose.x, pose.y, pose.z);
+            std::vector<perception_oru::NDTCell*> tmV= mapT[i][j]->getAllCells();
+            toRVIZ.insert(toRVIZ.end(), tmV.begin(), tmV.end());
+            sum_dist_load+=mapT[i][j]->numActive();
+            sum_dist_local+=map[i][j]->numActive();
         }
     }
 //    std::cerr<<"LOADED"<<std::endl;
     Eigen::Affine3d Td_;
     Td_.setIdentity();
+    Td_.translation()[0]=pose.x - pose_current.x;
+    Td_.translation()[1]=pose.y - pose_current.y;
+    Td_.translation()[2]=pose.z - pose_current.z;
     for(auto i:resolutions_order)
     {
         matcher.current_resolution=resolutions.at(i);
         if(!matcher.match(mapT[i],map[i],Td_,true))
             std::cerr<<"NOT GOOD"<<std::endl;
     }
-    std::cerr<<"MATCHED"<<std::endl;
+    std::cerr<<"MATCHED. NDTs local: "<<sum_dist_local<<" NDTs loaded: "<<sum_dist_load<<" INDXS "<<start_index<< " "<<stop_index<<std::endl;
     for(unsigned int i=0;i<resolutions.size();i++)
     {
         for(auto j=0;j<NumInputs;j++)
@@ -293,14 +315,17 @@ void NDTMatch_SE::matchToSaved(int pose_index)
     for(unsigned int i=0;i<resolutions.size();i++)
         for(unsigned int j=0;j<NumInputs;j++)
             map[i][j]->transformNDTMap(Td_);
-    std::cerr<<"TRANSFORMED"<<std::endl;
+    return Td_;
+//    std::cerr<<"TRANSFORMED"<<std::endl;
     /*perception_oru::NDTMap ***mapT;
     mapT=map;
     map=mapLocal;
     mapLocal=map;*/
 }
+#include <chrono>
 Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, bool constant_velocity)
 {
+    auto startT=chrono::steady_clock::now();
     bool ignore_map=true;
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegmentsFast(cloud);
 	for(unsigned int i=0;i<resolutions.size();i++)
@@ -340,16 +365,20 @@ Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr clou
                 }));
     for(auto& t:tc)t.join();
 //    std::cerr<<"START_LOADING"<<std::endl;
-    for(size_t i=0;i<laserCloud.size();i++)
+    #pragma omp parallel num_threads(8)
     {
-		for(int rez=0;rez<resolutions.size();rez++)
-		{
-            map[rez][i]->addPointCloud(T.translation(), *laserCloud[i],0.06, 100, 0.03, 255);
-            //map[rez][i]->loadPointCloud(*laserCloud[i],sensor_range);
-            map[rez][i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE,1e9,255,T.translation(),0.01);
+        #pragma omp for
+        for(size_t i=0;i<laserCloud.size();i++)
+        {
+            for(int rez=0;rez<resolutions.size();rez++)
+            {
+                map[rez][i]->addPointCloud(T.translation(), *laserCloud[i],0.06, 100, 0.03, 255);
+                //map[rez][i]->loadPointCloud(*laserCloud[i],sensor_range);
+                map[rez][i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE,1e9,255,T.translation(),0.01);
 
-            //mapLocal_prev[rez][i]->loadPointCloud(*laserCloud[i],sensor_range);
-            //mapLocal_prev[rez][i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE,1e9,255,T.translation(),0.01);
+                //mapLocal_prev[rez][i]->loadPointCloud(*laserCloud[i],sensor_range);
+                //mapLocal_prev[rez][i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE,1e9,255,T.translation(),0.01);
+            }
         }
     }
 //    std::cerr<<"END_LOADING"<<std::endl;
@@ -383,45 +412,45 @@ Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr clou
             //std::cerr<<"INSERT "<<entropy<<" "<<hists.back().ENTROPY<<std::endl;
         }
         ///LOOP CLOSE SEARCH
-        int K_ = 1000;
-        std::vector<int> poseIdxSearch(K_);
-        std::vector<float> poseDistSearch(K_);
+        std::vector<int> poseIdxSearch;
+        std::vector<float> poseDistSearch;
         pose_kdtree.setInputCloud(poses);
         double minimum_similarity = INT_MAX;
-        int ms_i=0;
-        if(poses->size()>1)
-            matchToSaved(0);
         //std::cerr<<poses->size()<<std::endl;
         if(pose_kdtree.radiusSearch(pose_current, max_size, poseIdxSearch, poseDistSearch))
         {
-            perception_oru::NDTHistogram hist_last=hists.back();
-            for(int i :poseIdxSearch)
+            std::vector<double> p_v(poseIdxSearch.size(),INT_MAX);
+            #pragma omp parallel num_threads(8)
             {
-                if(num_clouds - poses->at(i).label >200)
+                #pragma omp for
+                for(int i=0;i<poseIdxSearch.size();i++)
                 {
-                    double similarity=hist_last.getSimilarity(hists.at(i));
-                    if(similarity<minimum_similarity)
-                    {
-                        minimum_similarity=similarity;
-                        ms_i=i;
-                    }
-                    if(similarity==0||similarity>1000)
+                    int pi=poseIdxSearch[i];
+                    if(num_clouds - poses->at(pi).label <200)
                         continue;
-                    /*else if(similarity==0)
-                    {
-                        Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> TH;
-                        hist_last.bestFitToHistogram(hists.at(i),TH,false);
-                    }
-
-                    */
-                    ofLog<<similarity<<" "<<p_.transpose()<<" "<<poses->at(i).x<<" "<<poses->at(i).y<<" "<<poses->at(i).z<<" "<<poses->at(i).label<<" "<<endl;
-                    if(similarity<9)
-                        matchToSaved(i);
+                    double similarity=hists.at(pi).getSimilarity(*hist);
+                    if(num_clouds - last_loop_close_id<100 && similarity>last_loop_close_sim)
+                        continue;
+                    //std::cerr<<"DIFF "<<num_clouds-last_loop_close_id<<std::endl;
+                    p_v[i]=similarity;
                 }
             }
+            std::vector<double>::iterator min_it=std::min_element(std::begin(p_v), std::end(p_v));
+            if(*min_it<5&&*min_it!=0)
+            {
+                int index_in_search=(std::distance(std::begin(p_v), min_it));
+                int index_in_poses = poseIdxSearch[index_in_search];
+                T_prev=matchToSaved(index_in_poses, pose_current);
+                T=T_prev*T;
+                last_loop_close_sim=*min_it;
+                last_loop_close_id=num_clouds;
+                std::cerr<<*min_it<<" CLOUD: "<<pose_current<<" TO: "<<poses->at(index_in_poses)<<" T "<<T_prev.translation().transpose()<<std::endl;
+                pose_current.x=T.translation()[0];
+                pose_current.y=T.translation()[1];
+                pose_current.z=T.translation()[2];
+                ofLog<<pose_current<<std::endl;
+            }
         }
-        if(ms_i!=0)
-            std::cout<<pose_current<<" MINIMUM: "<<minimum_similarity<<" at: "<<poses->at(ms_i)<<std::endl;
     }
     else
     {
@@ -430,6 +459,7 @@ Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr clou
     }
     num_clouds++;
 //    std::cerr<<"NEXT CLOUD"<<std::endl;
+    //std::cout<<"ELAPSED 1: "<<chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now()-startT).count()<<std::endl;startT=chrono::steady_clock::now();
 	return T;
 }
 Eigen::Matrix<double, 6,6> NDTMatch_SE::getPoseCovariance(Eigen::Affine3d T)

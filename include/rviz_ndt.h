@@ -1,3 +1,5 @@
+#ifndef RVIZ_NDT_H
+#define RVIZ_NDT_H
 #include <ndt_map/ndt_map.h>
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
@@ -20,10 +22,10 @@ class ndt_rviz{
     int NumSem;
     public:
     ros::Duration dur;
-    ndt_rviz(ros::NodeHandle &n, int n_res):dur()
+    ndt_rviz(ros::NodeHandle &n, int n_res, std::string prefix = "vm_res"):dur(300)
     {
         for(int i=0;i<n_res;i++)
-            marker_pub.push_back(n.advertise<visualization_msgs::Marker>("vm_res"+std::to_string(i),1000));
+            marker_pub.push_back(n.advertise<visualization_msgs::Marker>(prefix+std::to_string(i),1000));
     }
     void show_cell(const Eigen::Matrix3d &m_cov, const Eigen::Vector3d &m_mean,float occupancy,ros::Time& cl_time,int iRes, int iSem, int ID){
         const double d=m_cov.determinant();
@@ -86,7 +88,6 @@ class ndt_rviz{
 				for(unsigned int i=0;i<tempMap.size();i++)
                 {
 					Eigen::Vector3d m = tempMap[i]->getMean();
-					if(!tempMap[i]->hasGaussian_) continue;
 					float occupancy = tempMap[i]->getOccupancy();
                     Eigen::Matrix3d cov = tempMap[i]->getCov();
                     show_cell(cov, m, occupancy,cl_time,iRes, iSem, i);
@@ -94,4 +95,19 @@ class ndt_rviz{
 				}
             }
     }
+	void plotNDTs(std::vector<perception_oru::NDTCell*> &tempMap)
+    {
+        clearMarkers(0);
+        ros::Time tn=ros::Time::now();
+        for(unsigned int i=0;i<tempMap.size();i++)
+        {
+            Eigen::Vector3d m = tempMap[i]->getMean();
+            float occupancy = tempMap[i]->getOccupancy();
+            Eigen::Matrix3d cov = tempMap[i]->getCov();
+            show_cell(cov, m, occupancy,tn,0, 0, i);
+            delete tempMap[i];
+        }
+        tempMap.clear();
+    }
 };
+#endif

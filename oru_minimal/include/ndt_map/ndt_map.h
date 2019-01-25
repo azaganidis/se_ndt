@@ -141,6 +141,11 @@ public:
     }
   }
     void transformNDTMap(Eigen::Transform<double, 3, Eigen::Affine, Eigen::ColMajor> T);
+    int numActive()
+    {
+        perception_oru::LazyGrid *lz = dynamic_cast<perception_oru::LazyGrid *> (index_);
+        return lz->size();
+    }
   void loadSaved(int start, int stop, int poseX, int poseY, int poseZ)
   {
         perception_oru::LazyGrid *lz = dynamic_cast<perception_oru::LazyGrid *> (index_);

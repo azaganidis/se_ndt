@@ -61,7 +61,7 @@ class Registration{
         //Registration(ros::Publisher& pub_):matcher({4,1,0.5},{0,1,2},{50,50,10},{'=','=','=','=','=','=','=','=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14},0.01,5)
         Registration(ros::NodeHandle& nh, std::string topic_out):
             //matcher({4,0.8},{0,1},{200,200,50},{'=','=','=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7,8,9},0.01,5),
-            matcher({4, 0.8},{0,1},{50,50,50},{1,1,1,1,1,1,1,1},5),
+            matcher({4, 0.8},{0,1},{50,50,50},{1,1,1,1,1,1,1,1},50),
             rvNDT(nh, 2)
         {
             pub = nh.advertise<pcl::PointCloud<pcl::PointXYZI> >(topic_out, 1000);
@@ -107,7 +107,8 @@ class Registration{
             //Td=matcher.matchFaster(Td,cloud_mv);
             //T=T*Td;
             T=matcher.mapUpdate(cloud_mv, true);
-            rvNDT.plotNDTs(matcher.map, matcher.resolutions.size(), matcher.NumInputs, r_time); 
+            rvNDT.plotNDTs(matcher.toRVIZ);
+            //rvNDT.plotNDTs(matcher.map, matcher.resolutions.size(), matcher.NumInputs, r_time); 
             //rvNDT.plotNDTs(matcher.map, 2, matcher.NumInputs, r_time); 
             //hists.push_back(perception_oru::NDTHistogram (matcher.map[1], 1, 40, 10, 8,2, 5));
             //poses.push_back((T*Td).translation());
