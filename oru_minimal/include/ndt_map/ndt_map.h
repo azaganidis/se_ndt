@@ -146,7 +146,7 @@ public:
         perception_oru::LazyGrid *lz = dynamic_cast<perception_oru::LazyGrid *> (index_);
         return lz->size();
     }
-  void loadSaved(int start, int stop, int poseX, int poseY, int poseZ)
+  void loadSaved(int start, int stop,pcl::PointXYZL &pose)
   {
         perception_oru::LazyGrid *lz = dynamic_cast<perception_oru::LazyGrid *> (index_);
         NDTCell *ptCell = new NDTCell();
@@ -154,9 +154,11 @@ public:
         delete ptCell;
         lz->setCenter(0,0,0);
         lz->setSize(map_sizex, map_sizey, map_sizez);
-        lz->sensor_pose[0]=poseX;
-        lz->sensor_pose[1]=poseY;
-        lz->sensor_pose[2]=poseZ;
+        double poseD[3];
+        poseD[0]=pose.x;
+        poseD[1]=pose.y;
+        poseD[2]=pose.z;
+        lz->setSensorPose(poseD);
         lz->loadCells(start, stop);
   }
 

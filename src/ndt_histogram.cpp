@@ -1,6 +1,8 @@
 #include <ndt_map/pointcloud_utils.h>
 #include <pcl/registration/transformation_estimation_svd.h>
 #include <se_ndt/ndt_histogram.h>
+#include <cmath>
+#define n_threads 8
 
 namespace perception_oru{
 
@@ -117,10 +119,13 @@ namespace perception_oru{
                                         double flat_factor
                                         ){
 
+    #pragma omp parallel num_threads(n_threads)
+    {
+        #pragma omp for
     for(int cl_ind=0;cl_ind<N_CLASSES; cl_ind++)
     {
         SpatialIndex *si = map[cl_ind]->getMyIndex();
-        if(si==NULL) return;
+        if(si==NULL) continue;
 
         // double LINEAR_FACTOR = 50;
         // double FLAT_FACTOR = 50;
@@ -194,6 +199,7 @@ namespace perception_oru{
           }
 
       }
+    }
       for(int i=0; i<averageDirections.size(); i++)
           averageDirections[i].normalize();
       //std::cerr<<"H\t"<<histogramBinsFlat.sum()<<" "<<histogramBinsSphere.sum()<<" "<<histogramBinsLine.sum()<<std::endl;
@@ -573,9 +579,9 @@ double NDTHistogram::calculateEntropy()
         entropy+=(L_.array()*L_.array().log().unaryExpr([](double v) { return std::isfinite(v)? v : 0.0; })).sum();
     }
 //    return -entropy;
-    if(isnan(entropy))//FIXME sum=0
+    if(std::isnan(entropy))//FIXME sum=0
         std::cout<<sum<<" "<<std::endl;
-    assert(!isnan(entropy));
+    assert(!std::isnan(entropy));
     double num_el=N_LINE_BINS*N_SPHERE_BINS*N_FLAT_BINS*N_CLASSES*2;
     double max_entropy=-log(1/num_el);
     double normalized_entropy = -entropy/max_entropy;
@@ -602,61 +608,81 @@ double NDTHistogram::calculateEntropy()
     }
     for(int i_class=0;i_class<N_CLASSES;i_class++)
     {
-        for(unsigned int r = 0; r<3; r++){
-          score[r]=0;
-          N_THIS(r, i_class) = N_THIS(r,i_class)==0 ? INT_MAX : N_THIS(r,i_class);
-          N_OTHER(r,i_class) = N_OTHER(r,i_class)==0 ? INT_MAX : N_OTHER(r,i_class);
+        for(unsigned int r = 0; r<3; r++)
+        {
+            score[r]=0;
+            //if((N_THIS(r, i_class)==0) != (N_OTHER(r,i_class)==0))
+            //    score[r]=1;
         }
         for(int q = 0; q<averageDirections.size(); q++)
-          {
+        {
 
             Eigen::Vector3d tr = T*averageDirections[q];
             if( this->histogramBinsFlat(q, i_class) == 0)
-              {
+            {
                 tr = directions[q]; //fall back to bin direction
-              }
+            }
 
             //find B = the bin in which tr falls
             tr.normalize();
             double mindist = INT_MAX;
             int idmin = -1;
             for(unsigned int i=0; i<directions.size(); i++)
-              {
+            {
                 double dist = (directions[i]-tr).norm();
                 if(mindist > dist)
                   {
                     mindist = dist;
                     idmin = i;
                   }
-              }
+            }
             //std::cout<<idmin<<std::endl;
             if(!(idmin >=0 && idmin < N_FLAT_BINS))
-              {
+            {
                 continue;
-              }
+            }
 
             for(unsigned int r = 0; r<3; r++)
-              {
-                score[r] += pow(((double)this->dist_histogramBinsFlat[r](q, i_class))/N_THIS(r,i_class) - ((double)other.dist_histogramBinsFlat[r](idmin, i_class))/N_OTHER(r,i_class),2);
-              }
+            {
+                double d1=0,d2=0;
+                if(N_THIS(r, i_class)!=0)
+                    d1 = ((double)this->dist_histogramBinsFlat[r](q, i_class))/N_THIS(r,i_class);
+                if(N_OTHER(r, i_class)!=0)
+                    d2 = ((double)other.dist_histogramBinsFlat[r](idmin, i_class))/N_OTHER(r,i_class);
+                score[r] += pow( d1-d2 ,2);
+            }
 
-          }
+        }
         for(unsigned int r = 0; r<3; r++)
           {
               //scoreM.row(r)=(this->dist_histogramBinsSphere[r].cast<double>().array()/N_THIS.row(r).array() - other.dist_histogramBinsSphere[r].cast<double>().array()/N_OTHER.row(r).array()).pow(2).colwise().sum();
             for(int i=0; i<N_SPHERE_BINS; i++)
-              {
-                score[r] += pow( ((double)this->dist_histogramBinsSphere[r](i, i_class))/N_THIS(r,i_class) - ((double)other.dist_histogramBinsSphere[r](i, i_class))/N_OTHER(r,i_class) ,2);
-              }
+            {
+                double d1=0,d2=0;
+                if(N_THIS(r, i_class)!=0)
+                    d1=((double)this->dist_histogramBinsSphere[r](i, i_class))/N_THIS(r,i_class);
+                if(N_OTHER(r, i_class)!=0)
+                    d2=((double)other.dist_histogramBinsSphere[r](i, i_class))/N_OTHER(r,i_class);
+                score[r] += pow(d1-d2,2);
+            }
             //score[r]+=scoreM(r,i_class);
 
-            score[r] += pow( ((double)this->dist_histogramBinsLine[r](0, i_class))/N_THIS(r,i_class) - ((double)other.dist_histogramBinsLine[r](0, i_class))/N_OTHER(r,i_class) ,2);
+            double d1=0,d2=0;
+            if(N_THIS(r, i_class)!=0)
+                d1=((double)this->dist_histogramBinsLine[r](0, i_class))/N_THIS(r,i_class);
+            if(N_OTHER(r, i_class)!=0)
+                d2=((double)other.dist_histogramBinsLine[r](0, i_class))/N_OTHER(r,i_class);
+            score[r] += pow(d1-d2,2);
             double maxN, minN;
             maxN = (N_THIS(r,i_class) > N_OTHER(r,i_class)) ? N_THIS(r,i_class) : N_OTHER(r,i_class);
             minN = (N_THIS(r,i_class) < N_OTHER(r,i_class)) ? N_THIS(r,i_class) : N_OTHER(r,i_class);
             minN = (minN < 1) ? 1 : minN;
+            if(maxN==minN)
+                maxN++;
+            double scale_factor = -log(minN/maxN);//ANESTIS CONTRIB
+            scale_factor=1;
 
-            score_final[r] += maxN*sqrt(score[r])/minN;
+            score_final[r] += scale_factor*sqrt(score[r])/N_CLASSES;
           }
     }
 
@@ -664,7 +690,7 @@ double NDTHistogram::calculateEntropy()
 //        std::cout<<"EDW"<<std::endl;
 
 
-    return score_final[0]+score_final[1];
+    return (score_final[0]+score_final[1])/2;
   }
 
 }

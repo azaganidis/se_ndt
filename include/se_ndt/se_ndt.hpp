@@ -16,8 +16,34 @@
 #include <thread>
 using namespace std;
 Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> score_gradient);
+class Profiler{
+    chrono::steady_clock::time_point startT;
+    clock_t begin_time;
+    public:
+    void start(){
+        startT=chrono::steady_clock::now();
+        begin_time = clock();
+    }
+    void check(int i){
+        float cpu_millis = float( clock() -begin_time ) / CLOCKS_PER_SEC* 1000;
+        float RT = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now()-startT).count();
+        float ratio=cpu_millis/float(RT);
+        ratio=(8-ratio)*RT;
+        std::cout<<"CHECK "<<i<<": "<<ratio<<std::endl;
+        startT=chrono::steady_clock::now();
+        begin_time=clock();
+    }
+    void elapsed(int i){
+
+        float RT = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now()-startT).count();
+        std::cout<<"ELAPSED "<<i<<": "<<RT<<std::endl;
+        startT=chrono::steady_clock::now();
+        begin_time=clock();
+    }
+} ;
 class NDTMatch_SE{
     public:
+        void loadMap(int start_index, int stop_index, pcl::PointXYZL &pose);
         std::vector<perception_oru::NDTCell*> toRVIZ;
         perception_oru::NDTMap** loadSavedMap(int index);
         bool useSaved=false;
@@ -51,7 +77,7 @@ class NDTMatch_SE{
     private:
         int last_loop_close_id=0;
         double last_loop_close_sim=0;
-        Eigen::Affine3d matchToSaved(int pose_index, pcl::PointXYZL pose_current);
+        bool matchToSaved(Eigen::Affine3d &Td_, int pose_index, pcl::PointXYZL pose_current);
 		bool firstRun;
 #ifdef GL_VISUALIZE
     public:

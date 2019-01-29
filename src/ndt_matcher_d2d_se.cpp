@@ -8,6 +8,7 @@
 #include <omp.h>
 #include <sys/time.h>
 #define NUM_MAX 50
+#define n_threads 8
 namespace perception_oru
 {
 
@@ -21,7 +22,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
     //locals
     bool convergence = false;
     //double score=0;
-    double score_best = INT_MAX;
+    score_best = INT_MAX;
     //double DELTA_SCORE = 0.0005;
     //double NORM_MAX = current_resolution, ROT_MAX = M_PI/10; //
     int itr_ctr = 0;
@@ -193,7 +194,6 @@ double NDTMatcherD2D_SE::derivativesNDT(
     Eigen::MatrixXd score_here_omp;
     Eigen::MatrixXd Hessian_omp;
 
-#define n_threads 12
 
     //n_threads = omp_get_num_threads();
     score_gradient_omp.resize(n_dimensions,n_threads);

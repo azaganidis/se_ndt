@@ -22,7 +22,7 @@ class ndt_rviz{
     int NumSem;
     public:
     ros::Duration dur;
-    ndt_rviz(ros::NodeHandle &n, int n_res, std::string prefix = "vm_res"):dur(300)
+    ndt_rviz(ros::NodeHandle &n, int n_res, std::string prefix = "vm_res"):dur()
     {
         for(int i=0;i<n_res;i++)
             marker_pub.push_back(n.advertise<visualization_msgs::Marker>(prefix+std::to_string(i),1000));
@@ -97,7 +97,7 @@ class ndt_rviz{
     }
 	void plotNDTs(std::vector<perception_oru::NDTCell*> &tempMap)
     {
-        clearMarkers(0);
+        //clearMarkers(0);
         ros::Time tn=ros::Time::now();
         for(unsigned int i=0;i<tempMap.size();i++)
         {

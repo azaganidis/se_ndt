@@ -108,6 +108,7 @@ class Registration{
             //T=T*Td;
             T=matcher.mapUpdate(cloud_mv, true);
             rvNDT.plotNDTs(matcher.toRVIZ);
+            numreg++;
             //rvNDT.plotNDTs(matcher.map, matcher.resolutions.size(), matcher.NumInputs, r_time); 
             //rvNDT.plotNDTs(matcher.map, 2, matcher.NumInputs, r_time); 
             //hists.push_back(perception_oru::NDTHistogram (matcher.map[1], 1, 40, 10, 8,2, 5));
@@ -141,10 +142,12 @@ class Registration{
 
 
 
-            pcl_conversions::toPCL(r_time,cloud_mv->header.stamp);
-            cloud_mv->header.frame_id="velodyne";
+            if(numreg%4==0){
+                pcl_conversions::toPCL(r_time,cloud_mv->header.stamp);
+                cloud_mv->header.frame_id="velodyne";
+                pub.publish(cloud_mv);
+            }
             Eigen::Affine3d ts=T;
-            pub.publish(cloud_mv);
             send_transform(ts);
             ts.matrix()=calib.matrix()*ts.matrix();
             //print_transform(ts);
@@ -174,8 +177,10 @@ int main(int argc, char** argv)
 	ros::init (argc,argv,"pub_sendt");
 	ros::NodeHandle nh;
     Registration registration(nh, topic_out);
-    ros::Subscriber sub = nh.subscribe(topic_in, 1000, &Registration::callback, &registration);
-    ros::spin();
+    ros::Subscriber sub = nh.subscribe(topic_in, 50, &Registration::callback, &registration);
+    //ros::spin();
+    ros::MultiThreadedSpinner spinner(1);
+    spinner.spin();
     return 0;
 }
     

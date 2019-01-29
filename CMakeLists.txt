@@ -16,15 +16,8 @@ find_package(PCL REQUIRED)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-find_package(Boost REQUIRED COMPONENTS program_options system serialization)
-include_directories(
-  include
-	${Boost_INCLUDE_DIRS}
-	${PROJECT_SOURCE_DIR}/oru_minimal/include
-	${PCL_INCLUDE_DIRS}
-	${EIGEN3_INCLUDE_DIR}
-    ${ROS_REQUIRED_DIRS}
-	${PCL_INCLUDE_DIRS})
+find_package(Boost REQUIRED COMPONENTS program_options system serialization
+    filesystem)
 link_directories ( ${Boost_LIBRARY_DIRS} ${G2O_LIBRARY_DIRS})
 include(pcl_find_sse.cmake)
 PCL_CHECK_FOR_SSE()
@@ -57,6 +50,7 @@ find_package(pcl_ros REQUIRED)
 find_package(VTK REQUIRED)
 
 option(WITH_ROS "Enable/Disable ROS" ON)
+option(WITH_TESTS "Enable/Disable TESTS" ON)
 if(WITH_ROS)
     set(ROS_REQUIRED_LIBS
         ${roscpp_LIBRARIES}
@@ -91,6 +85,13 @@ endif()
 #    ${LINK_LIBS}
 #	)
 
+include_directories(
+  include
+	${Boost_INCLUDE_DIRS}
+	${PROJECT_SOURCE_DIR}/oru_minimal/include
+	${EIGEN3_INCLUDE_DIR}
+    ${ROS_REQUIRED_DIRS}
+	${PCL_INCLUDE_DIRS})
 if(WITH_ROS)
     add_executable(ros_register src/ros_register.cpp)
     target_link_libraries(ros_register ${PROJECT_NAME} 
@@ -98,6 +99,11 @@ if(WITH_ROS)
         ${ROS_REQUIRED_LIBS}
         )
 
+    add_executable(lt src/loader_test.cpp)
+    target_link_libraries(lt ${PROJECT_NAME} 
+        ${LINK_LIBS}
+        ${ROS_REQUIRED_LIBS}
+        )
     #add_executable(loader_test src/loader_test.cpp)
     #target_link_libraries(loader_test ${PROJECT_NAME} 
     #    ${LINK_LIBS}

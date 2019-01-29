@@ -134,8 +134,8 @@ void LazyGrid::initialize()
     clearCells();
     dataArray.initialize(sizeX,sizeY,sizeZ);
     initialized = true;
-    makeFolder("maps");
-    finalpath="maps/s_"+std::to_string(semantic_index);
+    makeFolder("/tmp/maps");
+    finalpath="/tmp/maps/s_"+std::to_string(semantic_index);
     makeFolder(finalpath);
     finalpath=finalpath+"/r_"+std::to_string(cellSizeX);
     makeFolder(finalpath);
@@ -170,7 +170,10 @@ void LazyGrid::addNDTCell(NDTCell* cell)
         int indX,indY,indZ;
         this->getIndexForPoint(cellCenter,indX,indY,indZ);
         if(dataArray(indX, indY, indZ)!=NULL)
+        {
             deallocateCell(indX,indY,indZ);
+            //std::cerr<<"DEALLOCED\n";
+        }
         dataArray.set(indX,indY,indZ, cell);
         activeCells.insert(cell);
         return; //cell must not be deleted here.
