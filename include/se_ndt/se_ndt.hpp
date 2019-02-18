@@ -1,6 +1,7 @@
 #ifndef SE_NDT
 #define SE_NDT
 #include <vector>
+#include <csignal>
 #include <pcl/point_cloud.h>
 #include <pcl/common/io.h>
 #include <pcl/common/geometry.h>
@@ -59,6 +60,7 @@ class NDTMatch_SE{
         pcl::PointCloud<pcl::PointXYZL>::Ptr poses;
         unsigned int num_clouds=0;
         float max_size;
+        std::vector<Eigen::Matrix<double, 1024,1> > gfeat;
 
         Eigen::Affine3d matchFaster(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud);
         Eigen::Affine3d matchFaster(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud);
@@ -68,16 +70,32 @@ class NDTMatch_SE{
 
 		NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initializer_list<float> d,initializer_list<int> inputs,int max_iter);
         void loadMap(perception_oru::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range=100);
-		NDTMatch_SE(){};
+		NDTMatch_SE(): NDTMatch_SE({4,0.8},{0,1},{50,50,50},{1,1,1,1,1,1,1,1},50){ };
 		~NDTMatch_SE();
 		perception_oru::NDTMatcherD2D_SE matcher;
 		Eigen::Matrix<double,6,6> getPoseCovariance(Eigen::Affine3d T);
 		void setNeighbours(short int i){matcher.n_neighbours=i;};
 		float sensor_range=100;
+        void print_vals()
+        {
+            std::ofstream fout("results.txt");
+            int n_poses=hists.size();
+            for(int i=0;i<n_poses;i++)
+                for(int j=i+1;j<n_poses;j++)
+                {
+                    fout<<j-i<<" ";
+                    fout<<pcl::geometry::distance(poses->at(j), poses->at(i));
+                    fout<<hists[i].getSimilarity(hists[j])<<" ";
+                    fout<<(gfeat[poses->at(j).label]-gfeat[poses->at(i).label]).norm()/1024<<" ";
+                    fout<<std::endl;
+                }
+            fout.close();
+        };
     private:
         int last_loop_close_id=0;
         double last_loop_close_sim=0;
-        bool matchToSaved(Eigen::Affine3d &Td_, int pose_index, pcl::PointXYZL pose_current);
+        bool matchToSaved(Eigen::Affine3d &Td_, pcl::PointXYZL &pose_end, pcl::PointXYZL &pose_current, int start_index);
+        int find_start(pcl::PointCloud<pcl::PointXYZL>::iterator pi, float max_size);
 		bool firstRun;
 #ifdef GL_VISUALIZE
     public:

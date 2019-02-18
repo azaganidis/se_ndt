@@ -19,6 +19,7 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <std_msgs/Float32MultiArray.h>
 
 #include <pcl/registration/icp.h>
 #include "rviz_ndt.h"
@@ -45,7 +46,7 @@ void print_transform(Eigen::Affine3d &T)
 }
 class Registration{
     public:
-        NDTMatch_SE matcher;
+        static NDTMatch_SE matcher;
         Eigen::Affine3d Td,T;
         ros::Publisher pub;
         Eigen::Affine3d calib;
@@ -54,15 +55,16 @@ class Registration{
         int numreg=0;
         ros::Time r_time;
         ndt_rviz rvNDT;
+        bool use_gfeat=false;
 //#define STOP_AFTERN
 #ifdef STOP_AFTERN
-        int stop_down_timer=5;
+        int stop_down_timer=2;
 #endif
         //Registration(ros::Publisher& pub_):matcher({4,1,0.5},{0,1,2},{50,50,10},{'=','=','=','=','=','=','=','=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14},0.01,5)
-        Registration(ros::NodeHandle& nh, std::string topic_out):
+        Registration(ros::NodeHandle& nh, std::string topic_out, bool use_gfeat=false):
             //matcher({4,0.8},{0,1},{200,200,50},{'=','=','=','=','=','=','=','=','=','='},{0,1,2,3,4,5,6,7,8,9},0.01,5),
-            matcher({4, 0.8},{0,1},{50,50,50},{1,1,1,1,1,1,1,1},50),
-            rvNDT(nh, 2)
+            rvNDT(nh, 2),
+            use_gfeat(use_gfeat)
         {
             pub = nh.advertise<pcl::PointCloud<pcl::PointXYZI> >(topic_out, 1000);
             matcher.setNeighbours((int )2);
@@ -74,39 +76,35 @@ class Registration{
 #endif
             //matcher.initV(&nh);
         }
-        /*
-        void loop_close_check(){
-            if(poses.size()<1)
-                return;
-            Eigen::Vector3d pose_last=poses.back();
-            perception_oru::NDTHistogram hist_last=hists.back();
-            int num_poses=poses.size();
-            for(int i=0;i<num_poses-50;i++)
-            {
-                auto pD=pose_last-poses.at(i);
-                double dist=pD.dot(pD);
-                dist=sqrt(dist);
-                if(dist<55)
-                {
-                    double similarity=hist_last.getSimilarity(hists.at(i));
-                    if(similarity>1)
-                        continue;
-                    cerr<<"LC\t"<<similarity<<"\t"<<dist<<endl;
-                }
-            }
-
+        static void pri(int i)
+        {
+            std::cerr<<"FUCKING hERE"<<std::endl;
+            matcher.print_vals();
         }
-        */
         void callback(const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud_msg)
         {
             pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_mv(new pcl::PointCloud<pcl::PointXYZI>);
             pcl::copyPointCloud(*cloud_msg, *cloud_mv);
+            if(use_gfeat)
+            {
+                Eigen::Matrix<double, 1024, 1> gfeat_t;
+                for(int i=0;i<256;i++)
+                {
+                    pcl::PointXYZI p=cloud_msg->points.at(i);
+                    gfeat_t(i*4)=p.x;
+                    gfeat_t(i*4+1)=p.y;
+                    gfeat_t(i*4+2)=p.z;
+                    gfeat_t(i*4+3)=p.intensity;
+                }
+                matcher.gfeat.push_back(gfeat_t);
+                cloud_mv->erase(cloud_mv->begin(),cloud_mv->begin()+256);   
+            }
             clock_t begin_time = clock();
             r_time = ros::Time::now();
             //std::thread loop_check(&Registration::loop_close_check, this);
             //Td=matcher.matchFaster(Td,cloud_mv);
             //T=T*Td;
-            T=matcher.mapUpdate(cloud_mv, true);
+            T=matcher.mapUpdate(cloud_mv,false);
             rvNDT.plotNDTs(matcher.toRVIZ);
             numreg++;
             //rvNDT.plotNDTs(matcher.map, matcher.resolutions.size(), matcher.NumInputs, r_time); 
@@ -153,6 +151,7 @@ class Registration{
             //print_transform(ts);
         }
 };
+ NDTMatch_SE Registration::matcher = NDTMatch_SE();
 int main(int argc, char** argv)
 {
 	string transforms;
@@ -176,8 +175,9 @@ int main(int argc, char** argv)
 
 	ros::init (argc,argv,"pub_sendt");
 	ros::NodeHandle nh;
-    Registration registration(nh, topic_out);
-    ros::Subscriber sub = nh.subscribe(topic_in, 50, &Registration::callback, &registration);
+    Registration registration(nh, topic_out, true);
+    signal(SIGTRAP, Registration::pri);
+    ros::Subscriber sub = nh.subscribe(topic_in, 500, &Registration::callback, &registration);
     //ros::spin();
     ros::MultiThreadedSpinner spinner(1);
     spinner.spin();

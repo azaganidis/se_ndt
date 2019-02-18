@@ -191,8 +191,6 @@ public:
 			}
     }
   }
-    void loadFromFile(int start_index, int stop_index);
-
   void setMode(bool is3D_)
   {
     is3D=is3D_;
@@ -518,7 +516,6 @@ public:
                         Eigen::Vector3d *hit = NULL);
   NDTCell* getCellAtID(int x,int y,int z) const;
   std::string ToString();
-  void unsetFirstLoad(){isFirstLoad_=false;};
 protected:
   bool is3D;
   SpatialIndex *index_;

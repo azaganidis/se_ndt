@@ -3,6 +3,7 @@
 #include <se_ndt/ndt_histogram.h>
 #include <cmath>
 #define n_threads 8
+//#define CROSS_ENTROPY
 
 namespace perception_oru{
 
@@ -588,7 +589,11 @@ double NDTHistogram::calculateEntropy()
     ENTROPY=normalized_entropy;
     return normalized_entropy;
 }
-
+double entropySafe(double p, double q){
+    if(q<=0)
+        return -p*1000;
+    return p*log(q);
+}
 
   double NDTHistogram::getSimilarity(NDTHistogram &other, Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> &T){
     double score[3];
@@ -649,7 +654,11 @@ double NDTHistogram::calculateEntropy()
                     d1 = ((double)this->dist_histogramBinsFlat[r](q, i_class))/N_THIS(r,i_class);
                 if(N_OTHER(r, i_class)!=0)
                     d2 = ((double)other.dist_histogramBinsFlat[r](idmin, i_class))/N_OTHER(r,i_class);
+#ifdef CROSS_ENTROPY
+                score[r]-=entropySafe(d1,d2);
+#else
                 score[r] += pow( d1-d2 ,2);
+#endif
             }
 
         }
@@ -657,14 +666,18 @@ double NDTHistogram::calculateEntropy()
           {
               //scoreM.row(r)=(this->dist_histogramBinsSphere[r].cast<double>().array()/N_THIS.row(r).array() - other.dist_histogramBinsSphere[r].cast<double>().array()/N_OTHER.row(r).array()).pow(2).colwise().sum();
             for(int i=0; i<N_SPHERE_BINS; i++)
-            {
+              {
                 double d1=0,d2=0;
                 if(N_THIS(r, i_class)!=0)
                     d1=((double)this->dist_histogramBinsSphere[r](i, i_class))/N_THIS(r,i_class);
                 if(N_OTHER(r, i_class)!=0)
                     d2=((double)other.dist_histogramBinsSphere[r](i, i_class))/N_OTHER(r,i_class);
-                score[r] += pow(d1-d2,2);
-            }
+#ifdef CROSS_ENTROPY
+                score[r]-=entropySafe(d1,d2);
+#else
+                score[r] += pow( d1-d2 ,2);
+#endif
+              }
             //score[r]+=scoreM(r,i_class);
 
             double d1=0,d2=0;
@@ -672,25 +685,34 @@ double NDTHistogram::calculateEntropy()
                 d1=((double)this->dist_histogramBinsLine[r](0, i_class))/N_THIS(r,i_class);
             if(N_OTHER(r, i_class)!=0)
                 d2=((double)other.dist_histogramBinsLine[r](0, i_class))/N_OTHER(r,i_class);
-            score[r] += pow(d1-d2,2);
+#ifdef CROSS_ENTROPY
+                score[r]-=entropySafe(d1,d2);
+#else
+                score[r] += pow( d1-d2 ,2);
+#endif
             double maxN, minN;
             maxN = (N_THIS(r,i_class) > N_OTHER(r,i_class)) ? N_THIS(r,i_class) : N_OTHER(r,i_class);
             minN = (N_THIS(r,i_class) < N_OTHER(r,i_class)) ? N_THIS(r,i_class) : N_OTHER(r,i_class);
             minN = (minN < 1) ? 1 : minN;
-            if(maxN==minN)
-                maxN++;
-            double scale_factor = -log(minN/maxN);//ANESTIS CONTRIB
-            scale_factor=1;
+            //double scale_factor = -log(minN/maxN);//ANESTIS CONTRIB
 
-            score_final[r] += scale_factor*sqrt(score[r])/N_CLASSES;
+#ifdef CROSS_ENTROPY
+            score_final[r]+=score[r];
+#else
+            score_final[r] += maxN*sqrt(score[r])/minN/N_CLASSES;
+#endif
           }
     }
 
 //    if(score_final[0]+score_final[1]==0)
 //        std::cout<<"EDW"<<std::endl;
 
+#ifdef CROSS_ENTROPY
+    return score_final[0]+score_final[1];
 
-    return (score_final[0]+score_final[1])/2;
+#else
+    return (score_final[0]+score_final[1]+score_final[2])/3;
+#endif
   }
 
 }

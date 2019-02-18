@@ -89,7 +89,8 @@ public:
         const NDTMap * const * target,
         Eigen::MatrixXd &score_gradient,
         Eigen::MatrixXd &Hessian,
-        bool computeHessian
+        bool computeHessian,
+        bool init_hessian_gradient=true
     );
     //perform line search to find the best descent rate (Mohre&Thuente)
     //adapted from NOX

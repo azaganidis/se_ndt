@@ -183,43 +183,6 @@ void NDTMap::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, double ran
 
     isFirstLoad_ = false;
 }
-void NDTMap::loadFromFile(int start_index, int stop_index)
-{
-    if(index_ != NULL)
-    {
-        //std::cout<<"CLONE INDEX\n";
-        SpatialIndex *si = index_->clone();
-        //cout<<"allocating index\n";
-        if(!isFirstLoad_)
-        {
-            //std::cout<<"deleting old index\n";
-            delete index_;
-        }
-        isFirstLoad_ = false;
-        index_ = si;
-    }
-    else
-    {
-        //NULL index in constructor, abort!
-        //ERR("constructor must specify a non-NULL spatial index\n");
-        return;
-    }
-    
-    LazyGrid *lz = dynamic_cast<LazyGrid*>(index_);
-    if(lz == NULL)
-    {
-	fprintf(stderr,"Unfortunately This works only with Lazygrid!\n");
-	exit(1);
-    }
-
-    if(index_ == NULL)
-    {
-        //ERR("Problem creating index, unimplemented method\n");
-        return;
-    }
-
-    isFirstLoad_ = false;
-}
 
 /**
 * loadPointCloudCentroid - A special load function to enable the matching of centroids (create alligned maps)

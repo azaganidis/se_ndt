@@ -99,11 +99,11 @@ if(WITH_ROS)
         ${ROS_REQUIRED_LIBS}
         )
 
-    add_executable(lt src/loader_test.cpp)
-    target_link_libraries(lt ${PROJECT_NAME} 
-        ${LINK_LIBS}
-        ${ROS_REQUIRED_LIBS}
-        )
+    #add_executable(lt src/loader_test.cpp)
+    #target_link_libraries(lt ${PROJECT_NAME} 
+    #    ${LINK_LIBS}
+    #    ${ROS_REQUIRED_LIBS}
+    #    )
     #add_executable(loader_test src/loader_test.cpp)
     #target_link_libraries(loader_test ${PROJECT_NAME} 
     #    ${LINK_LIBS}

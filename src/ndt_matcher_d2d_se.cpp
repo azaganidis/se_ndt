@@ -117,11 +117,10 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
         }
         //check direction here:
 
-	if(step_control) {
-	    step_size = lineSearchMT(pose_increment_v,nextNDT,targetNDT);
-	} else {
-	    step_size = 1;
-	}
+        if(step_control) 
+            step_size = lineSearchMT(pose_increment_v,nextNDT,targetNDT);
+        else
+            step_size = 1;
         pose_increment_v = step_size*pose_increment_v;
 
         TR.setIdentity();
@@ -164,7 +163,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
         T = Tbest;
     }
 	for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
-        delete[] nextNDT;
+    delete[] nextNDT;
     return ret;
 }
 
@@ -176,7 +175,8 @@ double NDTMatcherD2D_SE::derivativesNDT(
     const NDTMap * const * targetNDTMany,
     Eigen::MatrixXd &score_gradient,
     Eigen::MatrixXd &Hessian,
-    bool computeHessian
+    bool computeHessian,
+    bool init_hessian_gradient
 )
 {
 
@@ -186,8 +186,10 @@ double NDTMatcherD2D_SE::derivativesNDT(
 
 //    gettimeofday(&tv_start,NULL);
     NUMBER_OF_ACTIVE_CELLS = 0;
-    score_gradient.setZero();
-    Hessian.setZero();
+    if(init_hessian_gradient){
+        score_gradient.setZero();
+        Hessian.setZero();
+    }
 
 #ifdef USE_OMP
     Eigen::MatrixXd score_gradient_omp;
@@ -293,7 +295,7 @@ double NDTMatcherD2D_SE::derivativesNDT(
     //std::cout<<"sgomp: "<<score_gradient_omp<<std::endl;
     //std::cout<<"somp: "<<score_here_omp<<std::endl;
 
-    score_gradient = score_gradient_omp.rowwise().sum();
+    score_gradient += score_gradient_omp.rowwise().sum();
     score_here = score_here_omp.sum();
     if(computeHessian)
     {
@@ -802,7 +804,8 @@ bool NDTMatcherD2D_SE::covariance(
 			NM+= nextNDT[nR][nS].size() + targetNDT[nR][nS].size();
 		}
 	}
-    double sigmaS = (0.03)*(0.03);
+    //double sigmaS = (0.03)*(0.03);
+    double sigmaS = (0.03);
 
 
     Eigen::MatrixXd scg(6,1); //column vectors
@@ -828,7 +831,7 @@ bool NDTMatcherD2D_SE::covariance(
 	for(int nR=0;nR<resolutions.size();nR++)
 	{
 		current_resolution=resolutions.at(nR);
-		derivativesNDT(nextNDT[nR],targetNDTMany[nR],scg,cov,true);
+		derivativesNDT(nextNDT[nR],targetNDTMany[nR],scg,cov,true, false);
 		for(int nS=0;nS<NumInputs;nS++)
 		{
 			std::vector<NDTCell*> sourceNDTN = nextNDT[nR][nS];
@@ -927,8 +930,8 @@ bool NDTMatcherD2D_SE::covariance(
     //cout<<"J*J'\n"<<JK<<endl;
     //cout<<"H\n"<<cov<<endl;
 
-    //cov = cov.inverse()*JK*cov.inverse();
-    cov = cov*JK.inverse()*cov;
+    cov = cov.inverse()*JK*cov.inverse();
+    //cov = cov*JK.inverse()*cov;
     //cov = cov.inverse();//*fabsf(scoreNDT(sourceNDTN,targetNDT)*2/3);
     //cout<<"cov\n"<<cov<<endl;
 
