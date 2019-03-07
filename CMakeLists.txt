@@ -46,6 +46,7 @@ target_link_libraries(${PROJECT_NAME} ndt_libs)
 find_package(roscpp REQUIRED)
 find_package(rosconsole REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(tf_conversions REQUIRED)
 find_package(pcl_ros REQUIRED)
 find_package(VTK REQUIRED)
 
@@ -57,6 +58,7 @@ if(WITH_ROS)
         ${rosconsole_LIBRARIES}
         ${tf2_ros_LIBRARIES}
         ${pcl_ros_LIBRARIES}
+        ${tf_conversions_LIBRARIES}
         ${VTK_LIBRARIES}
         )
 
@@ -65,6 +67,7 @@ if(WITH_ROS)
         ${rosconsole_INCLUDE_DIRS}
         ${tf2_ros_INCLUDE_DIRS}
         ${pcl_ros_INCLUDE_DIRS}
+        ${tf_conversions_DIRS}
         ${VTK_INCLUDE_DIRS}
         )
 endif()

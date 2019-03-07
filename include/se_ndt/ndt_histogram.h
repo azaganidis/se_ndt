@@ -148,6 +148,7 @@ namespace perception_oru{
     NDTHistogram (const NDTHistogram& other);
     double calculateEntropy();
     double ENTROPY;
+    omp_lock_t writelock;
     
     /**
      * Get the transform that brings me close to target.

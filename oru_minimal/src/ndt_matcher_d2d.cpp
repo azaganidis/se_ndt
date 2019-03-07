@@ -1994,7 +1994,8 @@ bool NDTMatcherD2D::covariance( NDTMap& targetNDT,
                                                        )
 {
 
-    double sigmaS = (0.03)*(0.03);
+    //double sigmaS = (0.03)*(0.03);
+    double sigmaS = (0.05);
     Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> TR;
     TR.setIdentity();
 

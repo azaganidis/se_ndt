@@ -55,7 +55,7 @@ class ndt_rviz{
         marker.pose.orientation.w = qR.w();
         marker.scale.x = m_eigVal(0,0);
         marker.scale.y = m_eigVal(1,1)>0.1?m_eigVal(1,1):(m_eigVal(0,0)/10);
-        marker.scale.z = m_eigVal(2,2)>0.1?m_eigVal(2,2):(m_eigVal(1,1)/10);
+        marker.scale.z = m_eigVal(2,2)>0.1?m_eigVal(2,2):(m_eigVal(0,0)/10);
         marker.scale.x*=3;
         marker.scale.y*=3;
         marker.scale.z*=3;
@@ -63,10 +63,11 @@ class ndt_rviz{
         marker.color.r = rgb_val[0];
         marker.color.g = rgb_val[1];
         marker.color.b = rgb_val[2];
+        //std::cerr<<rgb_val[0]<<" "<<rgb_val[1]<<" "<<rgb_val[1]<<"\n";
         marker.color.a = sqrt(occupancy/150);
-        marker.color.a = 1;
-        if(marker.color.a<0.5)
-            marker.color.a=0.5;
+        //marker.color.a = 1;
+        //if(marker.color.a<0.5)
+        //    marker.color.a=0.5;
         marker.lifetime = dur;
         marker_pub[iRes].publish(marker);
     }
@@ -95,19 +96,23 @@ class ndt_rviz{
 				}
             }
     }
-	void plotNDTs(std::vector<perception_oru::NDTCell*> &tempMap)
+	void plotNDTs(std::vector<std::vector<perception_oru::NDTCell*> > &tempMap)
     {
         //clearMarkers(0);
         ros::Time tn=ros::Time::now();
-        for(unsigned int i=0;i<tempMap.size();i++)
+        NumSem=tempMap.size();
+        for(unsigned int j=0;j<tempMap.size();j++)
         {
-            Eigen::Vector3d m = tempMap[i]->getMean();
-            float occupancy = tempMap[i]->getOccupancy();
-            Eigen::Matrix3d cov = tempMap[i]->getCov();
-            show_cell(cov, m, occupancy,tn,0, 0, i);
-            delete tempMap[i];
+            for(unsigned int i=0;i<tempMap[j].size();i++)
+            {
+                Eigen::Vector3d m = tempMap[j][i]->getMean();
+                float occupancy = tempMap[j][i]->getOccupancy();
+                Eigen::Matrix3d cov = tempMap[j][i]->getCov();
+                show_cell(cov, m, occupancy,tn,0, j, i);
+                delete tempMap[j][i];
+            }
+            tempMap[j].clear();
         }
-        tempMap.clear();
     }
 };
 #endif
