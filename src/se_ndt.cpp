@@ -441,6 +441,24 @@ bool fixRotation(Eigen::Affine3d &T){
     //T.matrix().row(3)<<0,0,0,1;
     return qr.isInvertible();
 }
+Eigen::Affine3d NDTMatch_SE::simple_match(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud2)
+{
+    Td.setIdentity();
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud1=getSegmentsFast(cloud1);
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud2=getSegmentsFast(cloud2);
+	for(unsigned int i=0;i<resolutions.size();i++)
+    {
+		loadMap(mapLocal_prev[i],laserCloud1);
+		loadMap(mapLocal[i],laserCloud2);
+    }
+    for(auto i:resolutions_order)
+    {
+        matcher.current_resolution=resolutions.at(i);
+        matcher.match(mapLocal_prev[i],mapLocal[i],Td,true);
+    }
+    double score_local = matcher.score_best;
+    return Td;
+}
 Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, bool Does_nothing)
 {
     Profiler pr;

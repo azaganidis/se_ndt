@@ -19,3 +19,5 @@ cd se_ndt/pointnet2
 python RosClassify.py
 
 If python complains about not finding shared object files, you have to rebuild the PointNet++ libs, in the folder tf_ops.
+
+Simple usage example of the registration at src/simple_registration.cpp

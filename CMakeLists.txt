@@ -96,6 +96,11 @@ include_directories(
 	${EIGEN3_INCLUDE_DIR}
     ${ROS_REQUIRED_DIRS}
 	${PCL_INCLUDE_DIRS})
+add_executable(simple_registration src/simple_registration.cpp)
+target_link_libraries(simple_registration ${PROJECT_NAME}
+        ${LINK_LIBS}
+        ${ROS_REQUIRED_LIBS}
+        )
 if(WITH_ROS)
     add_executable(ros_register src/ros_register.cpp)
     target_link_libraries(ros_register ${PROJECT_NAME} 

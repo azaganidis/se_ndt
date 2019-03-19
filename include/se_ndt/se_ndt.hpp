@@ -58,6 +58,7 @@ class NDTMatch_SE{
 //        Eigen::Matrix<double,7,7> CovSum;
 		void setNeighbours(short int i){matcher.n_neighbours=i;};
 		float sensor_range=100;
+        Eigen::Affine3d simple_match(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud2);
         void print_vals()
         {
             std::ofstream fout("results.txt");
