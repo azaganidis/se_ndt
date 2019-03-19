@@ -74,6 +74,7 @@ endif()
 
 option(WITH_GL "Enable/Disable OpenGL visualization of distributions" OFF)
 if(WITH_GL)
+    add_definitions(-DGL_VISUALIZE)
     find_package(GLUT REQUIRED)
     find_package(OpenGL REQUIRED)
     add_definitions(-DVISUALIZE)

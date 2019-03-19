@@ -32,13 +32,18 @@ class ndt_rviz{
         if (d==0 || d!=d) // Note: "d!=d" is a great test for invalid numbers, don't remove!
             return;
         Eigen::EigenSolver<Eigen::Matrix3d> es(m_cov);
-        Eigen::Matrix3d m_eigVal, m_eigVec;
-        m_eigVal = es.pseudoEigenvalueMatrix();
+        Eigen::Matrix3d m_eigVec;
+        Eigen::Vector3d m_eigVal; 
+        m_eigVal = es.pseudoEigenvalueMatrix().cwiseSqrt().diagonal();
         m_eigVec = es.pseudoEigenvectors();
-        m_eigVal = m_eigVal.cwiseSqrt();
         //if(!(m_eigVal(0,0) != 0.0 && m_eigVal(1,1) != 0.0 && m_eigVal(2,2) != 0.0))
         //    return;
-        Eigen::Quaterniond qR(m_eigVec);
+        std::vector<int> idx(3);
+        iota(idx.begin(),idx.end(),0);
+        std::sort(idx.begin(), idx.end(), [&m_eigVal](int i1,int i2){return m_eigVal(i1)<m_eigVal(i2);});
+        Eigen::Vector3d v1, v2=m_eigVec.row(idx[0]);
+        v1<<1,0,0;
+        Eigen::Quaterniond qR = Eigen::Quaterniond::FromTwoVectors(v1,v2);
         visualization_msgs::Marker marker;
         marker.header.frame_id = "/world";
         marker.header.stamp = cl_time;
@@ -53,9 +58,9 @@ class ndt_rviz{
         marker.pose.orientation.y = qR.y();
         marker.pose.orientation.z = qR.z();
         marker.pose.orientation.w = qR.w();
-        marker.scale.x = m_eigVal(0,0);
-        marker.scale.y = m_eigVal(1,1)>0.1?m_eigVal(1,1):(m_eigVal(0,0)/10);
-        marker.scale.z = m_eigVal(2,2)>0.1?m_eigVal(2,2):(m_eigVal(0,0)/10);
+        marker.scale.x = m_eigVal(idx[0]);
+        marker.scale.y = m_eigVal(idx[1])>0.1?m_eigVal(idx[1]):(m_eigVal(idx[0])/10);
+        marker.scale.z = m_eigVal(idx[2])>0.1?m_eigVal(idx[2]):(m_eigVal(idx[0])/10);
         marker.scale.x*=3;
         marker.scale.y*=3;
         marker.scale.z*=3;
@@ -107,6 +112,8 @@ class ndt_rviz{
             {
                 Eigen::Vector3d m = tempMap[j][i]->getMean();
                 float occupancy = tempMap[j][i]->getOccupancy();
+                if(occupancy<32)
+                    continue;
                 Eigen::Matrix3d cov = tempMap[j][i]->getCov();
                 show_cell(cov, m, occupancy,tn,0, j, i);
                 delete tempMap[j][i];

@@ -90,6 +90,24 @@ public:
   virtual void draw() = 0;
 };
 
+                
+class  NDTVizGlutText: public NDTVizGlutObject
+{
+public:
+    float occupancy;
+
+  NDTVizGlutText(float oc):occupancy(oc){};
+  void draw(){
+        glColor3f( 1, 1, 1 );
+        glRasterPos2f(50, 50);
+        int len, i;
+        char OCCSTR[64];
+        snprintf(OCCSTR,64, "occupancy: %f\0",occupancy);
+        len = (int)strlen(OCCSTR);
+        for (i = 0; i < len; i++) 
+          glutBitmapCharacter(GLUT_BITMAP_9_BY_15, OCCSTR[i]);
+  }
+};
 class NDTVizGlutPointCloudColor : public NDTVizGlutObject
 {
 public:

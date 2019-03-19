@@ -173,7 +173,6 @@ void NDTMatch_SE::visualize_thread()
         viewer->win3D->start_main_loop_own_thread();
     }
     float occupancy=128;
-    viewer->plotNDTSAccordingToOccupancy(occupancy, map,std::vector<int>{0}, std::vector<int>{0});
     while(viewer->win3D->isOpen())
     {
          usleep(10000);
@@ -187,7 +186,7 @@ void NDTMatch_SE::visualize_thread()
                 case '/':occupancy/=2;break;
                 case 'q':delete viewer;break;
             }
-            viewer->plotNDTSAccordingToOccupancy(occupancy, map,std::vector<int>{0}, std::vector<int>{0});
+            viewer->plotNDTSAccordingToOccupancy(occupancy, map,std::vector<int>{1}, std::vector<int>{0,1,2,3,4,5,6,7});
             viewer->win3D->keyHitReset();
         }
     }
@@ -464,6 +463,7 @@ Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr clou
         writeG2O_Edge(Td,num_clouds-1, num_clouds, getPoseInformation(Td,mapLocal_prev, mapLocal,true));
 
         //MAP REG
+        /*
         matcher.current_resolution=resolutions.at(1);
         matcher.match(map[1],mapLocal[1],T,true);
         double score_map = matcher.score_best;
@@ -475,6 +475,7 @@ Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr clou
         }
         C=getPoseInformation(T, map, mapLocal,true);
         writeG2O_Edge(T_prev.inverse()*T,num_clouds-1, num_clouds, C);
+        */
 #endif
 	}
 	else firstRun=false;
@@ -505,7 +506,7 @@ Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr clou
                 //map[rez][i]->loadPointCloud(*laserCloud[i],sensor_range);
                 map[rez][i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE,1e9,255,T.translation(),0.01);
 
-            if(rez==1){
+            if(rez==1){//Dont print them for now
                 std::vector<perception_oru::NDTCell*> tmV= map[rez][i]->getAllCells();
                 toRVIZ[i].insert(toRVIZ[i].end(), tmV.begin(), tmV.end());
             }
