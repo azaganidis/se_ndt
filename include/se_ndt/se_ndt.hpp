@@ -2,6 +2,7 @@
 #define SE_NDT
 #include <vector>
 #include <pcl/point_cloud.h>
+#include <pcl/common/io.h>
 #include <ndt_map/ndt_map.h>
 #include <ndt_map/lazy_grid.h>
 #include <ndt_map/ndt_cell.h>
@@ -10,6 +11,7 @@ using namespace std;
 Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> score_gradient);
 class NDTMatch_SE{
  public:
+	 bool useSaved=false;
 		vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegments(pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloudIn,initializer_list<vector<double> >& attributes_,initializer_list<int > distribution_tails_,initializer_list<float> disregard_, float rejectPerc);
 		unsigned int NumInputs;
 		lslgeneric::NDTMap ***map;		 ///< da map
@@ -24,7 +26,7 @@ class NDTMatch_SE{
 		{
 			for(unsigned int i=0;i<resolutions.size();i++)
 			{
-				for(unsigned int j=0;j<NumInputs;j++)
+				for(auto j=0;j<NumInputs;j++)
 				{
 					delete map[i][j];
 					delete mapLocal[i][j];
@@ -33,12 +35,20 @@ class NDTMatch_SE{
 				delete[] mapLocal[i];
 			}
 			delete[] map;
+			delete[] mapLocal;
 		}
 		Eigen::Affine3d match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2, initializer_list<vector<double> > attributes1, initializer_list<vector<double> > attributes2);
 		Eigen::Affine3d match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes);
 		Eigen::Affine3d match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes);
 		Eigen::Affine3d match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2, initializer_list<vector<double> > attributes1, initializer_list<vector<double> > attributes2);
+		Eigen::Affine3d match(Eigen::Affine3d Tinit, std::string cloudF1, std::string cloudF2,initializer_list<vector<double> > attributes1,initializer_list<vector<double> > attributes2);
 		lslgeneric::NDTMatcherD2D_SE matcher;
+		Eigen::Matrix<double,6,6> getPoseCovariance(Eigen::Affine3d T);
+		void setNeighbours(short int i){matcher.n_neighbours=i;};
+		char IFS=',';
+		bool skip=false;
+		float sensor_range=100;
+		std::string precomputed_ndt_folder="/tmp/";
     private:
 		bool firstRun;
 		std::vector<int> semantic_labels;
@@ -50,7 +60,10 @@ size_t count_tails(vector<int>& distribution_tails);
 size_t* sort_pointcloud(vector<double> &in,float disregard);
 Eigen::Affine3d readTransform(istream &infile);
 inline size_t index_selector(size_t **I,int p,int num,std::vector<int> Tails,size_t number_points);
-inline bool checkInLimits(size_t **in,size_t p,size_t num,size_t cu,size_t cl);
+inline bool checkInLimits(size_t **in,int p,int num,int cu,int cl);
 lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_);
-void loadMap(lslgeneric::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,size_t number_tails,float sensor_range=100);
+void loadMap(lslgeneric::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range=100);
+template <typename T> typename pcl::PointCloud<T>::Ptr getCloud(string filename,char IFS, bool skip);
+
+Eigen::Matrix<double,7,6> getJacobian(Eigen::VectorXd v);
 #endif/*SE_NDT*/

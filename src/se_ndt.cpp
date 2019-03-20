@@ -3,6 +3,50 @@
 using namespace std;
 typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;
 
+template <>
+pcl::PointCloud<pcl::PointXYZI>::Ptr getCloud<pcl::PointXYZI>(string filename,char IFS, bool skip)
+{
+	ifstream infile(filename); // for example
+	string line = "";
+	pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud(new pcl::PointCloud<pcl::PointXYZI>);
+	if(skip)getline(infile, line);
+	while (getline(infile, line)){
+		stringstream strstr(line);
+		string word = "";
+		pcl::PointXYZI point;
+		getline(strstr,word, IFS);
+		point.x=stof(word);
+		getline(strstr,word, IFS);
+		point.y=stof(word);
+		getline(strstr,word, IFS);
+		point.z=stof(word);
+		getline(strstr,word);
+		point.intensity=stof(word);
+		(*laserCloud).points.push_back(point);
+	}
+    return laserCloud;
+}
+template <>
+pcl::PointCloud<pcl::PointXYZ>::Ptr getCloud<pcl::PointXYZ>(string filename,char IFS, bool skip)
+{
+	ifstream infile(filename); // for example
+	string line = "";
+	pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloud(new pcl::PointCloud<pcl::PointXYZ>);
+	if(skip)getline(infile, line);
+	while (getline(infile, line)){
+		stringstream strstr(line);
+		string word = "";
+		pcl::PointXYZ point;
+		getline(strstr,word, IFS);
+		point.x=stof(word);
+		getline(strstr,word, IFS);
+		point.y=stof(word);
+		getline(strstr,word, IFS);
+		point.z=stof(word);
+		(*laserCloud).points.push_back(point);
+	}
+    return laserCloud;
+}
 Eigen::Affine3d readTransform(istream &infile)
 {
 	string line = "";
@@ -56,9 +100,9 @@ inline size_t index_selector(size_t **I,int p,int num,std::vector<int> Tails,siz
 	}
 	return number_points-maxA<minA?maxI+num:minI;
 }
-inline bool checkInLimits(size_t **in,size_t p,size_t num,size_t cu,size_t cl)
+inline bool checkInLimits(size_t **in,int p,int num,int cu,int cl)
 {
-	for(unsigned int i=0;i<num;i++)
+	for(int i=0;i<num;i++)
 		if(in[i]!=NULL)
 			if(in[i][p]>cu||in[i][p]<cl)
 				return true;
@@ -110,7 +154,7 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointC
 	}
 	///////
 	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud;
-	for(unsigned int i=0;i<num_tails+semantic_labels.size();i++)
+	for(int i=0;i<num_tails+semantic_labels.size();i++)
 	{
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudT(new pcl::PointCloud<pcl::PointXYZ>);
 		laserCloud.push_back(cloudT);
@@ -156,8 +200,9 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointC
 					semantic_labels.push_back(sem_val);
 					my_iter=semantic_labels.end()-1;
 				}
+				int nummm=distance(semantic_labels.begin(),my_iter);
 				index=num_tails+distance(semantic_labels.begin(),my_iter);
-				if(index>=(int )NumInputs)cerr<<"too many labels"<<endl;
+				if(index>=NumInputs)cerr<<"too many labels"<<endl;
 				continue;
 			}
 			else if(distribution_tails.at(j)==(int )'*'&&index==-1)
@@ -188,7 +233,7 @@ size_t count_tails(vector<int>& distribution_tails)
 	return distribution_tails.size()+number_tails3-number_tails0;
 }
 
-lslgeneric::NDTMap **initMap(unsigned int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_)
+lslgeneric::NDTMap **initMap(int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_)
 {
 	vector<float> size(size_),resolutions(resolutions_);
 	if(number_tails!=resolutions.size()&&resolutions.size()!=1)
@@ -203,7 +248,7 @@ lslgeneric::NDTMap **initMap(unsigned int number_tails,initializer_list<float> r
 		cerr<<"Wrong size parameter. Using size x=y=z="<<max_size<<endl;
 	}
 	lslgeneric::NDTMap **map = new lslgeneric::NDTMap * [number_tails];
-	for(unsigned int i=0;i<number_tails;i++)
+	for(size_t i=0;i<number_tails;i++)
 	{
 		lslgeneric::LazyGrid *grid = new lslgeneric::LazyGrid(resolutions[i%resolutions.size()]);
 		lslgeneric::NDTMap *mapTMP=new lslgeneric::NDTMap(grid);
@@ -213,7 +258,7 @@ lslgeneric::NDTMap **initMap(unsigned int number_tails,initializer_list<float> r
 	}
 	return map;
 }
-void loadMap(lslgeneric::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,size_t number_tails,float sensor_range)
+void loadMap(lslgeneric::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range)
 {
 	for(size_t i=0;i<input_clouds.size();i++)
 	{
@@ -227,7 +272,7 @@ Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix
         Eigen::Matrix<double,6,1> evals = Sol.eigenvalues().real();
         double minCoeff = evals.minCoeff();
         double maxCoeff = evals.maxCoeff();
-        if(minCoeff <= 0)  //|| evals.minCoeff()) // < 10e-5*evals.maxCoeff()) 
+        if(minCoeff < 0)  //|| evals.minCoeff()) // < 10e-5*evals.maxCoeff()) 
 		{
 			Eigen::Matrix<double,6,6> evecs = Sol.eigenvectors().real();
 			double regularizer = score_gradient.norm();
@@ -246,16 +291,17 @@ Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix
 NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initializer_list<float> d,initializer_list<int> e,initializer_list<float> ig,float removeP,int max_iter):resolutions(b),resolutions_order(c),size(d),tails(e),ignore(ig),removeProbability(removeP)
 {
 	vector<int> tails_t(tails);
-	NumInputs=count_tails(tails_t)+70*std::count(tails_t.begin(),tails_t.end(),117);
+	NumInputs=count_tails(tails_t)+70*std::count(tails_t.begin(),tails_t.end(),'u');
 	firstRun=true;
 
 		matcher.NumInputs=NumInputs;
 		matcher.ITR_MAX =max_iter;
 		matcher.step_control=true;
+		matcher.n_neighbours=2;
 
 	map=new lslgeneric::NDTMap ** [resolutions.size()];
 	mapLocal=new lslgeneric::NDTMap ** [resolutions.size()];
-	for(unsigned int i=0;i<resolutions.size();i++)
+	for(auto i=0;i<resolutions.size();i++)
 	{
 		map[i]=initMap(NumInputs,{resolutions.at(i)},size);
 		mapLocal[i]=initMap(NumInputs,{resolutions.at(i)},size);
@@ -265,10 +311,10 @@ Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::P
 {
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud1=getSegments(cloud1,attributes1,tails,ignore,removeProbability);
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud2=getSegments(cloud2,attributes2,tails,ignore,removeProbability);
-	for(unsigned int i=0;i<resolutions.size();i++)
+	for(int i=0;i<resolutions.size();i++)
 	{
-		loadMap(map[i],laserCloud1,NumInputs);
-		loadMap(mapLocal[i],laserCloud2,NumInputs);
+		loadMap(map[i],laserCloud1);
+		loadMap(mapLocal[i],laserCloud2);
 	}
 	for(auto i:resolutions_order)
 	{
@@ -278,11 +324,109 @@ Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::P
 	//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
 	return Tinit;
 }
+struct MatchPathSeparator
+{
+    bool operator()( char ch ) const
+    {
+        return ch == '/';
+    }
+};
+std::string basename(std::string const& pathname)
+{
+	return std::string(std::find_if(pathname.rbegin(),pathname.rend(),MatchPathSeparator() ).base(),pathname.end());
+}
+Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, std::string cloudF1, std::string cloudF2,initializer_list<vector<double> > attributes1,initializer_list<vector<double> > attributes2)//Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2)
+{
+	for(int i=0;i<resolutions.size();i++)
+	{
+		for(int j=0;j<NumInputs;j++)
+		{
+			std::string fname=cloudF1;
+			std::string fname_jff=precomputed_ndt_folder+
+				basename(fname+"."+std::to_string(resolutions[i])+"."+std::to_string(j)+".jff");
+			std::ifstream file((fname_jff).c_str());
+			if(file.good()&&useSaved)
+			{
+				/*
+				if(map!=NULL)
+				{
+				map[i][j]->unsetFirstLoad();
+				delete map[i][j];
+				}
+				lslgeneric::LazyGrid *grid = new lslgeneric::LazyGrid(resolutions[i]);
+				map[i][j]=new lslgeneric::NDTMap(grid);
+				*/
+				map[i][j]->loadFromJFF((fname_jff).c_str());
+			}
+			else
+			{
+				std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >
+					laserClouds=getSegments(getCloud<pcl::PointXYZ>(fname,IFS,skip),attributes1,tails,ignore,removeProbability);
+				for(j=j;j<NumInputs;j++)//intentional the same variable, load the remaining
+				{
+					map[i][j]->loadPointCloud(*laserClouds[j],sensor_range);
+					map[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
+					fname_jff=precomputed_ndt_folder+
+						basename(fname+"."+std::to_string(resolutions[i])+"."+std::to_string(j)+".jff");
+					map[i][j]->writeToJFF(fname_jff.c_str());
+				}
+			}
+		}
+		for(int j=0;j<NumInputs;j++)
+		{
+			std::string fname=cloudF2;
+			std::string fname_jff=precomputed_ndt_folder+
+				basename(fname+"."+std::to_string(resolutions[i])+"."+std::to_string(j)+".jff");
+			std::ifstream file((fname_jff).c_str());
+			if(file.good()&&useSaved)
+			{
+				/*
+				if(mapLocal!=NULL)
+				{
+				mapLocal[i][j]->unsetFirstLoad();
+				delete mapLocal[i][j];
+				}
+				lslgeneric::LazyGrid *grid = new lslgeneric::LazyGrid(resolutions[i]);
+				mapLocal[i][j]=new lslgeneric::NDTMap(grid);
+				*/
+				mapLocal[i][j]->loadFromJFF((fname_jff).c_str());
+			}
+			else
+			{
+				std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >
+					laserClouds=getSegments(getCloud<pcl::PointXYZ>(fname,IFS,skip),attributes2,tails,ignore,removeProbability);
+				for(j=j;j<NumInputs;j++)//intentional the same variable, load the remaining
+				{
+					mapLocal[i][j]->loadPointCloud(*laserClouds[j],sensor_range);
+					mapLocal[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
+					fname_jff=precomputed_ndt_folder+
+						basename(fname+"."+std::to_string(resolutions[i])+"."+std::to_string(j)+".jff");
+					mapLocal[i][j]->writeToJFF(fname_jff.c_str());
+				}
+			}
+		}
+	}
+	for(auto i:resolutions_order)
+	{
+		matcher.current_resolution=resolutions.at(i);
+		matcher.match(map[i],mapLocal[i],Tinit,true);
+	}
+	//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
+	return Tinit;
+}
+Eigen::Matrix<double, 6,6> NDTMatch_SE::getPoseCovariance(Eigen::Affine3d T)
+{
+	Eigen::MatrixXd Covariance(6,6);
+	Eigen::Matrix<double,6,6> Covariance_;
+	matcher.covariance(map,mapLocal,T,resolutions,Covariance);
+	Covariance_=Covariance;
+	return Covariance_;
+}
 Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes)
 {
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegments(cloud,attributes,tails,ignore,removeProbability);
-	for(unsigned int i=0;i<resolutions.size();i++)
-		loadMap(mapLocal[i],laserCloud,NumInputs);
+	for(int i=0;i<resolutions.size();i++)
+		loadMap(mapLocal[i],laserCloud);
 	if(!firstRun)
 	{
 		for(auto i:resolutions_order)
@@ -310,4 +454,69 @@ Eigen::Affine3d NDTMatch_SE::match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,pc
 	Eigen::Affine3d T;
 	T.setIdentity();
 	return this->match(T,cloud1,cloud2,attributes1,attributes2);
+}
+
+Eigen::Matrix<double,7,6> getJacobian(Eigen::VectorXd v)
+{
+	Eigen::Matrix<double,7,6> m;
+	double x=v(0)/2;
+	double y=v(1)/2;
+	double z=v(2)/2;
+	double cx=cos(x);
+	double cy=cos(y);
+	double cz=cos(z);
+	double sx=sin(x);
+	double sy=sin(y);
+	double sz=sin(z);
+	m(0,3)=0;
+	m(1,3)=0;
+	m(2,3)=0;
+	m(3,3)=-sx*sy*cz+cx*cy*sz;
+	m(4,3)=-sx*cy*sz-cx*sy*cz;
+	m(5,3)=+cx*cy*cz+sx*sy*sz;
+	m(6,3)=-sx*cy*cz+cx*sy*sz;
+
+	m(0,4)=0;
+	m(1,4)=0;
+	m(2,4)=0;
+	m(3,4)=+cx*cy*cz-sx*sy*sz;
+	m(4,4)=-cx*sy*sz-sx*cy*cz;
+	m(5,4)=-sx*sy*cz-cx*cy*sz;
+	m(6,4)=-cx*sy*cz+sx*cy*sz;
+
+	m(0,5)=0;
+	m(1,5)=0;
+	m(2,5)=0;
+	m(3,5)=-cx*sy*sz+sx*cy*cz;
+	m(4,5)=+cx*cy*cz+sx*sy*sz;
+	m(5,5)=-sx*cy*sz-cx*sy*cz;
+	m(6,5)=-cx*cy*sz+sx*sy*cz;
+
+	m=m/2;
+
+	m(0,0)=1;//1
+	m(1,0)=0;
+	m(2,0)=0;
+	m(3,0)=0;
+	m(4,0)=0;
+	m(5,0)=0;
+	m(6,0)=0;
+
+	m(0,1)=0;
+	m(1,1)=1;//1	
+	m(2,1)=0;
+	m(3,1)=0;
+	m(4,1)=0;
+	m(5,1)=0;
+	m(6,1)=0;
+
+	m(0,2)=0;
+	m(1,2)=0;
+	m(2,2)=1;//1
+	m(3,2)=0;
+	m(4,2)=0;
+	m(5,2)=0;
+	m(6,2)=0;
+
+	return m;
 }

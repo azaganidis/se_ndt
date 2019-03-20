@@ -55,7 +55,7 @@ class NDTMatcherD2D_SE: public NDTMatcherD2D
 public:
 	Eigen::Matrix<double,6,6> HessianF;
 	Eigen::Matrix<double,6,1> score_gradientF;
-	unsigned int NumInputs;
+	int NumInputs;
     /**
      * Registers multiple point clouds to multiple NDT structures.
      * \param  fixed
@@ -72,6 +72,13 @@ public:
                 Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>& T,
                 bool useInitialGuess = false
 				);
+
+	bool covariance( 
+		NDTMap *** targetNDTMany,
+		NDTMap *** sourceNDTMany,
+			Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>& T,
+		std::vector<float>& resolutions,
+			Eigen::MatrixXd &cov);
 
     //compute the score gradient & hessian of multiple point clouds + transformation to NDTs
     // input: moving, fixed, tr, computeHessian

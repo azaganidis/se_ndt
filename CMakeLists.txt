@@ -4,7 +4,7 @@ find_package(OpenMP REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11 -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11 -Wno-ignored-attributes -Wno-deprecated")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 #find_package(ndt_map)
 #find_package(ndt_registration)
@@ -44,10 +44,29 @@ set (${PROJECT_NAME}_LIB_SRCS
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_LIB_SRCS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
+add_executable(pntnet_reg src/semantic_pointnet_register_only.cpp)
+target_link_libraries(pntnet_reg ${PROJECT_NAME} ${ndt_map_LIBRARIES}
+	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
+
 add_executable(big_cloud_test src/big_cloud_test.cpp)
 target_link_libraries(big_cloud_test ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
+add_executable(gen_transforms src/gen_transforms.cpp)
+target_link_libraries(gen_transforms ${Boost_LIBRARIES}
+	${Eigen3_LIBRARIES})
+
+add_executable(evaluate src/evaluate_files.cpp)
+target_link_libraries(evaluate ${Boost_LIBRARIES}
+	${Eigen3_LIBRARIES} )
+
+add_executable(closest_transforms src/closest_transforms.cpp)
+target_link_libraries(closest_transforms ${Boost_LIBRARIES}
+	${Eigen3_LIBRARIES} )
+
+add_executable(concat_transform src/concat_transform.cpp)
+target_link_libraries(concat_transform ${PROJECT_NAME} ${ndt_map_LIBRARIES}
+	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 #[[
 add_library(ndt_fuser src/ndt_fuser_hmt_se.cpp)
 target_link_libraries(ndt_fuser ${PROJECT_NAME})
@@ -55,10 +74,6 @@ target_link_libraries(ndt_fuser ${PROJECT_NAME})
 add_executable(polesRegister_fuser src/polesRegister_fuser.cpp)
 target_link_libraries(polesRegister_fuser ndt_fuser ${Boost_LIBRARIES}
 	${OpenCV_LIBS} ${PCL_LIBRARIES})
-
-add_executable(gen_transforms src/gen_transforms.cpp)
-target_link_libraries(gen_transforms ${Boost_LIBRARIES}
-	${Eigen3_LIBRARIES})
 
 add_executable(rpy_to_transform src/rpy_to_transform.cpp)
 target_link_libraries(rpy_to_transform ${Eigen3_LIBRARIES})
@@ -80,10 +95,6 @@ target_link_libraries(inverse_transforms ${Boost_LIBRARIES}
 add_executable(csv_uniform_sampling src/csv_uniform_sampling.cpp)
 target_link_libraries(csv_uniform_sampling ${Boost_LIBRARIES}
 	${Eigen3_LIBRARIES} ${PCL_LIBRARIES})
-
-add_executable(evaluate src/evaluate_files.cpp)
-target_link_libraries(evaluate ${Boost_LIBRARIES}
-	${Eigen3_LIBRARIES} )
 
 add_executable(rsd_register_fuser src/rsd_register_fuser.cpp)
 target_link_libraries(rsd_register_fuser ndt_fuser ${Boost_LIBRARIES}
@@ -121,9 +132,6 @@ add_executable(big_cloud_test_no_se src/big_cloud_test_no_se2.cpp)
 target_link_libraries(big_cloud_test_no_se ${PROJECT_NAME} ${ndt_map_LIBRARIES}
 	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 
-add_executable(concat_transform src/concat_transform.cpp)
-target_link_libraries(concat_transform ${PROJECT_NAME} ${ndt_map_LIBRARIES}
-	${ndt_registration_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} -lboost_serialization)
 ]]
 
 ## Uncomment this if the package has a setup.py. This macro ensures

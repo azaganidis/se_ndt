@@ -30,6 +30,7 @@ DepthCamera	oru_minimal/include/ndt_map/depth_camera.h	/^    DepthCamera() { }$/
 DepthCamera	oru_minimal/include/ndt_map/depth_camera.h	/^class DepthCamera$/;"	c	namespace:lslgeneric
 ET	include/se_ndt/features_CI.hpp	/^typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;$/;"	t	typeref:typename:Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>
 ET	include/se_ndt/se_ndt.hpp	/^typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;$/;"	t	typeref:typename:Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>
+ET	src/big_cloud_test_no_se.cpp	/^typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;$/;"	t	typeref:typename:Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>	file:
 ET	src/polesRegister_ndt.cpp	/^typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;$/;"	t	typeref:typename:Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>	file:
 ET	src/se_ndt.cpp	/^typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;$/;"	t	typeref:typename:Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>	file:
 EVAL_FACTOR	oru_minimal/include/ndt_map/ndt_cell.h	/^    static double EVAL_FACTOR;													\/\/ ???$/;"	m	class:lslgeneric::NDTCell	typeref:typename:double
@@ -274,6 +275,8 @@ covariance	oru_minimal/src/ndt_matcher_d2d.cpp	/^bool NDTMatcherD2D::covariance(
 covariance	oru_minimal/src/ndt_matcher_d2d.cpp	/^bool NDTMatcherD2D::covariance( pcl::PointCloud<pcl::PointXYZ>& target,$/;"	f	class:lslgeneric::NDTMatcherD2D	typeref:typename:bool
 covariance	oru_minimal/src/ndt_matcher_p2d.cpp	/^bool NDTMatcherP2D::covariance( pcl::PointCloud<pcl::PointXYZ>& target,$/;"	f	class:lslgeneric::NDTMatcherP2D	typeref:typename:bool
 cropIt	include/se_ndt/features_CI.hpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+cropIt	src/big_cloud_test.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud, std/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+cropIt	src/csv_to_pcd.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud, std/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
 cropIt	src/rsdRegister.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud, std/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
 cropIt	src/rsdRegister2.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud, std/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
 cropIt	src/rsdRegister3.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr cropIt(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud, std/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
@@ -357,6 +360,7 @@ generateScoreDebug	oru_minimal/src/ndt_matcher_p2d.cpp	/^void NDTMatcherP2D::gen
 geomDist	oru_minimal/include/ndt_map/impl/pointcloud_utils.hpp	/^double geomDist(PointT p1, PointT p2)$/;"	f	namespace:lslgeneric	typeref:typename:double
 getAllCells	oru_minimal/src/ndt_map.cpp	/^std::vector<lslgeneric::NDTCell*> NDTMap::getAllCells() const$/;"	f	class:lslgeneric::NDTMap	typeref:typename:std::vector<lslgeneric::NDTCell * >
 getAllCells	oru_minimal/src/ndt_map_hmt.cpp	/^std::vector<lslgeneric::NDTCell*> NDTMapHMT::getAllCells() const$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:std::vector<lslgeneric::NDTCell * >
+getAllCellsNoCopy	oru_minimal/src/ndt_map.cpp	/^std::vector<lslgeneric::NDTCell*> NDTMap::getAllCellsNoCopy() const$/;"	f	class:lslgeneric::NDTMap	typeref:typename:std::vector<lslgeneric::NDTCell * >
 getAllInitializedCells	oru_minimal/src/ndt_map.cpp	/^std::vector<lslgeneric::NDTCell*> NDTMap::getAllInitializedCells()$/;"	f	class:lslgeneric::NDTMap	typeref:typename:std::vector<lslgeneric::NDTCell * >
 getAllInitializedCells	oru_minimal/src/ndt_map_hmt.cpp	/^std::vector<lslgeneric::NDTCell*> NDTMapHMT::getAllInitializedCells()$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:std::vector<lslgeneric::NDTCell * >
 getBit	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    bool getBit(int ind)$/;"	f	struct:TEventData	typeref:typename:bool
@@ -386,6 +390,13 @@ getClosestNDTCell	oru_minimal/src/lazy_grid.cpp	/^NDTCell* LazyGrid::getClosestN
 getClosestNDTCells	oru_minimal/src/cell_vector.cpp	/^std::vector<NDTCell*> CellVector::getClosestNDTCells(const pcl::PointXYZ &point, double &radius)$/;"	f	class:lslgeneric::CellVector	typeref:typename:std::vector<NDTCell * >
 getClosestNDTCells	oru_minimal/src/lazy_grid.cpp	/^std::vector<NDTCell*> LazyGrid::getClosestNDTCells(const pcl::PointXYZ &point, int &n_neigh, boo/;"	f	class:lslgeneric::LazyGrid	typeref:typename:std::vector<NDTCell * >
 getCloud	include/se_ndt/features_CI.hpp	/^pcl::PointCloud<pcl::PointXYZ>  getCloud(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZ>
+getCloud	src/big_cloud_test.cpp	/^pcl::PointCloud<pcl::PointXYZ>::Ptr  getCloud(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZ>::Ptr
+getCloud	src/csv_uniform_sampling.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud(string filename,string se_filename, bool skip=fal/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloud2	src/big_cloud_test_no_se2.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename, bool skip=false)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloud2	src/csv_to_pcd.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename, bool skip=false)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloud2	src/eval.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename,bool skip=false)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloud2	src/exp_clouds.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename,bool skip=false)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloud2	src/inverse_transforms.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename,bool skip=false)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
 getCloud2	src/polesRegister.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
 getCloud2	src/polesRegister_fuser.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename,bool skip=false)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
 getCloud2	src/polesRegister_kalman.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
@@ -394,8 +405,9 @@ getCloud2	src/rsdRegister2.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2
 getCloud2	src/rsdRegister3.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename, bool skip=false)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
 getCloud2	src/rsd_register_fuser.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
 getCloud2	src/semanticRegister.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename, bool skip=false)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
-getCloud2	src/smoothness.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloud2	src/smoothness.cpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloud2(string filename,bool skip_first=false)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
 getCloudI	include/se_ndt/features_CI.hpp	/^pcl::PointCloud<pcl::PointXYZI>::Ptr  getCloudI(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZI>::Ptr
+getCloudXYZ	src/big_cloud_test_no_se.cpp	/^pcl::PointCloud<pcl::PointXYZ>::Ptr  getCloudXYZ(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZ>::Ptr
 getCloudXYZ	src/polesRegister_ndt.cpp	/^pcl::PointCloud<pcl::PointXYZ>::Ptr  getCloudXYZ(string filename)$/;"	f	typeref:typename:pcl::PointCloud<pcl::PointXYZ>::Ptr
 getCornerness	include/se_ndt/features_CI.hpp	/^std::vector<double> getCornerness(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn,float R)$/;"	f	typeref:typename:std::vector<double>
 getCornerness2	include/se_ndt/features_CI.hpp	/^std::vector<double> getCornerness2(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn,int K)$/;"	f	typeref:typename:std::vector<double>
@@ -428,6 +440,8 @@ getLikelihood	oru_minimal/src/ndt_cell.cpp	/^double NDTCell::getLikelihood(const
 getLikelihoodForPoint	oru_minimal/src/ndt_map.cpp	/^double NDTMap::getLikelihoodForPoint(pcl::PointXYZ pt)$/;"	f	class:lslgeneric::NDTMap	typeref:typename:double
 getLikelihoodForPoint	oru_minimal/src/ndt_map_hmt.cpp	/^double NDTMapHMT::getLikelihoodForPoint(pcl::PointXYZ pt)$/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:double
 getMean	oru_minimal/include/ndt_map/ndt_cell.h	/^    inline Eigen::Vector3d getMean() const$/;"	f	class:lslgeneric::NDTCell	typeref:typename:Eigen::Vector3d
+getMeasure	src/big_cloud_test.cpp	/^vector<double>  getMeasure(string filename)$/;"	f	typeref:typename:vector<double>
+getMeasure	src/csv_to_pcd.cpp	/^vector<double>  getMeasure(string filename)$/;"	f	typeref:typename:vector<double>
 getMeasure	src/polesRegister.cpp	/^vector<double>  getMeasure(string filename)$/;"	f	typeref:typename:vector<double>
 getMeasure	src/polesRegister_fuser.cpp	/^vector<double>  getMeasure(string filename)$/;"	f	typeref:typename:vector<double>
 getMeasure	src/polesRegister_kalman.cpp	/^vector<double>  getMeasure(string filename)$/;"	f	typeref:typename:vector<double>
@@ -455,6 +469,7 @@ getRGB	oru_minimal/include/ndt_map/ndt_cell.h	/^    void getRGB(float &r, float 
 getRSD	include/se_ndt/features_CI.hpp	/^std::vector<double> getRSD(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, float a,float b, float c,/;"	f	typeref:typename:std::vector<double>
 getSegments	src/se_ndt.cpp	/^vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointCloud<pcl::PointX/;"	f	class:NDTMatch_SE	typeref:typename:vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>
 getTrans	src/concat_transform.cpp	/^Eigen::Affine3d getTrans(istream &infile)$/;"	f	typeref:typename:Eigen::Affine3d
+getTrans	src/rpy_to_transform.cpp	/^Eigen::Affine3d getTrans(istream &infile)$/;"	f	typeref:typename:Eigen::Affine3d
 getTransform	oru_minimal/include/ndt_map/ndt_histogram.h	/^    double getTransform(size_t FIT_NUMBER, Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMaj/;"	f	class:lslgeneric::NDTHistogram	typeref:typename:double
 grid_	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    lslgeneric::LazyGrid* grid_[3][3];$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:lslgeneric::LazyGrid * [3][3]
 grids_init	oru_minimal/include/ndt_map/ndt_map_hmt.h	/^    bool grids_init;$/;"	m	class:lslgeneric::NDTMapHMT	typeref:typename:bool
@@ -574,19 +589,30 @@ lslgeneric	oru_minimal/src/ndt_matcher_p2d.cpp	/^namespace lslgeneric$/;"	n	file
 lslgeneric	src/ndt_fuser_hmt_se.cpp	/^namespace lslgeneric {$/;"	n	file:
 lslgeneric	src/ndt_matcher_d2d_se.cpp	/^namespace lslgeneric$/;"	n	file:
 lslgeneric	src/ndt_matcher_p2d_se.cpp	/^namespace lslgeneric$/;"	n	file:
+main	src/big_cloud_test.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/big_cloud_test_no_se.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/big_cloud_test_no_se2.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/concat_transform.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/csv_to_pcd.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/csv_uniform_sampling.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/eval.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/evaluate_files.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/exp_clouds.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/gen_transforms.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/inverse_transforms.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/polesRegister.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/polesRegister_fuser.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/polesRegister_kalman.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/polesRegister_ndt.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/rpy_to_transform.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/rsdRegister.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/rsdRegister2.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/rsdRegister3.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/rsd_register_fuser.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/semanticRegister.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 main	src/smoothness.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/transform_concat.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
+main	src/transform_diff.cpp	/^int main(int argc, char** argv)$/;"	f	typeref:typename:int
 map	include/se_ndt/ndt_fuser_hmt_se.h	/^		lslgeneric::NDTMap ***map;		 \/\/\/< da map$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:lslgeneric::NDTMap ***
 map	include/se_ndt/se_ndt.hpp	/^		lslgeneric::NDTMap ***map;		 \/\/\/< da map$/;"	m	class:NDTMatch_SE	typeref:typename:lslgeneric::NDTMap ***
 mapLocal	include/se_ndt/ndt_fuser_hmt_se.h	/^		lslgeneric::NDTMap ***mapLocal;		 \/\/\/< da map$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:lslgeneric::NDTMap ***
@@ -608,6 +634,7 @@ match	src/ndt_matcher_d2d_se.cpp	/^bool NDTMatcherD2D_SE::match( NDTMap **target
 match	src/ndt_matcher_p2d_se.cpp	/^bool NDTMatcherP2D_SE::match( NDTMap **targetNDT,$/;"	f	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:bool
 match	src/se_ndt.cpp	/^Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cl/;"	f	class:NDTMatch_SE	typeref:typename:Eigen::Affine3d
 match	src/se_ndt.cpp	/^Eigen::Affine3d NDTMatch_SE::match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<v/;"	f	class:NDTMatch_SE	typeref:typename:Eigen::Affine3d
+match	src/se_ndt.cpp	/^Eigen::Affine3d NDTMatch_SE::match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,pcl::PointCloud<pc/;"	f	class:NDTMatch_SE	typeref:typename:Eigen::Affine3d
 matcher	include/se_ndt/ndt_fuser_hmt_se.h	/^	lslgeneric::NDTMatcherD2D_SE matcher;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:lslgeneric::NDTMatcherD2D_SE
 matcher	include/se_ndt/se_ndt.hpp	/^		lslgeneric::NDTMatcherD2D_SE matcher;$/;"	m	class:NDTMatch_SE	typeref:typename:lslgeneric::NDTMatcherD2D_SE
 matcher2D	include/se_ndt/ndt_fuser_hmt_se.h	/^	lslgeneric::NDTMatcherD2D_2D matcher2D;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:lslgeneric::NDTMatcherD2D_2D
@@ -651,12 +678,21 @@ precomputeAngleDerivatives	oru_minimal/src/ndt_matcher_p2d.cpp	/^void NDTMatcher
 precomputeAngleDerivatives	src/ndt_matcher_p2d_se.cpp	/^void NDTMatcherP2D_SE::precomputeAngleDerivatives(Eigen::Vector3d &eulerAngles)$/;"	f	class:lslgeneric::NDTMatcherP2D_SE	typeref:typename:void
 predictOccupancy	oru_minimal/include/ndt_map/impl/EventCounterData.hpp	/^    float predictOccupancy(int N)$/;"	f	struct:TEventData	typeref:typename:float
 prefix	include/se_ndt/ndt_fuser_hmt_se.h	/^		std::string prefix;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:std::string
+printTransform	src/transform_concat.cpp	/^void printTransform(Eigen::Affine3d &T, ostream &outS)$/;"	f	typeref:typename:void
+printTransform	src/transform_diff.cpp	/^void printTransform(Eigen::Affine3d &T, ostream &outS)$/;"	f	typeref:typename:void
 protoType	oru_minimal/include/ndt_map/cell_vector.h	/^    NDTCell *protoType;$/;"	m	class:lslgeneric::CellVector	typeref:typename:NDTCell *
 protoType	oru_minimal/include/ndt_map/lazy_grid.h	/^    NDTCell *protoType;$/;"	m	class:lslgeneric::LazyGrid	typeref:typename:NDTCell *
 pseudoTransformNDT	oru_minimal/src/ndt_map.cpp	/^std::vector<NDTCell*> NDTMap::pseudoTransformNDT(Eigen::Transform<double,3,Eigen::Affine,Eigen::/;"	f	class:lslgeneric::NDTMap	typeref:typename:std::vector<NDTCell * >
 pseudoTransformNDT	oru_minimal/src/ndt_map_hmt.cpp	/^std::vector<NDTCell*> NDTMapHMT::pseudoTransformNDT(Eigen::Transform<double,3,Eigen::Affine,Eige/;"	f	class:lslgeneric::NDTMapHMT	typeref:typename:std::vector<NDTCell * >
 pseudoTransformNDTMap	oru_minimal/src/ndt_map.cpp	/^NDTMap* NDTMap::pseudoTransformNDTMap(Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> T/;"	f	class:lslgeneric::NDTMap	typeref:typename:NDTMap *
+readSemantics	src/exp_clouds.cpp	/^std::list<int>  readSemantics(string filename)$/;"	f	typeref:typename:std::list<int>
+readTransform	src/eval.cpp	/^std::vector<Eigen::Affine3d>  readTransform(istream &infile)$/;"	f	typeref:typename:std::vector<Eigen::Affine3d>
+readTransform	src/evaluate_files.cpp	/^std::vector<Eigen::Affine3d>  readTransform(istream &infile)$/;"	f	typeref:typename:std::vector<Eigen::Affine3d>
+readTransform	src/exp_clouds.cpp	/^std::vector<Eigen::Affine3d>  readTransform(istream &infile)$/;"	f	typeref:typename:std::vector<Eigen::Affine3d>
+readTransform	src/inverse_transforms.cpp	/^std::vector<Eigen::Affine3d>  readTransform(istream &infile)$/;"	f	typeref:typename:std::vector<Eigen::Affine3d>
 readTransform	src/se_ndt.cpp	/^Eigen::Affine3d readTransform(istream &infile)$/;"	f	typeref:typename:Eigen::Affine3d
+readTransform	src/transform_concat.cpp	/^void readTransform(istream &infile)$/;"	f	typeref:typename:void
+readTransform	src/transform_diff.cpp	/^void readTransform(istream &infile)$/;"	f	typeref:typename:void
 regularize	oru_minimal/include/ndt_registration/ndt_matcher_d2d.h	/^    bool regularize;$/;"	m	class:lslgeneric::NDTMatcherD2D	typeref:typename:bool
 removeProbability	include/se_ndt/ndt_fuser_hmt_se.h	/^		float removeProbability;$/;"	m	class:lslgeneric::NDTFuserHMT_SE	typeref:typename:float
 removeProbability	include/se_ndt/se_ndt.hpp	/^		float removeProbability;$/;"	m	class:NDTMatch_SE	typeref:typename:float
