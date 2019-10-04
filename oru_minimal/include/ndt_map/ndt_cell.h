@@ -45,6 +45,7 @@
 #include <Eigen/Eigen>
 #include "boost/serialization/serialization.hpp"
 #include <boost/serialization/array_wrapper.hpp>
+#include <boost/archive/text_oarchive.hpp>
 /// A rather unsophisticated way of determining the
 /// update method for a cell
 /// Covariance intersection based on estimation
@@ -81,6 +82,7 @@ public:
   double cost; 	/// ndt_wavefront planner
   char isEmpty;	///<based on the most recent observation, is the cell seen empty (1), occupied (-1) or not at all (0)
   double consistency_score;
+  unsigned int cloud_index;
   enum CellClass {HORIZONTAL=0, VERTICAL, INCLINED, ROUGH, UNKNOWN};
   std::vector<pcl::PointXYZ,Eigen::aligned_allocator<pcl::PointXYZ> > points_; ///The points falling into the cell - cleared after update
   void InitializeVariables(){
@@ -490,15 +492,16 @@ private:
   template<class Archive>
   void serialize(Archive & ar, const unsigned int version)//In order to clal this you need to register it to boost using "ar.template register_type<LazyGrid>();"
   {
+      ar & cloud_index;
     ar & hasGaussian_;
     ar & cost; 	/// ndt_wavefront planner
     ar & isEmpty;	///<based on the most recent observation, is the cell seen empty (1), occupied (-1) or not at all (0)
     ar & consistency_score;
-    ar & center_;
+    ar & center_.x & center_.y & center_.z;
     ar & xsize_ & ysize_ & zsize_;
-    ar & cov_;
-    ar & icov_;  /// Precomputed inverse covariance (updated every time the cell is updated)
-    ar & evecs_; /// Eigen vectors
+    ar & boost::serialization::make_array(cov_.data(), 9);
+    ar & boost::serialization::make_array(icov_.data(), 9);
+    ar & boost::serialization::make_array(evecs_.data(), 9);
     ar & boost::serialization::make_array(mean_.data(), 3 );
     ar & boost::serialization::make_array(evals_.data(), 3 );
     ar & parametersSet_;
@@ -512,7 +515,7 @@ private:
     ar & emptydist;
     ar & R & G & B;
     ar & occ & max_occu_;
-    ar & edata;
+    //ar & edata;
     ar & cl_;
   }
 public:

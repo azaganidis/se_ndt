@@ -1,273 +1,61 @@
+#include <Eigen/QR>
 #include <se_ndt/se_ndt.hpp>
 #include <numeric>
-using namespace std;
-typedef Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> ET;
-
-template <>
-pcl::PointCloud<pcl::PointXYZI>::Ptr getCloud<pcl::PointXYZI>(string filename,char IFS, bool skip)
-{
-	ifstream infile(filename); // for example
-	string line = "";
-	pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloud(new pcl::PointCloud<pcl::PointXYZI>);
-	if(skip)getline(infile, line);
-	while (getline(infile, line)){
-		stringstream strstr(line);
-		string word = "";
-		pcl::PointXYZI point;
-		getline(strstr,word, IFS);
-		point.x=stof(word);
-		getline(strstr,word, IFS);
-		point.y=stof(word);
-		getline(strstr,word, IFS);
-		point.z=stof(word);
-		getline(strstr,word);
-		point.intensity=stof(word);
-		(*laserCloud).points.push_back(point);
-	}
-    return laserCloud;
-}
-template <>
-pcl::PointCloud<pcl::PointXYZ>::Ptr getCloud<pcl::PointXYZ>(string filename,char IFS, bool skip)
-{
-	ifstream infile(filename); // for example
-	string line = "";
-	pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloud(new pcl::PointCloud<pcl::PointXYZ>);
-	if(skip)getline(infile, line);
-	while (getline(infile, line)){
-		stringstream strstr(line);
-		string word = "";
-		pcl::PointXYZ point;
-		getline(strstr,word, IFS);
-		point.x=stof(word);
-		getline(strstr,word, IFS);
-		point.y=stof(word);
-		getline(strstr,word, IFS);
-		point.z=stof(word);
-		(*laserCloud).points.push_back(point);
-	}
-    return laserCloud;
-}
-Eigen::Affine3d readTransform(istream &infile)
-{
-	string line = "";
-	Eigen::Affine3d T;
-	T.setIdentity();
-	for(int i=0;i<4;i++)
-	{
-		for(int j=0;j<4;j++)
-		{
-			string word="";
-			char c=' ';
-			while(c!='.'&&c!='-'&&(c<'0'||c>'9'))
-			{
-				c=infile.get();
-			}
-			while(c=='e'||c=='.'||c=='-'||(c>='0'&&c<='9'))
-			{
-				word+=c;
-				c=infile.get();
-			}
-			T(i,j)=stof(word);
-		}
-	}
-    return T;
-}
-size_t* sort_pointcloud(vector<double> &in,float disregard)
-{
-	vector<size_t> idx(in.size());
-	size_t *idx2 = new size_t[in.size()];
-	std::iota(idx.begin(),idx.end(),0);
-	sort(idx.begin(), idx.end(),[&in](size_t i1,size_t i2){return in[i1]<in[i2];});
-	std::vector<size_t>::iterator up= std::upper_bound (idx.begin(), idx.end(), disregard,[&in](double v,size_t i1){return in[i1]>v;}); //                   
-	size_t mid = (idx.end()-up)/2;
-	  std::swap_ranges(up, up+mid, idx.begin());
-	  int j=0;
-	  for(auto i:idx)
-		  idx2[i]=j++;
-	return idx2;
-}
-inline size_t index_selector(size_t **I,int p,int num,std::vector<int> Tails,size_t number_points)
-{
-	size_t minI=0,minA=I[0][p];
-	size_t maxI=0,maxA=I[0][p];
-	for(auto i=0;i<num;i++)
-	{
-		if(*(Tails.begin()+i)<4)
-		{
-			if(*(Tails.begin()+i)&1)if(I[i][p]<=minA) { minA=I[i][p];minI=i; }
-			if(*(Tails.begin()+i)&2)if(I[i][p]>=maxA) { maxA=I[i][p];maxI=i; }
-		}
-	}
-	return number_points-maxA<minA?maxI+num:minI;
-}
-inline bool checkInLimits(size_t **in,int p,int num,int cu,int cl)
-{
-	for(int i=0;i<num;i++)
-		if(in[i]!=NULL)
-			if(in[i][p]>cu||in[i][p]<cl)
-				return true;
-	return false;
-}
-
-vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegments(pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloudIn,initializer_list<vector<double> >& attributes_,initializer_list<int > distribution_tails_,initializer_list<float> disregard_, float rejectPerc)
-{
-	vector<vector<double> > attributes(attributes_);
-	vector<float> disregard(disregard_);
-	vector<int> distribution_tails(distribution_tails_);
-	int cloudSize = laserCloudIn->points.size();
-	int num_attributes=attributes.size();
-	size_t *sorted_indexes[num_attributes];
-	for(auto i=0;i< num_attributes;i++)
-	{
-		if(distribution_tails[i]<4)
-			sorted_indexes[i]=sort_pointcloud(attributes.at(i),disregard.at(i));
-		else sorted_indexes[i]=NULL;
-	}
-
-	int cut_off_l=(1-rejectPerc)/2*cloudSize;
-	int cut_off_u=(1+rejectPerc)/2*cloudSize;
-	////////
-	//Create look-up
-	int look_up[2*num_attributes];
-	size_t num_tails=0;
-	for(int i=0;i<num_attributes;i++)
-	{
-		if(distribution_tails[i]<4)
-		{
-			if(distribution_tails[i]==1||distribution_tails[i]==3)
-			{
-				look_up[i]= num_tails;
-				num_tails++;
-			}else look_up[i]=-1;
-			if(distribution_tails[i]==2)
-			{
-				look_up[i+num_attributes]=num_tails;
-				num_tails++;
-			}else look_up[i+num_attributes]=-1;
-		}
-		else if(distribution_tails[i]==(int )'e'||distribution_tails[i]=='>'||distribution_tails[i]=='<'||distribution_tails[i]=='*'||distribution_tails[i]=='=')
-		{
-			look_up[i]=num_tails;
-			num_tails++;
-			look_up[i+num_attributes]=-1;
-		}
-		else look_up[i]=-1;
-	}
-	///////
-	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud;
-	for(int i=0;i<num_tails+semantic_labels.size();i++)
-	{
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudT(new pcl::PointCloud<pcl::PointXYZ>);
-		laserCloud.push_back(cloudT);
-	}
-	for(int i=0;i<cloudSize;i++)
-	{
-		int index=-1;
-		for(auto j=0;j< num_attributes;j++)
-		{
-			if(distribution_tails.at(j)==(int )'e'||distribution_tails.at(j)==(int )'=')
-			{
-				if(attributes.at(j).at(i)==disregard.at(j))
-				{
-					index=look_up[j];
-					continue;
-				}
-			}
-			else if(distribution_tails.at(j)==(int )'>')
-			{
-				if(attributes.at(j).at(i)>=disregard.at(j))
-				{
-					index=look_up[j];
-					continue;
-				}
-			}
-			else if(distribution_tails.at(j)==(int )'<')
-			{
-				if(attributes.at(j).at(i)<=disregard.at(j))
-				{
-					index=look_up[j];
-					continue;
-				}
-			}
-			else if (distribution_tails.at(j)==117&&attributes.at(j).at(i)!=disregard.at(j))
-			{
-				std::vector<int>::iterator my_iter;
-				int sem_val=attributes.at(j).at(i);
-				my_iter=find(semantic_labels.begin(),semantic_labels.end(),sem_val);
-				if(semantic_labels.end()==my_iter)
-				{
-					pcl::PointCloud<pcl::PointXYZ>::Ptr cloudT(new pcl::PointCloud<pcl::PointXYZ>);
-					laserCloud.push_back(cloudT);
-					semantic_labels.push_back(sem_val);
-					my_iter=semantic_labels.end()-1;
-				}
-				int nummm=distance(semantic_labels.begin(),my_iter);
-				index=num_tails+distance(semantic_labels.begin(),my_iter);
-				if(index>=NumInputs)cerr<<"too many labels"<<endl;
-				continue;
-			}
-			else if(distribution_tails.at(j)==(int )'*'&&index==-1)
-				index=look_up[j];
-		}
-
-
-		if(index==-1&&!checkInLimits(sorted_indexes,i,num_attributes,cut_off_u,cut_off_l)) continue;
-		pcl::PointXYZ point;
-		point.x=laserCloudIn->points[i].x;
-		point.y=laserCloudIn->points[i].y;
-		point.z=laserCloudIn->points[i].z;
-		//point.intensity=laserCloudIn->points[i].intensity;
-		if(index==-1)index=look_up[index_selector(sorted_indexes, i,num_attributes,distribution_tails,cloudSize)];
-		if(index!=-1)
-			laserCloud[index]->points.push_back(point);
-	}
-	for(auto i=0;i<num_attributes;i++)
-		delete[] sorted_indexes[i];
-
-
-	return laserCloud;
-}
-size_t count_tails(vector<int>& distribution_tails)
-{
-	size_t number_tails0=count(distribution_tails.begin(),distribution_tails.end(),0);
-	size_t number_tails3=count(distribution_tails.begin(),distribution_tails.end(),3);
-	return distribution_tails.size()+number_tails3-number_tails0;
-}
-
-perception_oru::NDTMap **initMap(int number_tails,initializer_list<float> resolutions_, initializer_list<float>size_)
-{
-	vector<float> size(size_),resolutions(resolutions_);
-	if(number_tails!=resolutions.size()&&resolutions.size()!=1)
-		cerr<<"Number of resolutions different than number of segments. Taking resolution index modulus."<<endl;
-	if(size.size()!=3)
-	{
-		float max_size=*max_element(size.begin(),size.end());
-		size.resize(3);
-		size[0]=max_size;
-		size[1]=max_size;
-		size[2]=max_size;
-		cerr<<"Wrong size parameter. Using size x=y=z="<<max_size<<endl;
-	}
-	perception_oru::NDTMap **map = new perception_oru::NDTMap * [number_tails];
-	for(size_t i=0;i<number_tails;i++)
-	{
-		perception_oru::LazyGrid *grid = new perception_oru::LazyGrid(resolutions[i%resolutions.size()]);
-		perception_oru::NDTMap *mapTMP=new perception_oru::NDTMap(grid);
-		map[i]=mapTMP;
-		map[i]->guessSize(0,0,0,size[0],size[1],size[2]);
-		map[i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
-	}
-	return map;
-}
+#define COND_SCORE -10000
+#define HIST_BINS1 60
+#define HIST_BINS2 60
+#define RANGE1 25 
+#define MGFEAT 20
+#define RANGE2 50 
+#define  HIST_ACCURATE_DISTANCE 10//Distance where the histogram is expected to have the same value
+#define HIST_FREQ_METER 5 //Recomended 10
+#ifdef GROUND_TRUTH_POSE 
+       #define NO_LOOP_CLOSE
+#endif
+#define SIMILARITY_THRESHOLD 0.2
 //#include <chrono>
 //#include <iomanip>
-void loadMap(perception_oru::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range)
+
+using namespace std;
+int edge_counter=0;
+void writeG2O_Vertex(Eigen::Affine3d T, int i)
 {
-	for(size_t i=0;i<input_clouds.size();i++)
-	{
-		map[i]->loadPointCloud(*input_clouds[i],sensor_range);
-		map[i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
-	}
+    Eigen::Quaterniond qR(T.rotation().matrix());
+    std::ofstream g2("se_loop.g2o", std::ofstream::out|std::ofstream::app);
+    g2<<"VERTEX_SE3:QUAT "<<i<<" "<<T(0,3)<<" "<<T(1,3)<<" "<<T(2,3);
+    g2<<" "<<qR.coeffs().x();
+    g2<<" "<<qR.coeffs().y();
+    g2<<" "<<qR.coeffs().z();
+    g2<<" "<<qR.coeffs().w();
+        g2<<std::endl;
+    g2.close();
+}
+void writeG2O_Edge(Eigen::Affine3d T, int i, int j, Eigen::Matrix<double,7,7> C)
+{
+    Eigen::Quaterniond qR(T.rotation().matrix());
+    std::ofstream g2("se_loop.g2o", std::ofstream::out|std::ofstream::app);
+    g2<<"EDGE_SE3:QUAT "<<i<<" "<<j<<" "<<T(0,3)<<" "<<T(1,3)<<" "<<T(2,3);
+    g2<<" "<<qR.coeffs().x();
+    g2<<" "<<qR.coeffs().y();
+    g2<<" "<<qR.coeffs().z();
+    g2<<" "<<qR.coeffs().w();
+    for(int i=0;i<6;i++)
+        for(int j=i;j<6;j++)
+            g2<<" "<<C(i,j);
+    g2<<std::endl;
+    g2.close();
+}
+void NDTMatch_SE::loadMap(perception_oru::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range)
+{
+    #pragma omp parallel num_threads(8)
+    {
+        #pragma omp for
+        for(size_t i=0;i<input_clouds.size();i++)
+        {
+            map[i]->loadPointCloud(*input_clouds[i],sensor_range);
+            map[i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
+        }
+    }
 }
 Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> score_gradient)
 {
@@ -291,25 +79,86 @@ Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix
 		}
 		return Hessian;
 }
-NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initializer_list<float> d,initializer_list<int> e,initializer_list<float> ig,float removeP,int max_iter):resolutions(b),resolutions_order(c),size(d),tails(e),ignore(ig),removeProbability(removeP)
+perception_oru::NDTMap** NDTMatch_SE::loadSavedMap(int index)
 {
-	vector<int> tails_t(tails);
-	NumInputs=count_tails(tails_t)+70*std::count(tails_t.begin(),tails_t.end(),'u');
-	firstRun=true;
+    perception_oru::NDTMap*** loaded_map =new perception_oru::NDTMap** [resolutions.size()]; 
+    for(unsigned int i=0;i<resolutions.size();i++)
+    {
+        float cur_res=(resolutions[i%resolutions.size()]);
+        loaded_map[i]= new perception_oru::NDTMap * [NumInputs];
+        for(size_t j=0;j<matcher.NumInputs;j++)
+        {
 
-		matcher.NumInputs=NumInputs;
-		matcher.ITR_MAX =max_iter;
-		matcher.step_control=true;
-		matcher.n_neighbours=2;
+            perception_oru::LazyGrid *grid = new perception_oru::LazyGrid(cur_res);
+            grid->semantic_index=j;
+            perception_oru::NDTMap *mapTMP=new perception_oru::NDTMap(grid);
+            loaded_map[i][j]=mapTMP;
+            loaded_map[i][j]->guessSize(0,0,0,size[0],size[1],size[2]);
+            loaded_map[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
+        }
+    }
+}
+NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initializer_list<float> d,int nIn,int max_iter):resolutions(b),resolutions_order(c),size(d),NumInputs(nIn), poses(new pcl::PointCloud<pcl::PointXYZL>), toRVIZ(nIn)
+{
+	firstRun=true;
+    matcher.NumInputs=NumInputs;
+    matcher.ITR_MAX =max_iter;
+    matcher.step_control=true;
+    matcher.n_neighbours=2;
+    T.setIdentity();
+    Td.setIdentity();
+    max_size = *max_element(std::begin(size), std::end(size));
 
 	map=new perception_oru::NDTMap ** [resolutions.size()];
 	mapLocal=new perception_oru::NDTMap ** [resolutions.size()];
+	mapLocal_prev=new perception_oru::NDTMap ** [resolutions.size()];
 	for(unsigned int i=0;i<resolutions.size();i++)
 	{
-		map[i]=initMap(NumInputs,{resolutions.at(i)},size);
-		mapLocal[i]=initMap(NumInputs,{resolutions.at(i)},size);
+        map[i]= new perception_oru::NDTMap * [NumInputs];
+        mapLocal[i]= new perception_oru::NDTMap * [NumInputs];
+        mapLocal_prev[i]= new perception_oru::NDTMap * [NumInputs];
+        float cur_res=resolutions.at(i);
+        for(size_t j=0;j<NumInputs;j++)
+        {
+            perception_oru::LazyGrid *grid = new perception_oru::LazyGrid(cur_res);
+            grid->semantic_index=j;
+            map[i][j]=new perception_oru::NDTMap(grid);
+            map[i][j]->guessSize(0,0,0,size[0],size[1],size[2]);
+            map[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
+
+            perception_oru::LazyGrid *grid2 = new perception_oru::LazyGrid(cur_res);
+            grid2->semantic_index=j;
+            mapLocal[i][j]=new perception_oru::NDTMap(grid2);
+            mapLocal[i][j]->guessSize(0,0,0,size[0],size[1],size[2]);
+            mapLocal[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
+
+            perception_oru::LazyGrid *grid3 = new perception_oru::LazyGrid(cur_res);
+            grid3->semantic_index=j;
+            mapLocal_prev[i][j]=new perception_oru::NDTMap(grid3);
+            mapLocal_prev[i][j]->guessSize(0,0,0,size[0],size[1],size[2]);
+            mapLocal_prev[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
+        }
 	}
 }
+NDTMatch_SE::~NDTMatch_SE()
+{
+    for(unsigned int i=0;i<resolutions.size();i++)
+    {
+        for(auto j=0;j<NumInputs;j++)
+        {
+            delete map[i][j];
+            delete mapLocal[i][j];
+            delete mapLocal_prev[i][j];
+        }
+        delete[] map[i];
+        delete[] mapLocal[i];
+        delete[] mapLocal_prev[i];
+    }
+    delete[] map;
+    delete[] mapLocal;
+    delete[] mapLocal_prev;
+}
+
 #ifdef GL_VISUALIZE
 void NDTMatch_SE::visualize()
 {
@@ -324,7 +173,6 @@ void NDTMatch_SE::visualize_thread()
         viewer->win3D->start_main_loop_own_thread();
     }
     float occupancy=128;
-    viewer->plotNDTSAccordingToOccupancy(occupancy, map,std::vector<int>{0}, std::vector<int>{0});
     while(viewer->win3D->isOpen())
     {
          usleep(10000);
@@ -338,64 +186,17 @@ void NDTMatch_SE::visualize_thread()
                 case '/':occupancy/=2;break;
                 case 'q':delete viewer;break;
             }
-            viewer->plotNDTSAccordingToOccupancy(occupancy, map,std::vector<int>{0}, std::vector<int>{0});
+            viewer->plotNDTSAccordingToOccupancy(occupancy, map,std::vector<int>{1}, std::vector<int>{0,1,2,3,4,5,6,7});
             viewer->win3D->keyHitReset();
         }
     }
 }
 #endif
-Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2,initializer_list<vector<double> > attributes1,initializer_list<vector<double> > attributes2)
-{
-	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud1=getSegments(cloud1,attributes1,tails,ignore,removeProbability);
-	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud2=getSegments(cloud2,attributes2,tails,ignore,removeProbability);
-#define USE_OMP
-#define n_threads 12
-#pragma omp parallel num_threads(n_threads)
-{
-    #pragma omp for
-	for(unsigned int i=0;i<resolutions.size();i++)
-	{
-		loadMap(map[i],laserCloud1);
-		loadMap(mapLocal[i],laserCloud2);
-	}
-}
-	for(auto i:resolutions_order)
-	{
-		matcher.current_resolution=resolutions.at(i);
-		matcher.match(map[i],mapLocal[i],Tinit,true);
-	}
-	//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
-	return Tinit;
-}
-vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegmentsFast(pcl::PointCloud<pcl::PointXYZ>::Ptr laserCloudIn,vector<double> &attributes)
-{
-	int cloudSize = laserCloudIn->points.size();
-	int num_attributes=ignore.size();
-
-	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud;
-	for(int i=0;i<num_attributes;i++)
-	{
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudT(new pcl::PointCloud<pcl::PointXYZ>);
-		laserCloud.push_back(cloudT);
-	}
-	for(int i=0;i<cloudSize;i++)
-	{
-            int atr = int(attributes.at(i));
-            pcl::PointXYZ point;
-            point.x=laserCloudIn->points[i].x;
-            point.y=laserCloudIn->points[i].y;
-            point.z=laserCloudIn->points[i].z;
-            laserCloud[atr]->points.push_back(point);
-    }
-	return laserCloud;
-}
 vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegmentsFast(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn)
 {
 	int cloudSize = laserCloudIn->points.size();
-	int num_attributes=ignore.size();
-
 	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud;
-	for(int i=0;i<num_attributes;i++)
+	for(int i=0;i<NumInputs;i++)
 	{
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudT(new pcl::PointCloud<pcl::PointXYZ>);
 		laserCloud.push_back(cloudT);
@@ -404,6 +205,8 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegmentsFast(pcl::Po
 	{
             auto pnt=laserCloudIn->points[i];
             int atr = round(pnt.intensity);
+            if(NumInputs==1)
+                atr=0;
             pcl::PointXYZ point;
             point.x=pnt.x;
             point.y=pnt.y;
@@ -412,59 +215,7 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegmentsFast(pcl::Po
     }
 	return laserCloud;
 }
-Eigen::Affine3d NDTMatch_SE::matchFast(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2,vector<double> &attributes1,vector<double> &attributes2)
-{
-    Eigen::Affine3d Tinit;
-    Tinit.setIdentity();
-	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud1=getSegmentsFast(cloud1,attributes1);
-	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud2=getSegmentsFast(cloud2,attributes2);
-#define USE_OMP
-#define n_threads 12
-#pragma omp parallel num_threads(n_threads)
-{
-    #pragma omp for
-	for(unsigned int i=0;i<resolutions.size();i++)
-	{
-		loadMap(map[i],laserCloud1);
-		loadMap(mapLocal[i],laserCloud2);
-	}
-}
-	for(auto i:resolutions_order)
-	{
-		matcher.current_resolution=resolutions.at(i);
-		matcher.match(map[i],mapLocal[i],Tinit,true);
-	}
-	//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
-	return Tinit;
-}
 
-Eigen::Affine3d NDTMatch_SE::matchFaster(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vector<double> &attributes)
-{
-	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegmentsFast(cloud,attributes);
-    Eigen::Affine3d Tinit;
-    Tinit.setIdentity();
-#pragma omp parallel num_threads(8)
-{
-    #pragma omp for
-	for(unsigned int i=0;i<resolutions.size();i++)
-		loadMap(mapLocal[i],laserCloud);
-}
-	if(!firstRun)
-	{
-		for(auto i:resolutions_order)
-		{
-			matcher.current_resolution=resolutions.at(i);
-			matcher.match(map[i],mapLocal[i],Tinit,true);
-		}
-		//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
-	}
-	else firstRun=false;
-	perception_oru::NDTMap ***mapT;
-	mapT=map;
-	map=mapLocal;
-	mapLocal=mapT;
-	return Tinit;
-}
 Eigen::Affine3d NDTMatch_SE::matchFaster(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
 {
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegmentsFast(cloud);
@@ -524,8 +275,7 @@ Eigen::Affine3d NDTMatch_SE::matchFaster_OM(Eigen::Affine3d Tinit, pcl::PointClo
 		}
 	}
 	else firstRun=false;
-
-    vector<thread> tc;
+    std::vector<thread> tc;
     for(size_t i=0;i<laserCloud.size();i++)
         tc.push_back( std::thread([i,&Tinit, laserCloud](){
                     perception_oru::transformPointCloudInPlace(Tinit, *laserCloud[i]);
@@ -533,144 +283,387 @@ Eigen::Affine3d NDTMatch_SE::matchFaster_OM(Eigen::Affine3d Tinit, pcl::PointClo
     for(auto& t:tc)t.join();
     for(size_t i=0;i<laserCloud.size();i++)
     {
-		for(auto rez:resolutions_order)
+		for(int rez=0;rez<resolutions.size();rez++)
 		{
-            map[rez][i]->addPointCloud(Tinit.translation(), *laserCloud[i],0.06, 2.5);
-            map[rez][i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE,1e5,255,Tinit.translation(),0.1);
+            map[rez][i]->addPointCloud(Tinit.translation(), *laserCloud[i],0.06, 100, 0.03, 255);
+            //map[rez][i]->loadPointCloud(*laserCloud[i],sensor_range);
+            map[rez][i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE,1e9,255,Tinit.translation(),0.01);
         }
     }
 	return Tinit;
 }
-struct MatchPathSeparator
+/*void NDTMatch_SE::loadMap(int start_index, int stop_index, pcl::PointXYZL &pose)
 {
-    bool operator()( char ch ) const
+    perception_oru::NDTMap ***mapT;
+	mapT=new perception_oru::NDTMap ** [resolutions.size()];
+    for(unsigned int i=0;i<resolutions.size();i++)
     {
-        return ch == '/';
+        mapT[i]= new perception_oru::NDTMap * [NumInputs];
+        #pragma omp parallel num_threads(8)
+        {
+            #pragma omp for
+            for(unsigned int j=0;j<NumInputs;j++)
+            {
+                perception_oru::LazyGrid* grid = new perception_oru::LazyGrid(resolutions[i]);
+                grid->semantic_index=j;
+                mapT[i][j]=new perception_oru::NDTMap(grid);
+                mapT[i][j]->guessSize(0,0,0,size[0],size[1],size[2]);
+                //mapT[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
+                mapT[i][j]->loadSaved(start_index, stop_index, pose);
+                std::vector<perception_oru::NDTCell*> tmV= mapT[i][j]->getAllCells();//deleted in rviz. If no rviz, comment out.
+//                std::cerr<<i<<" "<<j<<" "<<tmV.size()<<"\n";
+                toRVIZ.insert(toRVIZ.end(), tmV.begin(), tmV.end());
+            }
+        }
     }
-};
-std::string basename(std::string const& pathname)
+}*/
+/*
+int NDTMatch_SE::find_start(pcl::PointCloud<pcl::PointXYZL>::iterator pi, float max_size)
 {
-	return std::string(std::find_if(pathname.rbegin(),pathname.rend(),MatchPathSeparator() ).base(),pathname.end());
+    int eI = std::distance(poses->begin(), pi);
+    int sI;
+    for(sI=eI; sI>0; sI--)
+    {
+        if( abs(poses->at(sI).x-pi->x)>max_size ||
+            abs(poses->at(sI).y-pi->y)>max_size ||
+            abs(poses->at(sI).z-pi->z)>max_size)
+            break;
+    }
+    return poses->at(sI).label;
+}*/
+int NDTMatch_SE::find_start(pcl::PointCloud<pcl::PointXYZL>::iterator pi, float max_size)
+{
+    pcl::PointCloud<pcl::PointXYZL>::iterator si;
+    for(si=pi; si!=poses->begin(); --si)
+    {
+        if( abs(si->x-pi->x)>max_size || abs(si->y-pi->y)>max_size || abs(si->z-pi->z)>max_size)
+            return si->label;
+    }
+    return 0;
 }
-Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, std::string cloudF1, std::string cloudF2,initializer_list<vector<double> > attributes1,initializer_list<vector<double> > attributes2)//Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2)
+bool NDTMatch_SE::matchToSaved(Eigen::Affine3d &Td_, pcl::PointXYZL &pose_end, pcl::PointXYZL &pose_current, int start_index, int iP, Eigen::Matrix<double,7,7> &Ccl)
 {
+    bool result=true;
+    Profiler pr;
+    pr.start();
+    int stop_index=pose_end.label;
+    perception_oru::NDTMap ***mapT;
+	mapT=new perception_oru::NDTMap ** [resolutions.size()];
+    for(unsigned int i=0;i<resolutions.size();i++)
+    {
+        mapT[i]= new perception_oru::NDTMap * [NumInputs];
+            #pragma omp parallel num_threads(8)
+            {
+                #pragma omp for
+        for(unsigned int j=0;j<NumInputs;j++)
+        {
+            perception_oru::LazyGrid* grid = new perception_oru::LazyGrid(resolutions[i]);
+            grid->semantic_index=j;
+            mapT[i][j]=new perception_oru::NDTMap(grid,true);
+            mapT[i][j]->guessSize(0,0,0,size[0],size[1],size[2]);
+            //mapT[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
+            mapT[i][j]->loadSaved(start_index, stop_index, pose_end);
+        }
+            }
+    }
+    //pr.check(0);
+//    std::cerr<<"LOADED"<<std::endl;
+    bool good_registration=true;
+    for(auto i:resolutions_order)
+    {
+        matcher.current_resolution=resolutions.at(i);
+        if(!matcher.match(mapT[i],map[i],Td_,true))
+            good_registration=true;
+        if(Td_.translation().norm()>(pose_current.label-stop_index)*0.5)
+        {
+            good_registration=false;
+        }
+    }
+//    std::cerr<<"MATCHED. NDTs local: "<<sum_dist_local<<" NDTs loaded: "<<sum_dist_load<<" INDXS "<<start_index<< " "<<stop_index<<std::endl;
+    //pr.check(1);
+    std::cerr<<"Loop closed. Score: "<<matcher.score_best<< " START: "<<start_index<<" STOP: "<<stop_index<<"\n\t";
+    //std::cerr<<"Gfeat: "<<(gfeat[pose_current.label]-gfeat[stop_index]).norm()<<"\n\t";
+    if(matcher.score_best<COND_SCORE&&good_registration)
+    {
+        Ccl=getPoseInformation(Td, mapT,map,true);
+//        CovSum=covS[iP]+Ccl;
+        for(unsigned int i=0;i<resolutions.size();i++)
+            #pragma omp parallel num_threads(8)
+            {
+                #pragma omp for
+                for(unsigned int j=0;j<NumInputs;j++)
+                {
+                    map[i][j]->transformNDTMap(Td_);
+                }
+            }
+    }
+    else
+    {
+        if(!good_registration)
+            std::cerr<<"NOT GOOD. \n\t";
+        std::cerr<<"Transform: "<<Td_.translation().transpose()<<"\n\t";
+        Td_.setIdentity();
+        result=false;
+    }
+    for(unsigned int i=0;i<resolutions.size();i++)
+    {
+        #pragma omp parallel num_threads(8)
+        {
+            #pragma omp for
+            for(auto j=0;j<NumInputs;j++)
+                delete mapT[i][j];
+        }
+        delete[] mapT[i];
+    }
+    delete[] mapT;
+    //pr.check(2);
+    return result;
+}
+#include <chrono>
+bool fixRotation(Eigen::Affine3d &T){
+/*
+    auto t=T.matrix();
+    Eigen::Vector3d x =t.row(0).head(3);
+    Eigen::Vector3d y =t.row(1).head(3);
+    Eigen::Vector3d z =t.row(2).head(3);
+    double error=x.dot(y);
+    Eigen::Vector3d x_ort=x-error/2*y;
+    Eigen::Vector3d y_ort=y-error/2*x;
+    Eigen::Vector3d z_ort=x_ort.cross(y_ort);
+    T.matrix().row(0).head(3)= 1/2*(3-x_ort.dot(x_ort))*x_ort;
+    T.matrix().row(1).head(3)= 1/2*(3-y_ort.dot(y_ort))*y_ort;
+    T.matrix().row(2).head(3)= 1/2*(3-z_ort.dot(z_ort))*z_ort;
+    T.matrix().row(3)<<0,0,0,1;
+    */
+    Eigen::Matrix3d m=T.rotation().matrix();
+    auto qr = m.colPivHouseholderQr();
+    //T.matrix().block<3,3>(0,0)=qr.householderQ().setLength(qr.nonzeroPivots()) ;
+    //T.matrix().row(3)<<0,0,0,1;
+    return qr.isInvertible();
+}
+Eigen::Affine3d NDTMatch_SE::simple_match(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud1, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud2)
+{
+    Td.setIdentity();
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud1=getSegmentsFast(cloud1);
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud2=getSegmentsFast(cloud2);
 	for(unsigned int i=0;i<resolutions.size();i++)
-	{
-		for(unsigned int j=0;j<NumInputs;j++)
-		{
-			std::string fname=cloudF1;
-			std::string fname_jff=precomputed_ndt_folder+
-				basename(fname+"."+std::to_string(resolutions[i])+"."+std::to_string(j)+".jff");
-			std::ifstream file((fname_jff).c_str());
-			if(file.good()&&useSaved)
-			{
-				/*
-				if(map!=NULL)
-				{
-				map[i][j]->unsetFirstLoad();
-				delete map[i][j];
-				}
-				perception_oru::LazyGrid *grid = new perception_oru::LazyGrid(resolutions[i]);
-				map[i][j]=new perception_oru::NDTMap(grid);
-				*/
-				map[i][j]->loadFromJFF((fname_jff).c_str());
-			}
-			else
-			{
-				std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >
-					laserClouds=getSegments(getCloud<pcl::PointXYZ>(fname,IFS,skip),attributes1,tails,ignore,removeProbability);
-				for(j=j;j<NumInputs;j++)//intentional the same variable, load the remaining
-				{
-					map[i][j]->loadPointCloud(*laserClouds[j],sensor_range);
-					map[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
-					fname_jff=precomputed_ndt_folder+
-						basename(fname+"."+std::to_string(resolutions[i])+"."+std::to_string(j)+".jff");
-					map[i][j]->writeToJFF(fname_jff.c_str());
-				}
-			}
-		}
-		for(unsigned int j=0;j<NumInputs;j++)
-		{
-			std::string fname=cloudF2;
-			std::string fname_jff=precomputed_ndt_folder+
-				basename(fname+"."+std::to_string(resolutions[i])+"."+std::to_string(j)+".jff");
-			std::ifstream file((fname_jff).c_str());
-			if(file.good()&&useSaved)
-			{
-				/*
-				if(mapLocal!=NULL)
-				{
-				mapLocal[i][j]->unsetFirstLoad();
-				delete mapLocal[i][j];
-				}
-				perception_oru::LazyGrid *grid = new perception_oru::LazyGrid(resolutions[i]);
-				mapLocal[i][j]=new perception_oru::NDTMap(grid);
-				*/
-				mapLocal[i][j]->loadFromJFF((fname_jff).c_str());
-			}
-			else
-			{
-				std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >
-					laserClouds=getSegments(getCloud<pcl::PointXYZ>(fname,IFS,skip),attributes2,tails,ignore,removeProbability);
-				for(j=j;j<NumInputs;j++)//intentional the same variable, load the remaining
-				{
-					mapLocal[i][j]->loadPointCloud(*laserClouds[j],sensor_range);
-					mapLocal[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
-					fname_jff=precomputed_ndt_folder+
-						basename(fname+"."+std::to_string(resolutions[i])+"."+std::to_string(j)+".jff");
-					mapLocal[i][j]->writeToJFF(fname_jff.c_str());
-				}
-			}
-		}
-	}
-	for(auto i:resolutions_order)
-	{
-		matcher.current_resolution=resolutions.at(i);
-		matcher.match(map[i],mapLocal[i],Tinit,true);
-	}
-	//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
-	return Tinit;
+    {
+		loadMap(mapLocal_prev[i],laserCloud1);
+		loadMap(mapLocal[i],laserCloud2);
+    }
+    for(auto i:resolutions_order)
+    {
+        matcher.current_resolution=resolutions.at(i);
+        matcher.match(mapLocal_prev[i],mapLocal[i],Td,true);
+    }
+    double score_local = matcher.score_best;
+    return Td;
 }
-Eigen::Matrix<double, 6,6> NDTMatch_SE::getPoseCovariance(Eigen::Affine3d T)
+Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, bool Does_nothing)
 {
-	Eigen::MatrixXd Covariance(6,6);
-	Eigen::Matrix<double,6,6> Covariance_;
-	matcher.covariance(map,mapLocal,T,resolutions,Covariance);
-	Covariance_=Covariance;
-	return Covariance_;
-}
-Eigen::Affine3d NDTMatch_SE::match(Eigen::Affine3d Tinit, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes)
-{
-	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegments(cloud,attributes,tails,ignore,removeProbability);
+    Profiler pr;
+    pr.start();
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegmentsFast(cloud);
 	for(unsigned int i=0;i<resolutions.size();i++)
 		loadMap(mapLocal[i],laserCloud);
+    Eigen::Affine3d T_prev= T;
+    Eigen::Matrix<double,7,7> C;
 	if(!firstRun)
 	{
-		for(auto i:resolutions_order)
-		{
-			matcher.current_resolution=resolutions.at(i);
-			matcher.match(map[i],mapLocal[i],Tinit,true);
-		}
-		//std::cout<<getHes(matcher.HessianF,matcher.score_gradientF).inverse()<<std::endl;
+#ifndef GROUND_TRUTH_POSE 
+        for(auto i:resolutions_order)
+        {
+            matcher.current_resolution=resolutions.at(i);
+            matcher.match(mapLocal_prev[i],mapLocal[i],Td,true);
+        }
+        double score_local = matcher.score_best;
+        T=T_prev*Td;
+        writeG2O_Edge(Td,num_clouds-1, num_clouds, getPoseInformation(Td,mapLocal_prev, mapLocal,true));
+
+        //MAP REG
+        /*
+        matcher.current_resolution=resolutions.at(1);
+        matcher.match(map[1],mapLocal[1],T,true);
+        double score_map = matcher.score_best;
+
+        if(!fixRotation(T) || score_map>score_local || !T.matrix().allFinite()|| !T.inverse().matrix().allFinite())
+        {
+            T=T_prev*Td;
+            std::cerr<<"Match to map not successfull. Using result from local matching only.\n";
+        }
+        C=getPoseInformation(T, map, mapLocal,true);
+        writeG2O_Edge(T_prev.inverse()*T,num_clouds-1, num_clouds, C);
+        */
+#endif
 	}
 	else firstRun=false;
-	perception_oru::NDTMap ***mapT;
-	mapT=map;
-	map=mapLocal;
-	mapLocal=mapT;
-	return Tinit;
+
+    writeG2O_Vertex(T, num_clouds);
+
+    T_prev=T;
+    perception_oru::NDTMap ***mapT;
+    mapT=mapLocal_prev;
+    mapLocal_prev=mapLocal;
+    mapLocal=mapT;
+
+    std::vector<thread> tc;
+    for(size_t i=0;i<laserCloud.size();i++)
+        tc.push_back( std::thread([i,&T_prev, laserCloud](){
+                    perception_oru::transformPointCloudInPlace(T_prev, *laserCloud[i]);
+                }));
+    for(auto& t:tc)t.join();
+//    std::cerr<<"START_LOADING"<<std::endl;
+    #pragma omp parallel num_threads(8)
+    {
+        #pragma omp for
+        for(size_t i=0;i<laserCloud.size();i++)
+        {
+            for(int rez=0;rez<resolutions.size();rez++)
+            {
+                map[rez][i]->addPointCloud(T.translation(), *laserCloud[i],0.06, 100, 0.03, 255);
+                //map[rez][i]->loadPointCloud(*laserCloud[i],sensor_range);
+                map[rez][i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE,1e9,255,T.translation(),0.01);
+
+            if(rez==1){//Dont print them for now
+                std::vector<perception_oru::NDTCell*> tmV= map[rez][i]->getAllCells();
+                toRVIZ[i].insert(toRVIZ[i].end(), tmV.begin(), tmV.end());
+            }
+                //mapLocal_prev[rez][i]->loadPointCloud(*laserCloud[i],sensor_range);
+                //mapLocal_prev[rez][i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE,1e9,255,T.translation(),0.01);
+            }
+        }
+    }
+//    std::cerr<<"END_LOADING"<<std::endl;
+    Eigen::Vector3d p_=T.translation();
+    pcl::PointXYZL pose_current;
+    pose_current.x=p_[0];
+    pose_current.y=p_[1];
+    pose_current.z=p_[2];
+    pose_current.label=num_clouds;
+
+    perception_oru::NDTHistogram *hist = new perception_oru::NDTHistogram (map[1], 1, HIST_BINS1, HIST_BINS2, NumInputs,RANGE1, RANGE2);
+    double entropy = hist->calculateEntropy();
+//    std::ofstream ofLog;
+    //ofLog.open("LOG.txt", std::ofstream::out|std::ofstream::app);
+    //ofLog<<entropy<<std::endl;
+
+    if(hists.size()==0){
+        hists.push_back(*hist);
+        poses->push_back(pose_current);
+//        covS.push_back(CovSum);
+        Ti.push_back(T);
+        num_clouds++;
+        return T;
+    }
+    bool point_dist = (pcl::geometry::distance(poses->back(), pose_current)<HIST_FREQ_METER);
+    bool entropy_critirion=entropy<hists.back().ENTROPY;//Minimum Entropy, fartherst from uniform distribution.
+    bool insert_=!point_dist;
+    if(point_dist&&entropy_critirion)
+    {
+        poses->points.pop_back();
+        hists.pop_back();
+        //covS.pop_back();
+        Ti.pop_back();
+        insert_=true;
+    }
+    if(insert_)
+    {
+        hists.push_back(*hist);
+        //covS.push_back(CovSum);
+        poses->push_back(pose_current);
+        Ti.push_back(T);
+    }
+    ///LOOP CLOSE SEARCH
+    std::vector<int> poseIdxSearch;
+    std::vector<float> poseDistSearch;
+    pose_kdtree.setInputCloud(poses);
+    //std::cerr<<poses->size()<<std::endl;
+    float search_distance=HIST_ACCURATE_DISTANCE+(num_clouds -last_loop_close_id)*0.05;
+//    float search_distance=HIST_ACCURATE_DISTANCE+2*radius;
+#ifndef NO_LOOP_CLOSE
+    std::cerr<<search_distance<<std::endl;
+    if(pose_kdtree.radiusSearch(pose_current,search_distance, poseIdxSearch, poseDistSearch))
+    {
+        std::vector<double> p_vH(poseIdxSearch.size(),10000);
+//        std::vector<double> p_vF(poseIdxSearch.size(),10000);
+        #pragma omp parallel num_threads(8)
+        {
+            #pragma omp for
+            for(int i=0;i<poseIdxSearch.size();i++)
+            {
+                int pi=poseIdxSearch[i];
+//                Eigen::Matrix<double,7,7> CD=CovSum-covS[pi];
+//                double radiusP=sqrt(CD(0,0)+CD(1,1)+CD(2,2));
+                if(pcl::geometry::distance(pose_current, poses->at(pi))>(search_distance))
+//                if(pcl::geometry::distance(pose_current, poses->at(pi))>(2*radiusP)+HIST_ACCURATE_DISTANCE)
+                    continue;
+                if(num_clouds - poses->at(pi).label <200)
+                    continue;
+                double histogram_score = hists.at(pi).getSimilarity(*hist);
+                //double feature_vector_score = (gfeat[pose_current.label]-gfeat[poses->at(pi).label]).norm()/1024;
+                double similarity =histogram_score;
+                if(num_clouds - last_loop_close_id<100 && similarity>last_loop_close_sim*0.8)
+                    continue;
+                //p_vF[i]=feature_vector_score;
+                p_vH[i]=histogram_score;
+            }
+        }
+        auto p_v=p_vH;
+        std::vector<double>::iterator min_it=std::min_element(std::begin(p_v), std::end(p_v));
+        int iS=(std::distance(std::begin(p_v), min_it));
+        //ofLog<<*min_it<<" "<<p_vH[iS]<<endl;//0.014 0.3
+        if(p_vH[iS]<=SIMILARITY_THRESHOLD&&*min_it!=0)
+        //if(p_vF[iS]<0.02&&p_vH[iS]<0.35&&*min_it!=0)
+        {
+            int index_in_poses = poseIdxSearch[iS];
+            auto pose_it=poses->begin();
+            auto hist_it=hists.begin();
+            std::advance(pose_it, index_in_poses);
+            std::advance(hist_it, index_in_poses);
+            std::cerr<<p_vH[iS]<<endl;
+            int loadStartIndex=find_start(pose_it, max_size);
+            Eigen::Matrix<double, 7,7> Ccl;
+            T_prev=Ti[index_in_poses].inverse()*T;
+            bool matched= matchToSaved(T_prev,*pose_it, pose_current, loadStartIndex, index_in_poses, Ccl);
+            if(matched)
+            {
+                T=T_prev*T;
+                T_prev=Ti[index_in_poses].inverse()*T;
+                writeG2O_Edge(T_prev, poses->at(index_in_poses).label, num_clouds, Ccl);
+                last_loop_close_sim=*min_it;
+                last_loop_close_id=num_clouds;
+                pose_current.x=T.translation()[0];
+                pose_current.y=T.translation()[1];
+                pose_current.z=T.translation()[2];
+                //ofLog<<*min_it<<" "<<pose_current<<std::endl;
+                ofstream pose_out("LC",std::ofstream::out|std::ofstream::app);
+                pose_out<<pose_current<<" "<<*pose_it<<std::endl;
+                pose_out.close();
+            }
+            std::cerr<<*min_it<<" CLOUD: "<<pose_current<<" TO: "<<*pose_it<<index_in_poses<<" T "<<T_prev.translation().transpose()<<std::endl;
+            if(!matched)//Remove the pose from the graph, since it already gave a false.
+            {
+                poses->erase(pose_it);
+                hists.erase(hist_it);
+            }
+        }
+    }
+#endif
+    num_clouds++;
+//    std::cerr<<"NEXT CLOUD"<<std::endl;
+    pr.elapsed(0);
+	return T;
 }
-Eigen::Affine3d NDTMatch_SE::match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, initializer_list<vector<double> > attributes)
+
+Eigen::Matrix<double, 7,7> NDTMatch_SE::getPoseInformation(Eigen::Affine3d T, perception_oru::NDTMap*** m1, perception_oru::NDTMap*** m2, bool inverse=false)
 {
-	Eigen::Affine3d T;
-	T.setIdentity();
-	return this->match(T,cloud,attributes);
-}
-Eigen::Affine3d NDTMatch_SE::match(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2, initializer_list<vector<double> > attributes1, initializer_list<vector<double> > attributes2)
-{
-	Eigen::Affine3d T;
-	T.setIdentity();
-	return this->match(T,cloud1,cloud2,attributes1,attributes2);
+	Eigen::MatrixXd Covariance(6,6);
+	matcher.covariance(m1,m2,T,resolutions,Covariance, true);
+    Eigen::Vector3d ea = T.rotation().matrix().eulerAngles(0,1,2);
+    Eigen::MatrixXd J=getJacobian(ea);
+    Eigen::MatrixXd JI=Eigen::CompleteOrthogonalDecomposition<Eigen::MatrixXd>(J).pseudoInverse();
+    Eigen::Matrix<double, 7,7> QCov=JI.transpose()*Covariance*JI; 
+	return QCov;
 }
 
 Eigen::Matrix<double,7,6> getJacobian(Eigen::VectorXd v)

@@ -341,10 +341,12 @@ class NDTViz {
 					else if(tempMap[i]->getOccupancy()<-0){std::cout<<"beep"<<std::endl; }
 				}
 				win3D->addObject(&gl_ellipsoids);
-				win3D->repaint();
 				for(unsigned int i=0;i<tempMap.size();i++) delete tempMap[i];
 			}
 		}
+        NDTVizGlutText GLlabel_text(occupancy);
+        win3D->addObject(&GLlabel_text);
+        win3D->repaint();
 
 	}
 

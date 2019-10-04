@@ -254,7 +254,7 @@ pcl::PointCloud<pcl::PointXYZ> NDTMatcherP2D_SE::subsample(pcl::PointCloud<pcl::
         LazyGrid prototype(subsampleRes);
         NDTMap ndt( &prototype );
         ndt.loadPointCloud( original );
-        std::vector<NDTCell*>::iterator it = ndt.getMyIndex()->begin();
+        std::set<NDTCell*>::iterator it = ndt.getMyIndex()->begin();
 
         while(it!=ndt.getMyIndex()->end())
         {

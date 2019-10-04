@@ -849,19 +849,17 @@ double NDTMatcherD2D::scoreNDT_OM(NDTMap &sourceNDT, NDTMap &targetNDT)
     pcl::PointXYZ point;
     LazyGrid* lz = dynamic_cast<LazyGrid*> (sourceNDT.getMyIndex());
     if(lz==NULL) return INT_MAX;
-    std::vector<NDTCell*>::iterator it = lz->begin();
 
     //std::vector<NDTCell<PointSource>*> source = sourceNDT.getAllInitializedCells();
 
     //for(unsigned int i=0; i<source.size(); i++) {
-    while(it!=lz->end()) {
+    for(std::set<NDTCell*>::iterator it=lz->begin();it!=lz->end();++it)
+    {
         if(*it == NULL) {
-            it++;
             continue;
         }
         NDTCell* source =(*it);
         if(source==NULL) {
-            it++;
             continue;
         }
         source->consistency_score = 0;
@@ -873,7 +871,6 @@ double NDTMatcherD2D::scoreNDT_OM(NDTMap &sourceNDT, NDTMap &targetNDT)
         for(unsigned int j=0; j<all_cells.size(); j++) {
             cell = all_cells[j];
             if(cell == NULL) {
-                it++;
                 continue;
             }
             double o1,o2;
@@ -894,12 +891,10 @@ double NDTMatcherD2D::scoreNDT_OM(NDTMap &sourceNDT, NDTMap &targetNDT)
                     CSum.computeInverseAndDetWithCheck(Cinv,det,exists);
                     if(!exists)
                     {
-                        it++;
                         continue;
                     }
                     double l = (transformed).dot(Cinv*(transformed));
                     if(l*0 != 0) {
-                        it++;
                         continue;
                     }
                     double sh = -lfd1*(exp(-lfd2*l/2));
@@ -925,7 +920,6 @@ double NDTMatcherD2D::scoreNDT_OM(NDTMap &sourceNDT, NDTMap &targetNDT)
             //std::cout<<"j "<<j<<" sc "<<source->consistency_score<<" ll "<<ll<<" incr "<<ll*((1-o1)*(1-o2) - o1*(1-o2) -o2*(1-o1))<<std::endl;
             source->consistency_score += ll*((1-o1)*(1-o2) - o1*(1-o2) -o2*(1-o1));
         }
-        it++;
     }
 //cleanup
     /*
@@ -2000,7 +1994,8 @@ bool NDTMatcherD2D::covariance( NDTMap& targetNDT,
                                                        )
 {
 
-    double sigmaS = (0.03)*(0.03);
+    //double sigmaS = (0.03)*(0.03);
+    double sigmaS = (0.05);
     Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> TR;
     TR.setIdentity();
 

@@ -8,6 +8,7 @@
 #include <omp.h>
 #include <sys/time.h>
 #define NUM_MAX 50
+#define n_threads 8
 namespace perception_oru
 {
 
@@ -21,7 +22,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
     //locals
     bool convergence = false;
     //double score=0;
-    double score_best = INT_MAX;
+    score_best = INT_MAX;
     //double DELTA_SCORE = 0.0005;
     //double NORM_MAX = current_resolution, ROT_MAX = M_PI/10; //
     int itr_ctr = 0;
@@ -45,7 +46,6 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
 	for (int i=0;i<NumInputs;i++)
     	nextNDT[i]= sourceNDT[i]->pseudoTransformNDT(T);
 
-    //std::cout<<"pose(:,"<<1<<") = ["<<T.translation().transpose()<<" "<<T.rotation().eulerAngles(0,1,2).transpose()<<"]';\n";
     while(!convergence)
     {
         TR.setIdentity();
@@ -53,183 +53,73 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
         score_gradient.setZero();
 
         double score_here = derivativesNDT(nextNDT,targetNDT,score_gradient,Hessian,true);
-        //derivativesNDT(nextNDT,targetNDT,score_gradient,Hessian,true);
         scg = score_gradient;
-//	std::cout<<"itr "<<itr_ctr<<std::endl;
-	if(score_here < score_best) 
-	{
-	    Tbest = T;
-	    score_best = score_here;
-//	    std::cout<<"best score "<<score_best<<" at "<<itr_ctr<<std::endl;
-	}
-
-//	Hessian = Hessian + score_gradient.norm()*Eigen::Matrix<double,6,6>::Identity();
+        if(score_here < score_best) 
+        {
+            Tbest = T;
+            score_best = score_here;
+        }
         Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double,6,6> > Sol (Hessian);
         Eigen::Matrix<double,6,1> evals = Sol.eigenvalues().real();
         double minCoeff = evals.minCoeff();
         double maxCoeff = evals.maxCoeff();
         if(minCoeff < 0)  //|| evals.minCoeff()) // < 10e-5*evals.maxCoeff()) 
         {
-	    if(regularize) {
-		Eigen::Matrix<double,6,6> evecs = Sol.eigenvectors().real();
-		double regularizer = score_gradient.norm();
-		regularizer = regularizer + minCoeff > 0 ? regularizer : 0.001*maxCoeff - minCoeff;
-		//double regularizer = 0.001*maxCoeff - minCoeff;
-		Eigen::Matrix<double,6,1> reg;
-		//ugly
-		reg<<regularizer,regularizer,regularizer,regularizer,regularizer,regularizer;
-		evals += reg;
-		Eigen::Matrix<double,6,6> Lam;
-		Lam = evals.asDiagonal();
-		Hessian = evecs*Lam*(evecs.transpose());
-	    } else {
-			if(score_here > score_best) 
-			{
-				T = Tbest;
-			}
-			//de-alloc nextNDT
-			for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
-			delete[] nextNDT;
-			return true;
-	    }
-//            std::cerr<<"regularizing\n";
+            if(regularize) 
+            {
+                Eigen::Matrix<double,6,6> evecs = Sol.eigenvectors().real();
+                double regularizer = score_gradient.norm();
+                regularizer = regularizer + minCoeff > 0 ? regularizer : 0.001*maxCoeff - minCoeff;
+                //double regularizer = 0.001*maxCoeff - minCoeff;
+                Eigen::Matrix<double,6,1> reg;
+                //ugly
+                reg<<regularizer,regularizer,regularizer,regularizer,regularizer,regularizer;
+                evals += reg;
+                Eigen::Matrix<double,6,6> Lam;
+                Lam = evals.asDiagonal();
+                Hessian = evecs*Lam*(evecs.transpose());
+            } else 
+            {
+                if(score_here > score_best) 
+                {
+                    T = Tbest;
+                }
+                //de-alloc nextNDT
+                for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
+                delete[] nextNDT;
+                return true;
+            }
         }
-//	std::cout<<"s("<<itr_ctr+1<<") = "<<score_here<<";\n";
-//	std::cout<<"H(:,:,"<<itr_ctr+1<<")  =  ["<< Hessian<<"];\n"<<std::endl;				  //
-//	std::cout<<"grad (:,"<<itr_ctr+1<<")= ["<<score_gradient.transpose()<<"];"<<std::endl;         //
         if (score_gradient.norm()<= DELTA_SCORE)
         {
-//	    std::cout<<"incr(:,"<<itr_ctr+1<<") = [0 0 0 0 0 0]';\n";
-//            std::cout<<"\%gradient vanished\n";
-	    if(score_here > score_best) 
-	    {
-//		std::cout<<"crap iterations, best was "<<score_best<<" last was "<<score_here<<std::endl;
-		T = Tbest;
-	    }
+            if(score_here > score_best) 
+            {
+                T = Tbest;
+            }
             //de-alloc nextNDT
-			for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
-			delete[] nextNDT;
-//	    std::cout<<"itr "<<itr_ctr<<" dScore "<< 0 <<std::endl;
+            for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
+            delete[] nextNDT;
             return true;
         }
-//	pose_increment_v.block<3,1>(0,0) = -Hessian.block<3,3>(0,0).ldlt().solve(score_gradient.block<3,1>(0,0));
-//	pose_increment_v.block<3,1>(3,0) = -Hessian.block<3,3>(3,3).ldlt().solve(score_gradient.block<3,1>(3,0));
-        /*
-        	Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double,6,6> > Sol (Hessian);
-        	Eigen::Matrix<double,6,1> evals = Sol.eigenvalues().real();
-        	if(evals.minCoeff() < 0 ) {
-        	    std::cout<<"\%negative hessian\n";
-        	    std::cout<<"incr(:,"<<itr_ctr+1<<") = [0 0 0 0 0 0]';\n";
-        	    //de-alloc nextNDT
-        	    for(unsigned int i=0; i<nextNDT.size(); i++) {
-        		if(nextNDT[i]!=NULL)
-        		    delete nextNDT[i];
-        	    }
-        	    return true;
-        	} else {
-        	}
-        */
 
         pose_increment_v = -Hessian.ldlt().solve(score_gradient);
-        //pose_increment_v =-0.0001*scg; //
-        /*	if(itr_ctr%2) {
-        	    pose_increment_v(0) = 0;
-        	    pose_increment_v(1) = 0;
-        	    pose_increment_v(2) = 0;
-        	} else {
-        	pose_increment_v(3) = 0;
-        	pose_increment_v(4) = 0;
-        	pose_increment_v(5) = 0;
-        	}
-        	*/
-        /*
-        weights = scg.array().abs();
-        weights.block(0,0,3,1) /= weights.block(0,0,3,1).maxCoeff();
-        weights.block(3,0,3,1) /= weights.block(3,0,3,1).maxCoeff();
-        std::cout<<"w = ["<<weights<<"];\n";
-        std::cout<<"pose_increment_v= ["<<pose_increment_v.transpose()<<"];"<<std::endl;       //
-        pose_increment_v = weights*pose_increment_v.array();
-        //if(pose_increment_v.norm() > 1)
-        //    pose_increment_v.normalize();
-        //scg.normalize();
-        //pose_increment_v = -0.00001*scg;
-         */
-        /*
-        pose_increment_v /= pv;
-        */
-
-        //pose_increment_v = Hessian.jacobiSvd(Eigen::ComputeFullU|Eigen::ComputeFullV).solve(-score_gradient);
         double dginit = pose_increment_v.dot(scg);
         if(dginit > 0)
         {
-//	    std::cout<<"incr(:,"<<itr_ctr+1<<") = ["<<pose_increment_v.transpose()<<"]';\n";
-//	    std::cout<<"\%dg  =  "<<dginit<<std::endl;     //
-//            std::cout<<"\%can't decrease in this direction any more, done \n";
-            //de-alloc nextNDT
-	    if(score_here > score_best) 
-	    {
-//		std::cout<<"crap iterations, best was "<<score_best<<" last was "<<score_here<<std::endl;
-		T = Tbest;
-	    }
-			for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
-			delete[] nextNDT;
-//	    std::cout<<"itr "<<itr_ctr<<" dScore "<< 0 <<std::endl;
+            if(score_here > score_best) 
+            {
+                T = Tbest;
+            }
+            for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
+            delete[] nextNDT;
             return true;
         }
-//	std::cout<<"score("<<itr_ctr+1<<") = "<<score_here<<";\n";
-        /*
-           	*/
-
-
-//	if(dginit > 0) {
-//	    std::cout<<"pose_increment_v= ["<<pose_increment_v.transpose()<<"]"<<std::endl;       //
-//	    std::cout<<"dg  =  "<<dginit<<std::endl;     //
-//	}
-        /*
-        */
-        /*
-        	std::cout<<"pose_increment_v= ["<<pose_increment_v.transpose()<<"]"<<std::endl;       //
-        	pose_increment_v = Hessian.jacobiSvd(Eigen::ComputeFullU|Eigen::ComputeFullV).solve(-score_gradient);
-        	std::cout<<"dg    "<<pose_increment_v.dot(score_gradient)<<std::endl;     //
-        	//make the initial increment reasonable...
-        	//cout<<"incr_init = ["<<pose_increment_v.transpose()<<"]"<<endl;
-        	double pnorm = sqrt(pose_increment_v(0)*pose_increment_v(0) + pose_increment_v(1)*pose_increment_v(1)
-        			    +pose_increment_v(2)*pose_increment_v(2));
-        	if(pnorm > NORM_MAX) {
-        	    pose_increment_v(0) = NORM_MAX*pose_increment_v(0)/pnorm;
-        	    pose_increment_v(1) = NORM_MAX*pose_increment_v(1)/pnorm;
-        	    pose_increment_v(2) = NORM_MAX*pose_increment_v(2)/pnorm;
-        	}
-        	pose_increment_v(3) = normalizeAngle(pose_increment_v(3));
-        	pose_increment_v(3) = (pose_increment_v(3) > ROT_MAX) ? ROT_MAX : pose_increment_v(3);
-        	pose_increment_v(3) = (pose_increment_v(3) < -ROT_MAX) ? -ROT_MAX : pose_increment_v(3);
-        	pose_increment_v(4) = normalizeAngle(pose_increment_v(4));
-        	pose_increment_v(4) = (pose_increment_v(4) > ROT_MAX) ? ROT_MAX : pose_increment_v(4);
-        	pose_increment_v(4) = (pose_increment_v(4) < -ROT_MAX) ? -ROT_MAX : pose_increment_v(4);
-        	pose_increment_v(5) = normalizeAngle(pose_increment_v(5));
-        	pose_increment_v(5) = (pose_increment_v(5) > ROT_MAX) ? ROT_MAX : pose_increment_v(5);
-        	pose_increment_v(5) = (pose_increment_v(5) < -ROT_MAX) ? -ROT_MAX : pose_increment_v(5);
-        //	cout<<"H  =  ["<<Hessian<<"]"<<endl;
-        //	cout<<"grad= ["<<score_gradient.transpose()<<"]"<<endl;
-        //	cout<<"dg    "<<pose_increment_v.dot(score_gradient)<<endl;
-
-        */
         //check direction here:
-
-	if(step_control) {
-	    step_size = lineSearchMT(pose_increment_v,nextNDT,targetNDT);
-	} else {
-	    step_size = 1;
-	}
+        if(step_control) 
+            step_size = lineSearchMT(pose_increment_v,nextNDT,targetNDT);
+        else
+            step_size = 1;
         pose_increment_v = step_size*pose_increment_v;
-        //std::cout<<"\%iteration "<<itr_ctr<<" pose norm "<<(pose_increment_v.norm())<<" score "<<score_here<<" step "<<step_size<<std::endl;
-        /*
-        pose_increment_v(2) = 0;
-        pose_increment_v(3) = 0;
-        pose_increment_v(4) = 0;
-        pose_increment_v(5) = 0;
-        */
-
 
         TR.setIdentity();
         TR =  Eigen::Translation<double,3>(pose_increment_v(0),pose_increment_v(1),pose_increment_v(2))*
@@ -237,12 +127,12 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
               Eigen::AngleAxis<double>(pose_increment_v(4),Eigen::Vector3d::UnitY()) *
               Eigen::AngleAxis<double>(pose_increment_v(5),Eigen::Vector3d::UnitZ()) ;
 
-        //std::cout<<"incr= ["<<pose_increment_v.transpose()<<"]"<<std::endl;
         //transform source NDT
         T = TR*T;
-//	std::cout<<"incr(:,"<<itr_ctr+1<<") = ["<<pose_increment_v.transpose()<<"]';\n";
-//	std::cout<<"pose(:,"<<itr_ctr+2<<") = ["<<T.translation().transpose()<<" "<<T.rotation().eulerAngles(0,1,2).transpose()<<"]';\n";
 
+        #pragma omp parallel num_threads(n_threads)
+        {
+        #pragma omp for
 		for(unsigned int nS=0;nS<NumInputs;nS++)
 			for(unsigned int i=0; i<nextNDT[nS].size(); i++)
 			{
@@ -254,11 +144,11 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
 				nextNDT[nS][i]->setMean(meanC);
 				nextNDT[nS][i]->setCov(covC);
 			}
+        }
 
         if(itr_ctr>0)
         {
             convergence = ((pose_increment_v.norm()) < DELTA_SCORE);
-            //convergence = ((score_gradient.norm()) < DELTA_SCORE);
         }
         if(itr_ctr>ITR_MAX)
         {
@@ -266,33 +156,18 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
             ret = false;
         }
         itr_ctr++;
-        //step_size *= alpha;
-        //std::cout<<"step size "<<step_size<<std::endl;
-    }
-    
-//    std::cout<<"itr "<<itr_ctr<<" dScore "<< pose_increment_v.norm()<<std::endl;
-    //std::vector<NDTCell<PointSource>*> nextNDT = sourceNDT.pseudoTransformNDT(T);
+    } 
     score_gradient.setZero();
     double score_here = derivativesNDT(nextNDT,targetNDT,score_gradient,Hessian,true);
     if(score_here > score_best) 
     {
-//	std::cout<<"crap iterations, best was "<<score_best<<" last was "<<score_here<<std::endl;
-	T = Tbest;
+        T = Tbest;
     }
-	//std::cout<<std::endl<<"<h "<<std::endl<<Hessian.inverse()<<std::endl<<" /h>"<<std::endl;
 	for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
-			delete[] nextNDT;
-
-//    std::cout<<"incr(:,"<<itr_ctr+1<<") = [0 0 0 0 0 0]';\n";
-//    std::cout<<"grad(:,"<<itr_ctr+1<<") = [0 0 0 0 0 0]';\n";
-    //std::cout<<"res "<<current_resolution<<" itr "<<itr_ctr<<std::endl;
-
-//    this->finalscore = score/NUMBER_OF_ACTIVE_CELLS;
-
+    delete[] nextNDT;
     return ret;
 }
 
-#define USE_OMP
 
 //compute the score gradient of a point cloud + transformation to an NDT
 double NDTMatcherD2D_SE::derivativesNDT(
@@ -300,25 +175,27 @@ double NDTMatcherD2D_SE::derivativesNDT(
     const NDTMap * const * targetNDTMany,
     Eigen::MatrixXd &score_gradient,
     Eigen::MatrixXd &Hessian,
-    bool computeHessian
+    bool computeHessian,
+    bool init_hessian_gradient
 )
 {
-
+Profiler pr;
+pr.start();
 //    struct timeval tv_start, tv_end;
     double score_here = 0;
     int n_dimensions = score_gradient.rows();
 
 //    gettimeofday(&tv_start,NULL);
     NUMBER_OF_ACTIVE_CELLS = 0;
-    score_gradient.setZero();
-    Hessian.setZero();
+    if(init_hessian_gradient){
+        score_gradient.setZero();
+        Hessian.setZero();
+    }
 
-#ifdef USE_OMP
     Eigen::MatrixXd score_gradient_omp;
     Eigen::MatrixXd score_here_omp;
     Eigen::MatrixXd Hessian_omp;
 
-#define n_threads 12
 
     //n_threads = omp_get_num_threads();
     score_gradient_omp.resize(n_dimensions,n_threads);
@@ -418,7 +295,7 @@ double NDTMatcherD2D_SE::derivativesNDT(
     //std::cout<<"sgomp: "<<score_gradient_omp<<std::endl;
     //std::cout<<"somp: "<<score_here_omp<<std::endl;
 
-    score_gradient = score_gradient_omp.rowwise().sum();
+    score_gradient += score_gradient_omp.rowwise().sum();
     score_here = score_here_omp.sum();
     if(computeHessian)
     {
@@ -430,119 +307,7 @@ double NDTMatcherD2D_SE::derivativesNDT(
 		HessianF=Hessian;
 		score_gradientF=score_gradient;
     }
-#else
-    pcl::PointXYZ point;
-    Eigen::Vector3d transformed;
-    Eigen::Vector3d meanMoving, meanFixed;
-    Eigen::Matrix3d CMoving, CFixed, CSum, Cinv, R;
-    NDTCell *cell;
-    bool exists = false;
-    double det = 0;
-
-	for(int nS=0;nS<NumInputs;nS++)
-	{
-		std::vector<NDTCell*> sourceNDT = sourceNDTMany[nN];
-		NDTMap targetNDT = targetNDTMany[nN];
-    for(unsigned int i=0; i<NumInputs; i++)
-    {
-        meanMoving = sourceNDT[i]->getMean();
-        CMoving= sourceNDT[i]->getCov();
-        computeDerivatives(meanMoving, CMoving, computeHessian);
-
-        point.x = meanMoving(0);
-        point.y = meanMoving(1);
-        point.z = meanMoving(2);
-        std::vector<NDTCell*> cells = targetNDT.getCellsForPoint(point,n_neighbours); //targetNDT.getAllCells(); //
-        for(int j=0; j<cells.size(); j++)
-        {
-            cell = cells[j];
-            if(cell == NULL)
-            {
-                continue;
-            }
-            if(cell->hasGaussian_)
-            {
-                transformed = meanMoving - cell->getMean();
-                CFixed = cell->getCov();
-                CSum = (CFixed+CMoving);
-                CSum.computeInverseAndDetWithCheck(Cinv,det,exists);
-                if(!exists)
-                {
-                    //delete cell;
-                    continue;
-                }
-                double l = (transformed).dot(Cinv*(transformed));
-                if(l*0 != 0)
-                {
-                    //delete cell;
-                    continue;
-                }
-                //if(l > 120) continue;
-                double sh = -lfd1*(exp(-lfd2*l/2));
-                //compute Jest, Hest, Zest, ZHest
-                //update score gradient
-                //std::cout<<"m1 = ["<<meanMoving.transpose()<<"]';\n m2 = ["<<cell->getMean().transpose()<<"]';\n";
-                //std::cout<<"C1 = ["<<CMoving<<"];\n C2 = ["<<CFixed<<"];\n";
-//		    if(!update_gradient_hessian(score_gradient, Hessian, transformed, Cinv, sh, computeHessian))
-                if(!update_gradient_hessian(score_gradient,Hessian,transformed, Cinv, sh, computeHessian))
-                {
-                    //delete cell;
-                    continue;
-                }
-                //NUMBER_OF_ACTIVE_CELLS++;
-                score_here += sh;
-                //delete cell;
-                cell = NULL;
-            }
-        }
-    }
-	}
-#endif
-    /*
-    if(computeHessian) {
-
-        //regularization 0.01*NUMBER_OF_ACTIVE_CELLS*
-        //Hessian = Hessian + 0.1*NUMBER_OF_ACTIVE_CELLS*Eigen::Matrix<double,6,6>::Identity();
-        Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double,6,6> > Sol (Hessian);
-        Eigen::Matrix<double,6,1> evals = Sol.eigenvalues().real();
-
-        double minCoeff = evals.minCoeff();
-        double maxCoeff = evals.maxCoeff();
-
-        if(minCoeff < 0 ) { //evals.minCoeff() < 0.01*evals.maxCoeff()) {
-    	Eigen::Matrix<double,6,6> evecs = Sol.eigenvectors().real();
-    	double regularizer = 0.01*maxCoeff - minCoeff;
-    	Eigen::Matrix<double,6,1> reg;
-    	//ugly
-    	reg<<regularizer,regularizer,regularizer,regularizer,regularizer,regularizer;
-    	evals += reg;
-    	Eigen::Matrix<double,6,6> Lam;
-    	Lam = evals.asDiagonal();
-    	Hessian = evecs*Lam*(evecs.transpose());
-    	std::cerr<<"regularizing\n";
-        }
-        */
-    /*
-    if(minCoeff < 0.001*maxCoeff) {
-    Eigen::Matrix<double,6,6> evecs = Sol.eigenvectors().real();
-    for(int q=0;q<6;++q) {
-        if(evals(q) < 0.001*maxCoeff) {
-    	evals(q)=0.001*maxCoeff;
-        } else{
-    	break;
-        }
-    }
-    Eigen::Matrix<double,6,6> Lam;
-    Lam = evals.asDiagonal();
-    Hessian = evecs*Lam*(evecs.transpose());
-    std::cerr<<"BAD_HESSIAN\n";
-    }
-    }
-    */
-
-//    gettimeofday(&tv_end,NULL);
-//    double time_load = (tv_end.tv_sec-tv_start.tv_sec)*1000.+(tv_end.tv_usec-tv_start.tv_usec)/1000.;
-//    std::cout<<"3D::: time derivatives took is: "<<time_load<<std::endl;
+pr.check(1);
     return score_here;
 }
 
@@ -612,6 +377,9 @@ double NDTMatcherD2D_SE::lineSearchMT(
 
         if (dginit >= 0.0)
         {
+            #pragma omp parallel num_threads(n_threads)
+            {
+            #pragma omp for
             for(unsigned int j=0; j<NumInputs; j++)
 			{
 				for(unsigned int i=0; i<sourceNDTHere[j].size(); i++)
@@ -619,6 +387,7 @@ double NDTMatcherD2D_SE::lineSearchMT(
 						delete sourceNDTHere[j][i];
 				sourceNDTHere[j].clear();
 			}
+            }
             return recoverystep;
         }
     }
@@ -705,6 +474,9 @@ double NDTMatcherD2D_SE::lineSearchMT(
              Eigen::AngleAxisd(pincr(4),Eigen::Vector3d::UnitY())*
              Eigen::AngleAxisd(pincr(5),Eigen::Vector3d::UnitZ());
 
+        #pragma omp parallel num_threads(n_threads)
+        {
+        #pragma omp for
 		for(unsigned int j=0; j<NumInputs; j++)
 		{
 			for(unsigned int i=0; i<sourceNDTHere[j].size(); i++)
@@ -713,9 +485,6 @@ double NDTMatcherD2D_SE::lineSearchMT(
 					delete sourceNDTHere[j][i];
 			}
 			sourceNDTHere[j].clear();
-		}
-		for(unsigned int j=0;j<NumInputs;j++)
-		{
 			for(unsigned int i=0; i<sourceNDT[j].size(); i++)
 			{
 				NDTCell *cell = sourceNDT[j][i];
@@ -732,6 +501,7 @@ double NDTMatcherD2D_SE::lineSearchMT(
 				}
 			}
 		}
+        }
 
         double f = 0.0;
         score_gradient_here.setZero();
@@ -817,6 +587,9 @@ double NDTMatcherD2D_SE::lineSearchMT(
 
             // Returning the line search flag
             //cout<<"LineSearch::"<<message<<" info "<<info<<endl;
+            #pragma omp parallel num_threads(n_threads)
+            {
+            #pragma omp for
 			for(unsigned int j=0; j<NumInputs; j++)
 			{
 				for(unsigned int i=0; i<sourceNDTHere[j].size(); i++)
@@ -826,6 +599,7 @@ double NDTMatcherD2D_SE::lineSearchMT(
 				}
 				sourceNDTHere[j].clear();
 			}
+            }
 //      std::cout<<"nfev = "<<nfev<<std::endl;
             return stp;
 
@@ -907,7 +681,8 @@ bool NDTMatcherD2D_SE::covariance(
     NDTMap *** sourceNDTMany,
         Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>& T,
 		std::vector<float>& resolutions,
-        Eigen::MatrixXd &cov
+        Eigen::MatrixXd &cov,
+        bool inverse=false
                                                        )
 {
     Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> TR;
@@ -927,7 +702,8 @@ bool NDTMatcherD2D_SE::covariance(
 			NM+= nextNDT[nR][nS].size() + targetNDT[nR][nS].size();
 		}
 	}
-    double sigmaS = (0.03)*(0.03);
+    //double sigmaS = (0.03)*(0.03);
+    double sigmaS = (0.03);
 
 
     Eigen::MatrixXd scg(6,1); //column vectors
@@ -953,7 +729,7 @@ bool NDTMatcherD2D_SE::covariance(
 	for(int nR=0;nR<resolutions.size();nR++)
 	{
 		current_resolution=resolutions.at(nR);
-		derivativesNDT(nextNDT[nR],targetNDTMany[nR],scg,cov,true);
+		derivativesNDT(nextNDT[nR],targetNDTMany[nR],scg,cov,true, false);
 		for(int nS=0;nS<NumInputs;nS++)
 		{
 			std::vector<NDTCell*> sourceNDTN = nextNDT[nR][nS];
@@ -1052,8 +828,10 @@ bool NDTMatcherD2D_SE::covariance(
     //cout<<"J*J'\n"<<JK<<endl;
     //cout<<"H\n"<<cov<<endl;
 
-    //cov = cov.inverse()*JK*cov.inverse();
-    cov = cov*JK.inverse()*cov;
+    if(!inverse)
+        cov = cov.inverse()*JK*cov.inverse();
+    else
+        cov = cov*JK.inverse()*cov;
     //cov = cov.inverse();//*fabsf(scoreNDT(sourceNDTN,targetNDT)*2/3);
     //cout<<"cov\n"<<cov<<endl;
 

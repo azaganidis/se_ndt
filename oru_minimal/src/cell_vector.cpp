@@ -22,11 +22,11 @@ CellVector::CellVector(const CellVector& other):protoType(NULL)
 {
     for(unsigned int i =0; i< other.activeCells.size(); i++)
     {
-        NDTCell* r = (other.activeCells[i]->copy());
+        NDTCell* r = *std::next(other.activeCells.begin(), i);
         if(r == NULL) continue;
         for(size_t i=0; i<r->points_.size(); i++)
         {
-            this->activeCells.push_back(r->copy());
+            this->activeCells.insert(r->copy());
         }
     }
 }
@@ -34,11 +34,11 @@ CellVector::CellVector(const CellVector& other):protoType(NULL)
 CellVector::~CellVector()
 {
     //go through all cells and delete the non-NULL ones
-    for(unsigned int i=0; i<activeCells.size(); ++i)
+    for(SpatialIndex::CellVectorItr it=activeCells.begin(); it!=activeCells.end(); ++it)
     {
-        if(activeCells[i]!=NULL)
+        if((*it)!=NULL)
         {
-            delete activeCells[i];
+            delete (*it);
         }
     }
 }
@@ -56,7 +56,7 @@ NDTCell* CellVector::getCellForPoint(const pcl::PointXYZ &point)
         const pcl::PointXYZ pt(point);
         if(!meansTree.nearestKSearch(pt,NCELLS,id,dist)) return ret;
 
-        ret  = activeCells[id[0]];
+        ret = *std::next(activeCells.begin(), id[0]);
     }
     else
     {
@@ -84,16 +84,17 @@ NDTCell* CellVector::addPoint(const pcl::PointXYZ &point)
 
 void CellVector::addCellPoints(pcl::PointCloud<pcl::PointXYZ> pc, const std::vector<size_t> &indices)
 {
-    activeCells.push_back(protoType->clone());
+    auto tmp = protoType->clone();
+    activeCells.insert(tmp);
     for (size_t i = 0; i < indices.size(); i++) {
-        (activeCells.back())->addPoint(pc[indices[i]]); // Add the point to the cell.
+        tmp->addPoint(pc[indices[i]]); // Add the point to the cell.
     }
     treeUpdated = false;
 }
 
 void CellVector::addCell(NDTCell* cell)
 {
-    activeCells.push_back(cell);
+    activeCells.insert(cell);
 }
 
 void CellVector::addNDTCell(NDTCell* cell)
@@ -140,11 +141,11 @@ SpatialIndex* CellVector::copy() const
     CellVector *ret = new CellVector();
     for(unsigned int i =0; i< activeCells.size(); i++)
     {
-        NDTCell* r = (activeCells[i]->copy());
+        NDTCell* r = (*std::next(activeCells.begin(), i))->copy();
         if(r == NULL) continue;
         for(size_t i=0; i<r->points_.size(); i++)
         {
-            ret->activeCells.push_back(r->copy());
+            ret->activeCells.insert(r->copy());
         }
     }
     return ret;
@@ -166,7 +167,7 @@ void CellVector::getNeighbors(const pcl::PointXYZ &point, const double &radius, 
 
         for(int i=0; i<NCELLS; i++)
         {
-            NDTCell* tmp = activeCells[id[i]];
+            NDTCell* tmp = *std::next(activeCells.begin(), id[i]);
             if (tmp != NULL)
                 cells.push_back(tmp);
         }
@@ -194,9 +195,9 @@ void CellVector::initKDTree()
     Eigen::Vector3d m;
     pcl::PointCloud<pcl::PointXYZ> mc;
 
-    for(size_t i=0; i<activeCells.size(); i++)
+    for(SpatialIndex::CellVectorItr it=activeCells.begin(); it!=activeCells.end(); ++it)
     {
-        ndcell = (activeCells[i]);
+        ndcell = (*it);
         if(ndcell == NULL) continue;
         if(!ndcell->hasGaussian_) continue;
         m = ndcell->getMean();
@@ -239,7 +240,9 @@ NDTCell* CellVector::getCellIdx(unsigned int idx) const
 {
     if (idx >= activeCells.size())
         return NULL;
-    return activeCells[idx];
+    perception_oru::SpatialIndex::CellVectorItr it = activeCells.begin();
+    std::advance(it,idx);
+    return *it;
 }
 
 void CellVector::cleanCellsAboveSize(double size)

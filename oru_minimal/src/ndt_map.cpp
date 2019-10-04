@@ -184,7 +184,6 @@ void NDTMap::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, double ran
     isFirstLoad_ = false;
 }
 
-
 /**
 * loadPointCloudCentroid - A special load function to enable the matching of centroids (create alligned maps)
 * \param pc the PointCloud that is to be loaded
@@ -453,6 +452,8 @@ void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<
 			fprintf(stderr,"NOT LAZY GRID!!!\n");
 			exit(1);
     }
+    //auto cA=lz->size();
+    lz->setSensorPose(origin.data());
     pcl::PointXYZ po, pt;
     po.x = origin(0); po.y = origin(1); po.z = origin(2);
     NDTCell* ptCell = NULL; 
@@ -539,6 +540,8 @@ void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<
 	it++;
     }
     isFirstLoad_ = false;
+    //auto cB=lz->size();
+    //std::cerr<<"SIZEDIFF  "<<cA<<"\t"<<cB<<"\t"<<cB-cA<<std::endl;
 
 #else
     double centerX,centerY,centerZ;
@@ -2230,7 +2233,72 @@ bool NDTMap::getCellForPoint(const pcl::PointXYZ &pt, NDTCell* &out_cell, bool c
     //cout<<"bad index - getCellForPoint\n";
     return false;
 }
-
+void NDTMap::transformNDTMap(Eigen::Transform<double, 3, Eigen::Affine, Eigen::ColMajor> T)
+{
+    std::vector<NDTCell*> previous_cells = pseudoTransformNDT(T);
+    LazyGrid* lz = dynamic_cast<LazyGrid *>(index_);
+    Eigen::Vector3d tr = T * lz->translation;
+    lz->initialize();
+    lz->setSensorPose(tr.data());
+    for(std::vector<NDTCell*>::iterator it=previous_cells.begin();it!=previous_cells.end();++it)
+    {
+        NDTCell* cell = (*it);
+        pcl::PointXYZ center=cell->getCenter();
+        Eigen::Vector3d centerV;
+        centerV<<center.x, center.y, center.z;
+        centerV=T*centerV;
+        center.x=centerV(0);
+        center.y=centerV(1);
+        center.z=centerV(2);
+        cell->setCenter(center);
+        lz->addNDTCell(cell);
+    }
+}
+/*
+void NDTMap::transformNDTMap(Eigen::Transform<double, 3, Eigen::Affine, Eigen::ColMajor> T)
+{
+    assert(index_!=NULL);
+    std::cerr<<"START_TRANSFORM1"<<std::endl;
+    SpatialIndex *si = index_->clone();
+    LazyGrid* lzN = dynamic_cast<LazyGrid *>(si);
+    LazyGrid* lz = dynamic_cast<LazyGrid *>(index_);
+    Eigen::Vector3d tr = T * lz->translation;
+	NDTCell *ptCell = new NDTCell();
+	si->setCellType(ptCell);
+	delete ptCell;
+    lzN->setCenter(0,0,0);
+    lzN->setSize(map_sizex, map_sizey, map_sizez);
+    lzN->setSensorPose(tr.data());
+    lzN->cloud_index=lz->cloud_index;
+    typename SpatialIndex::CellVectorItr it = index_->begin();
+    std::cerr<<"START_TRANSFORM2"<<std::endl;
+    while (it != index_->end())
+    {
+        NDTCell *cell = (*it);
+        if(cell!=NULL)
+        {
+            if(cell->hasGaussian_)
+            {
+                Eigen::Vector3d mean = cell->getMean();
+                Eigen::Matrix3d cov = cell->getCov();
+                mean = T*mean;
+                ///NOTE: The rotation of the covariance fixed by Jari 6.11.2012
+                cov = T.rotation()*cov*T.rotation().transpose();
+                NDTCell* nd = (NDTCell*)cell->clone();
+                nd->setMean(mean);
+                nd->setCov(cov);
+                lzN->addNDTCell(cell);
+            }
+        }
+        it++;
+    }
+    std::cerr<<"END_TRANSFORM2"<<std::endl;
+    assert(index_!=NULL);
+    delete index_;
+    index_ = si;
+    std::cerr<<"END_TRANSFORM1"<<std::endl;
+}
+*/
 NDTMap* NDTMap::pseudoTransformNDTMap(Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> T)
 {
     NDTMap* map = new NDTMap(new CellVector(), true);
@@ -2276,6 +2344,7 @@ std::vector<NDTCell*> NDTMap::pseudoTransformNDT(Eigen::Transform<double,3,Eigen
                 ///NOTE: The rotation of the covariance fixed by Jari 6.11.2012
                 cov = T.rotation()*cov*T.rotation().transpose();
                 NDTCell* nd = (NDTCell*)cell->clone();
+                nd->cloud_index=cell->cloud_index;
                 nd->setMean(mean);
                 nd->setCov(cov);
                 ret.push_back(nd);

@@ -140,75 +140,27 @@ public:
       isFirstLoad_ = false;
     }
   }
-
-  /**
-     * Construct with given centroid and sizes
-     * @param cenx, ceny, cenz; (x,y,z) of the center of the map
-     * @param sizex, sizey, sizez: The size of the map in each respective direction
-     * NOTE: Implementation only for the laze grid
-     **/
-  NDTMap(SpatialIndex *idx, float cenx, float ceny, float cenz, float sizex, float sizey, float sizez, bool dealloc = false)
+    void transformNDTMap(Eigen::Transform<double, 3, Eigen::Affine, Eigen::ColMajor> T);
+    int numActive()
+    {
+        perception_oru::LazyGrid *lz = dynamic_cast<perception_oru::LazyGrid *> (index_);
+        return lz->size();
+    }
+  void loadSaved(int start, int stop,pcl::PointXYZL &pose)
   {
-    if(idx == NULL)
-    {
-      fprintf(stderr,"Idx == NULL - abort()\n");
-      exit(1);
-    }
-    index_ = idx;
-
-    //this is used to prevent memory de-allocation of the *si
-    //si was allocated outside the NDT class and should be deallocated outside
-    isFirstLoad_=!dealloc;//////////////////////////////////////////////////////////////////////////////false; Henrik - was false, but why?
-
-    NDTCell *ptCell = new NDTCell();
-    index_->setCellType(ptCell);
-    delete ptCell;
-    index_->setCenter(cenx,ceny,cenz);
-    index_->setSize(sizex,sizey,sizez);
-    map_sizex = sizex;
-    map_sizey = sizey;
-    map_sizez = sizez;
-    is3D=true;
-    LazyGrid *lz = dynamic_cast<LazyGrid*>(index_);
-    if(lz == NULL)
-    {
-      fprintf(stderr,"Unfortunately This constructor works only with Lazygrid!\n");
-      exit(1);
-    }
-    lz->initializeAll();
-    guess_size_ = false;
+        perception_oru::LazyGrid *lz = dynamic_cast<perception_oru::LazyGrid *> (index_);
+        NDTCell *ptCell = new NDTCell();
+        index_->setCellType(ptCell);
+        delete ptCell;
+        lz->setCenter(0,0,0);
+        lz->setSize(map_sizex, map_sizey, map_sizez);
+        double poseD[3];
+        poseD[0]=pose.x;
+        poseD[1]=pose.y;
+        poseD[2]=pose.z;
+        lz->setSensorPose(poseD);
+        lz->loadCells(start, stop);
   }
-   
-  
-
-  /**
-      * Initilize with known values - normally this is done automatically, but in some cases you want to
-      * influence these - call only once and before calling any other function
-      */
-  void initialize(double cenx, double ceny, double cenz, double sizex, double sizey, double sizez)
-  {
-    isFirstLoad_=false;
-
-    NDTCell *ptCell = new NDTCell();
-    index_->setCellType(ptCell);
-    delete ptCell;
-    index_->setCenter(cenx,ceny,cenz);
-    index_->setSize(sizex,sizey,sizez);
-    map_sizex = sizex;
-    map_sizey = sizey;
-    map_sizez = sizez;
-    is3D=true;
-    LazyGrid *lz = dynamic_cast<LazyGrid*>(index_);
-    if(lz == NULL)
-    {
-      fprintf(stderr,"Unfortunately This constructor works only with Lazygrid!\n");
-      exit(1);
-    }
-    //        lz->initializeAll();
-    lz->initializeAll();
-    guess_size_ = false;
-  }
-
 
 
   /**
@@ -239,7 +191,6 @@ public:
 			}
     }
   }
-
   void setMode(bool is3D_)
   {
     is3D=is3D_;
@@ -565,7 +516,6 @@ public:
                         Eigen::Vector3d *hit = NULL);
   NDTCell* getCellAtID(int x,int y,int z) const;
   std::string ToString();
-  void unsetFirstLoad(){isFirstLoad_=false;};
 protected:
   bool is3D;
   SpatialIndex *index_;

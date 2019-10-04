@@ -39,6 +39,7 @@
 #include "ndt_registration/ndt_matcher_d2d.h"
 #include "pcl/point_cloud.h"
 #include "Eigen/Core"
+#include <profiler.hpp>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -55,6 +56,7 @@ class NDTMatcherD2D_SE: public NDTMatcherD2D
 public:
 	Eigen::Matrix<double,6,6> HessianF;
 	Eigen::Matrix<double,6,1> score_gradientF;
+    double score_best;
 	int NumInputs;
     /**
      * Registers multiple point clouds to multiple NDT structures.
@@ -73,12 +75,9 @@ public:
                 bool useInitialGuess = false
 				);
 
-	bool covariance( 
-		NDTMap *** targetNDTMany,
-		NDTMap *** sourceNDTMany,
+	bool covariance( NDTMap *** targetNDTMany, NDTMap *** sourceNDTMany,
 			Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor>& T,
-		std::vector<float>& resolutions,
-			Eigen::MatrixXd &cov);
+		std::vector<float>& resolutions, Eigen::MatrixXd &cov, bool inverse);
 
     //compute the score gradient & hessian of multiple point clouds + transformation to NDTs
     // input: moving, fixed, tr, computeHessian
@@ -88,7 +87,8 @@ public:
         const NDTMap * const * target,
         Eigen::MatrixXd &score_gradient,
         Eigen::MatrixXd &Hessian,
-        bool computeHessian
+        bool computeHessian,
+        bool init_hessian_gradient=true
     );
     //perform line search to find the best descent rate (Mohre&Thuente)
     //adapted from NOX

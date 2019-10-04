@@ -54,8 +54,8 @@ public:
     CellVector(const CellVector& other);
     virtual ~CellVector();
 
-    virtual NDTCell* getCellForPoint(const pcl::PointXYZ &point);
     virtual NDTCell* addPoint(const pcl::PointXYZ &point);
+    virtual NDTCell* getCellForPoint(const pcl::PointXYZ &point);
     void addCellPoints(pcl::PointCloud<pcl::PointXYZ> pc, const std::vector<size_t> &indices);
     
     void addCell(NDTCell* cell);
@@ -88,7 +88,7 @@ public:
     void cleanCellsAboveSize(double size);
     int loadFromJFF(FILE * jffin);
 private:
-    std::vector<NDTCell*> activeCells;
+    std::set<NDTCell*> activeCells;
     NDTCell *protoType;
     pcl::KdTreeFLANN<pcl::PointXYZ> meansTree;
     typename pcl::KdTree<pcl::PointXYZ>::PointCloudPtr mp;
