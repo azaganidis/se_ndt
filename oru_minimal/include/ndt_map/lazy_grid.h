@@ -122,6 +122,8 @@ public:
         NDTCell** array;
         Darray(): array(NULL), size{}{}
         void initialize(int x,int y,int z){
+            if(x*y*z<1)
+                x=y=z=1;
             size[0]=x;
             size[1]=y;
             size[2]=z;

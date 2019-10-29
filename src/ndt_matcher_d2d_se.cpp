@@ -179,8 +179,8 @@ double NDTMatcherD2D_SE::derivativesNDT(
     bool init_hessian_gradient
 )
 {
-Profiler pr;
-pr.start();
+//Profiler pr;
+//pr.start();
 //    struct timeval tv_start, tv_end;
     double score_here = 0;
     int n_dimensions = score_gradient.rows();
@@ -307,7 +307,7 @@ pr.start();
 		HessianF=Hessian;
 		score_gradientF=score_gradient;
     }
-pr.check(1);
+//pr.check(1);
     return score_here;
 }
 
