@@ -47,7 +47,7 @@ void writeG2O_Edge(Eigen::Affine3d T, int i, int j, Eigen::Matrix<double,7,7> C)
 }
 void NDTMatch_SE::loadMap(perception_oru::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range)
 {
-    #pragma omp parallel num_threads(8)
+    #pragma omp parallel num_threads(N_THREADS)
     {
         #pragma omp for
         for(size_t i=0;i<input_clouds.size();i++)
@@ -299,7 +299,7 @@ Eigen::Affine3d NDTMatch_SE::matchFaster_OM(Eigen::Affine3d Tinit, pcl::PointClo
     for(unsigned int i=0;i<resolutions.size();i++)
     {
         mapT[i]= new perception_oru::NDTMap * [NumInputs];
-        #pragma omp parallel num_threads(8)
+        #pragma omp parallel num_threads(N_THREADS)
         {
             #pragma omp for
             for(unsigned int j=0;j<NumInputs;j++)
@@ -352,7 +352,7 @@ bool NDTMatch_SE::matchToSaved(Eigen::Affine3d &Td_, pcl::PointXYZL &pose_end, p
     for(unsigned int i=0;i<resolutions.size();i++)
     {
         mapT[i]= new perception_oru::NDTMap * [NumInputs];
-            #pragma omp parallel num_threads(8)
+            #pragma omp parallel num_threads(N_THREADS)
             {
                 #pragma omp for
         for(unsigned int j=0;j<NumInputs;j++)
@@ -388,7 +388,7 @@ bool NDTMatch_SE::matchToSaved(Eigen::Affine3d &Td_, pcl::PointXYZL &pose_end, p
         Ccl=getPoseInformation(Td, mapT,map,true);
 //        CovSum=covS[iP]+Ccl;
         for(unsigned int i=0;i<resolutions.size();i++)
-            #pragma omp parallel num_threads(8)
+            #pragma omp parallel num_threads(N_THREADS)
             {
                 #pragma omp for
                 for(unsigned int j=0;j<NumInputs;j++)
@@ -407,7 +407,7 @@ bool NDTMatch_SE::matchToSaved(Eigen::Affine3d &Td_, pcl::PointXYZL &pose_end, p
     }
     for(unsigned int i=0;i<resolutions.size();i++)
     {
-        #pragma omp parallel num_threads(8)
+        #pragma omp parallel num_threads(N_THREADS)
         {
             #pragma omp for
             for(auto j=0;j<NumInputs;j++)
@@ -513,11 +513,12 @@ Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr clou
                 }));
     for(auto& t:tc)t.join();
 //    std::cerr<<"START_LOADING"<<std::endl;
-    #pragma omp parallel num_threads(8)
+    #pragma omp parallel num_threads(N_THREADS)
     {
         #pragma omp for
         for(size_t i=0;i<laserCloud.size();i++)
         {
+            toRVIZ[i].clear();
             for(int rez=0;rez<resolutions.size();rez++)
             {
                 map[rez][i]->addPointCloud(T.translation(), *laserCloud[i],0.06, 100, 0.03, 255);
@@ -586,7 +587,7 @@ Eigen::Affine3d NDTMatch_SE::mapUpdate(pcl::PointCloud<pcl::PointXYZI>::Ptr clou
     {
         std::vector<double> p_vH(poseIdxSearch.size(),10000);
 //        std::vector<double> p_vF(poseIdxSearch.size(),10000);
-        #pragma omp parallel num_threads(8)
+        #pragma omp parallel num_threads(N_THREADS)
         {
             #pragma omp for
             for(int i=0;i<poseIdxSearch.size();i++)

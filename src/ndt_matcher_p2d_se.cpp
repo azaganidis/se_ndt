@@ -502,7 +502,7 @@ double NDTMatcherP2D_SE::scorePointCloud(pcl::PointCloud<pcl::PointXYZ> *source,
 	for(int jN=0;jN<NumInputs;jN++)
 	{
 
-		#pragma omp parallel num_threads(8)
+		#pragma omp parallel num_threads(N_THREADS)
 		{
         #pragma omp for
 		for(unsigned int i=0; i<source[jN].points.size(); i++)
@@ -563,20 +563,19 @@ void NDTMatcherP2D_SE::derivativesPointCloud(pcl::PointCloud<pcl::PointXYZ> *sou
 {
 
     //Eigen::Vector3d eulerAngles = transform.rotation().eulerAngles(0,1,2);
-#define n_threads 6
     Eigen::MatrixXd score_gradient_omp;
     Eigen::MatrixXd Hessian_omp;
 
     int n_dimensions = score_gradient.rows();
-    score_gradient_omp.resize(n_dimensions,n_threads);
-    Hessian_omp.resize(n_dimensions,n_dimensions*n_threads);
+    score_gradient_omp.resize(n_dimensions,N_THREADS);
+    Hessian_omp.resize(n_dimensions,n_dimensions*N_THREADS);
 
     score_gradient_omp.setZero();
     Hessian_omp.setZero();
 	unsigned long numPoints=0;
 	for(int j=0;j<NumInputs;j++)
 	{
-		#pragma omp parallel num_threads(n_threads)
+		#pragma omp parallel num_threads(N_THREADS)
 		{
         #pragma omp for
 		for(unsigned int i=0; i<source[j].points.size(); i++)
@@ -626,7 +625,7 @@ void NDTMatcherP2D_SE::derivativesPointCloud(pcl::PointCloud<pcl::PointXYZ> *sou
 		numPoints+=source[j].points.size();
 	}
 	score_gradient = score_gradient_omp.rowwise().sum();
-	for(int i=0; i<n_threads; ++i)
+	for(int i=0; i<N_THREADS; ++i)
 		Hessian += Hessian_omp.block(0,n_dimensions*i,n_dimensions,n_dimensions);
 	Hessian = -Hessian * (1.0 / numPoints);
 	score_gradient= -score_gradient* (1.0 / numPoints);

@@ -64,18 +64,17 @@ void filt_write (pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, float max_dist)
 
 pcl::PointCloud<pcl::PointXYZI>::Ptr filter_class_omp(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, float max_dist)
 {
-#define n_threads 12
 	pcl::PointCloud<pcl::PointXYZI>::Ptr out(new pcl::PointCloud<pcl::PointXYZI>);
 	pcl::PointCloud<pcl::PointXYZI>::Ptr filt(new pcl::PointCloud<pcl::PointXYZI>);
     std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr > out_omp;
     std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr > filt_omp;
-    for(int i=0;i<n_threads;i++)
+    for(int i=0;i<N_THREADS;i++)
     {
         out_omp.push_back(pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>));
         filt_omp.push_back(pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>));
     }
     int npoints=cloud->points.size();
-    #pragma omp parallel num_threads(n_threads)
+    #pragma omp parallel num_threads(N_THREADS)
     {
     int thread_id = omp_get_thread_num();
     #pragma omp for
@@ -86,9 +85,9 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr filter_class_omp(pcl::PointCloud<pcl::Point
             filt_omp[thread_id]->points.push_back(t);
     }
     }
-    for(int i=0;i<n_threads;i++)
+    for(int i=0;i<N_THREADS;i++)
         (*filt)+=(*filt_omp[i]);
-    #pragma omp parallel num_threads(n_threads)
+    #pragma omp parallel num_threads(N_THREADS)
     {
     int thread_id = omp_get_thread_num();
     #pragma omp for
@@ -112,7 +111,7 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr filter_class_omp(pcl::PointCloud<pcl::Point
             out_omp[thread_id]->points.push_back(cloud->points[pn]);
     }
     }
-    for(int i=0;i<n_threads;i++)
+    for(int i=0;i<N_THREADS;i++)
         (*out)+=(*out_omp[i]);
     return out;
 }

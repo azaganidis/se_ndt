@@ -8,7 +8,6 @@
 #include <omp.h>
 #include <sys/time.h>
 #define NUM_MAX 50
-#define n_threads 8
 namespace perception_oru
 {
 
@@ -130,7 +129,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
         //transform source NDT
         T = TR*T;
 
-        #pragma omp parallel num_threads(n_threads)
+        #pragma omp parallel num_threads(N_THREADS)
         {
         #pragma omp for
 		for(unsigned int nS=0;nS<NumInputs;nS++)
@@ -197,20 +196,20 @@ double NDTMatcherD2D_SE::derivativesNDT(
     Eigen::MatrixXd Hessian_omp;
 
 
-    //n_threads = omp_get_num_threads();
-    score_gradient_omp.resize(n_dimensions,n_threads);
-    score_here_omp.resize(1,n_threads);
-    Hessian_omp.resize(n_dimensions,n_dimensions*n_threads);
+    //N_THREADS = omp_get_num_threads();
+    score_gradient_omp.resize(n_dimensions,N_THREADS);
+    score_here_omp.resize(1,N_THREADS);
+    Hessian_omp.resize(n_dimensions,n_dimensions*N_THREADS);
 
     score_gradient_omp.setZero();
     score_here_omp.setZero();
     Hessian_omp.setZero();
-    //std::cout<<n_threads<<" "<<omp_get_thread_num()<<std::endl;
+    //std::cout<<N_THREADS<<" "<<omp_get_thread_num()<<std::endl;
 
 	for(int nS=0;nS<NumInputs;nS++)
 	{
 		std::vector<NDTCell*> sourceNDT = sourceNDTMany[nS];
-    #pragma omp parallel num_threads(n_threads)
+    #pragma omp parallel num_threads(N_THREADS)
     {
         #pragma omp for
         for(unsigned int i=0; i<sourceNDT.size(); i++)
@@ -300,7 +299,7 @@ double NDTMatcherD2D_SE::derivativesNDT(
     if(computeHessian)
     {
         //std::cout<<"Homp: "<<Hessian_omp<<std::endl;
-        for(int i=0; i<n_threads; ++i)
+        for(int i=0; i<N_THREADS; ++i)
         {
             Hessian += Hessian_omp.block(0,n_dimensions*i,n_dimensions,n_dimensions);
         }
@@ -377,7 +376,7 @@ double NDTMatcherD2D_SE::lineSearchMT(
 
         if (dginit >= 0.0)
         {
-            #pragma omp parallel num_threads(n_threads)
+            #pragma omp parallel num_threads(N_THREADS)
             {
             #pragma omp for
             for(unsigned int j=0; j<NumInputs; j++)
@@ -474,7 +473,7 @@ double NDTMatcherD2D_SE::lineSearchMT(
              Eigen::AngleAxisd(pincr(4),Eigen::Vector3d::UnitY())*
              Eigen::AngleAxisd(pincr(5),Eigen::Vector3d::UnitZ());
 
-        #pragma omp parallel num_threads(n_threads)
+        #pragma omp parallel num_threads(N_THREADS)
         {
         #pragma omp for
 		for(unsigned int j=0; j<NumInputs; j++)
@@ -587,7 +586,7 @@ double NDTMatcherD2D_SE::lineSearchMT(
 
             // Returning the line search flag
             //cout<<"LineSearch::"<<message<<" info "<<info<<endl;
-            #pragma omp parallel num_threads(n_threads)
+            #pragma omp parallel num_threads(N_THREADS)
             {
             #pragma omp for
 			for(unsigned int j=0; j<NumInputs; j++)

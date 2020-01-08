@@ -2,7 +2,6 @@
 #include <pcl/registration/transformation_estimation_svd.h>
 #include <se_ndt/ndt_histogram.h>
 #include <cmath>
-#define n_threads 8
 #define CROSS_ENTROPY
 
 namespace perception_oru{
@@ -121,7 +120,7 @@ namespace perception_oru{
                                         ){
 
       omp_init_lock(&writelock);
-    #pragma omp parallel num_threads(n_threads)
+    #pragma omp parallel num_threads(N_THREADS)
     {
         #pragma omp for
     for(int cl_ind=0;cl_ind<N_CLASSES; cl_ind++)

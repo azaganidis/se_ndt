@@ -20,12 +20,13 @@ std::array<float,3> value_to_rgb(float i, float max)
 class ndt_rviz{
     std::vector<ros::Publisher> marker_pub;
     int NumSem;
+    int *max_num=NULL;
     public:
     ros::Duration dur;
     ndt_rviz(ros::NodeHandle &n, int n_res, std::string prefix = "vm_res"):dur()
     {
         for(int i=0;i<n_res;i++)
-            marker_pub.push_back(n.advertise<visualization_msgs::Marker>(prefix+std::to_string(i),1000));
+            marker_pub.push_back(n.advertise<visualization_msgs::Marker>(prefix+std::to_string(i),10000));
     }
     void show_cell(const Eigen::Matrix3d &m_cov, const Eigen::Vector3d &m_mean,float occupancy,ros::Time& cl_time,int iRes, int iSem, int ID){
         const double d=m_cov.determinant();
@@ -50,7 +51,13 @@ class ndt_rviz{
         marker.ns = "sem"+std::to_string(iSem);
         marker.id=ID;
         marker.type=visualization_msgs::Marker::SPHERE;
-        marker.action = visualization_msgs::Marker::ADD;
+        if(max_num[iSem]>ID)
+            marker.action = visualization_msgs::Marker::MODIFY;
+        else
+        {
+            max_num[iSem]++;
+            marker.action = visualization_msgs::Marker::ADD;
+        }
         marker.pose.position.x = m_mean(0);
         marker.pose.position.y = m_mean(1);
         marker.pose.position.z = m_mean(2);
@@ -106,8 +113,12 @@ class ndt_rviz{
         //clearMarkers(0);
         ros::Time tn=ros::Time::now();
         NumSem=tempMap.size();
+        if(!max_num)
+            max_num= (int*)calloc(NumSem,sizeof(int));
+        int dbg_max=0;
         for(unsigned int j=0;j<tempMap.size();j++)
         {
+            if(dbg_max<max_num[j])dbg_max=max_num[j];
             for(unsigned int i=0;i<tempMap[j].size();i++)
             {
                 Eigen::Vector3d m = tempMap[j][i]->getMean();
@@ -120,6 +131,7 @@ class ndt_rviz{
             }
             tempMap[j].clear();
         }
+        std::cout<<"****************\n"<<dbg_max<<std::endl;
     }
 };
 #endif

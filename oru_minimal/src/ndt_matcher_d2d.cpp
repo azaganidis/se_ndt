@@ -1045,19 +1045,18 @@ double NDTMatcherD2D::derivativesNDT(
     Eigen::MatrixXd score_here_omp;
     Eigen::MatrixXd Hessian_omp;
 
-#define n_threads 6
 
-    //n_threads = omp_get_num_threads();
-    score_gradient_omp.resize(n_dimensions,n_threads);
-    score_here_omp.resize(1,n_threads);
-    Hessian_omp.resize(n_dimensions,n_dimensions*n_threads);
+    //N_THREADS = omp_get_num_threads();
+    score_gradient_omp.resize(n_dimensions,N_THREADS);
+    score_here_omp.resize(1,N_THREADS);
+    Hessian_omp.resize(n_dimensions,n_dimensions*N_THREADS);
 
     score_gradient_omp.setZero();
     score_here_omp.setZero();
     Hessian_omp.setZero();
-    //std::cout<<n_threads<<" "<<omp_get_thread_num()<<std::endl;
+    //std::cout<<N_THREADS<<" "<<omp_get_thread_num()<<std::endl;
 
-    #pragma omp parallel num_threads(n_threads)
+    #pragma omp parallel num_threads(N_THREADS)
     {
         #pragma omp for
         for(unsigned int i=0; i<sourceNDT.size(); i++)
@@ -1145,7 +1144,7 @@ double NDTMatcherD2D::derivativesNDT(
     if(computeHessian)
     {
         //std::cout<<"Homp: "<<Hessian_omp<<std::endl;
-        for(int i=0; i<n_threads; ++i)
+        for(int i=0; i<N_THREADS; ++i)
         {
             Hessian += Hessian_omp.block(0,n_dimensions*i,n_dimensions,n_dimensions);
         }

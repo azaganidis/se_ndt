@@ -9,6 +9,7 @@ set(CMAKE_CXX_FLAGS "-Wno-ignored-attributes -Wno-deprecated-declarations -Wno-n
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
+add_compile_definitions(N_THREADS=6)
 find_package(OpenMP REQUIRED)
 #find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
