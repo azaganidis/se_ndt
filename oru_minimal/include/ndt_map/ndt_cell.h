@@ -44,7 +44,8 @@
 
 #include <Eigen/Eigen>
 #include "boost/serialization/serialization.hpp"
-#include <boost/serialization/array_wrapper.hpp>
+#include <boost/serialization/array.hpp>
+#include <boost/serialization/wrapper.hpp>
 #include <boost/archive/text_oarchive.hpp>
 /// A rather unsophisticated way of determining the
 /// update method for a cell

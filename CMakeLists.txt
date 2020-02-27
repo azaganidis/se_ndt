@@ -9,7 +9,11 @@ set(CMAKE_CXX_FLAGS "-Wno-ignored-attributes -Wno-deprecated-declarations -Wno-n
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-add_compile_definitions(N_THREADS=6)
+if(${CMAKE_VERSION} VERSION_GREATER "3.14.0")
+    add_compile_definitions(N_THREADS=6)
+else()
+    add_definitions(-DN_THREADS=6)
+endif()
 find_package(OpenMP REQUIRED)
 #find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
@@ -40,37 +44,24 @@ set(${PROJECT_NAME}_LIB_SRCS
 
 
 add_library(ndt_libs ${NDT_LIB_SRCS})
-target_link_libraries(ndt_libs ${PCL_COMMON_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(ndt_libs ${Boost_LIBRARIES})
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_LIB_SRCS})
-target_link_libraries(${PROJECT_NAME} ndt_libs)
+target_link_libraries(${PROJECT_NAME} ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
 
-find_package(roscpp REQUIRED)
-find_package(rosconsole REQUIRED)
-find_package(tf2_ros REQUIRED)
-find_package(tf_conversions REQUIRED)
-find_package(pcl_ros REQUIRED)
 find_package(VTK REQUIRED)
 
 option(WITH_ROS "Enable/Disable ROS" ON)
 option(WITH_TESTS "Enable/Disable TESTS" ON)
 if(WITH_ROS)
+	find_package(catkin REQUIRED COMPONENTS pcl_ros rosconsole roscpp tf2_ros tf_conversions)
     set(ROS_REQUIRED_LIBS
-        ${roscpp_LIBRARIES}
-        ${rosconsole_LIBRARIES}
-        ${tf2_ros_LIBRARIES}
-        ${pcl_ros_LIBRARIES}
-        ${tf_conversions_LIBRARIES}
         ${VTK_LIBRARIES}
         )
 
     set(ROS_REQUIRED_DIRS
-        ${roscpp_INCLUDE_DIRS}
-        ${rosconsole_INCLUDE_DIRS}
-        ${tf2_ros_INCLUDE_DIRS}
-        ${pcl_ros_INCLUDE_DIRS}
-        ${tf_conversions_DIRS}
         ${VTK_INCLUDE_DIRS}
         )
+	catkin_package(CATKIN_DEPENDS pcl_ros rosconsole roscpp tf2_ros tf_conversions)
 endif()
 
 option(WITH_GL "Enable/Disable OpenGL visualization of distributions" OFF)
@@ -91,11 +82,12 @@ endif()
 #	)
 
 include_directories(
-  include
+	include
+	${catkin_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIRS}
 	${PROJECT_SOURCE_DIR}/oru_minimal/include
 	${EIGEN3_INCLUDE_DIR}
-    ${ROS_REQUIRED_DIRS}
+	${ROS_REQUIRED_DIRS}
 	${PCL_INCLUDE_DIRS})
 add_executable(simple_registration src/simple_registration.cpp)
 target_link_libraries(simple_registration ${PROJECT_NAME}
@@ -104,10 +96,18 @@ target_link_libraries(simple_registration ${PROJECT_NAME}
         )
 if(WITH_ROS)
     add_executable(ros_register src/ros_register.cpp)
+    add_dependencies(ros_register ${catkin_EXPORTED_TARGETS})
     target_link_libraries(ros_register ${PROJECT_NAME} 
+	    ${PCL_COMMON_LIBRARIES}
+	    ${PCL_LIBRARIES}
+	    ${catkin_LIBRARIES}
         ${LINK_LIBS}
-        ${ROS_REQUIRED_LIBS}
-        )
+        ${ROS_REQUIRED_LIBS})
+install(TARGETS ${PROJECT_NAME} ros_register
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)
 
     #add_executable(lt src/loader_test.cpp)
     #target_link_libraries(lt ${PROJECT_NAME} 
