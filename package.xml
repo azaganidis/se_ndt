@@ -13,16 +13,19 @@
   <build_depend>roscpp</build_depend>
   <build_depend>tf2_ros</build_depend>
   <build_depend>tf_conversions</build_depend>
+  <build_depend>tensorflow_ros_cpp</build_depend>
   <build_export_depend>pcl_ros</build_export_depend>
   <build_export_depend>rosconsole</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>tf2_ros</build_export_depend>
   <build_export_depend>tf_conversions</build_export_depend>
+  <build_export_depend>tensorflow_ros_cpp</build_export_depend>
   <exec_depend>pcl_ros</exec_depend>
   <exec_depend>rosconsole</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>tf_conversions</exec_depend>
+  <exec_depend>tensorflow_ros_cpp</exec_depend>
 
   <export>
   </export>

@@ -53,7 +53,7 @@ find_package(VTK REQUIRED)
 option(WITH_ROS "Enable/Disable ROS" ON)
 option(WITH_TESTS "Enable/Disable TESTS" ON)
 if(WITH_ROS)
-	find_package(catkin REQUIRED COMPONENTS pcl_ros rosconsole roscpp tf2_ros tf_conversions)
+	find_package(catkin REQUIRED COMPONENTS pcl_ros rosconsole roscpp tf2_ros tf_conversions tensorflow_ros_cpp)
     set(ROS_REQUIRED_LIBS
         ${VTK_LIBRARIES}
         )
