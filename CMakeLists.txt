@@ -10,20 +10,22 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 if(${CMAKE_VERSION} VERSION_GREATER "3.14.0")
-    add_compile_definitions(N_THREADS=6)
+    add_compile_definitions(N_THREADS=8)
 else()
-    add_definitions(-DN_THREADS=6)
+    add_definitions(-DN_THREADS=8)
 endif()
+find_package(Ceres REQUIRED)
 find_package(OpenMP REQUIRED)
 #find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++14")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 find_package(Boost REQUIRED COMPONENTS program_options system serialization
     filesystem)
-link_directories ( ${Boost_LIBRARY_DIRS} ${G2O_LIBRARY_DIRS})
+link_directories ( ${Boost_LIBRARY_DIRS} ${G2O_LIBRARY_DIRS}
+    ${CERES_LIBRARY_DIRS})
 include(pcl_find_sse.cmake)
 PCL_CHECK_FOR_SSE()
 
@@ -38,21 +40,27 @@ set (NDT_LIB_SRCS
 set(${PROJECT_NAME}_LIB_SRCS
 	src/ndt_matcher_d2d_se.cpp
 	src/ndt_matcher_p2d_se.cpp
-	src/se_ndt.cpp
-	src/ndt_histogram.cpp
     )
 
 
+add_library(pose_optimizer src/pose_graph_3d.cc)
+target_link_libraries(pose_optimizer ${EIGEN3_LIBRARIES} ${CERES_LIBRARIES})
+
 add_library(ndt_libs ${NDT_LIB_SRCS})
 target_link_libraries(ndt_libs ${Boost_LIBRARIES})
-add_library(${PROJECT_NAME} ${${PROJECT_NAME}_LIB_SRCS})
-target_link_libraries(${PROJECT_NAME} ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
 
-find_package(VTK REQUIRED)
+add_library(se_matcher ${${PROJECT_NAME}_LIB_SRCS})
+target_link_libraries(se_matcher ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
+
+add_library(${PROJECT_NAME} src/se_ndt.cpp src/ndt_histogram.cpp)
+target_link_libraries(${PROJECT_NAME} se_matcher pose_optimizer ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
+
 
 option(WITH_ROS "Enable/Disable ROS" ON)
 option(WITH_TESTS "Enable/Disable TESTS" ON)
+
 if(WITH_ROS)
+    find_package(VTK REQUIRED)
 	find_package(catkin REQUIRED COMPONENTS pcl_ros rosconsole roscpp tf2_ros tf_conversions)
     set(ROS_REQUIRED_LIBS
         ${VTK_LIBRARIES}
@@ -81,6 +89,18 @@ endif()
 #    ${LINK_LIBS}
 #	)
 
+ add_executable(kitti_slam src/kitti_slam.cpp)
+ target_link_libraries(kitti_slam ${PROJECT_NAME} 
+    ${PCL_FILTERS_LIBRARIES}
+    ${LINK_LIBS}
+	)
+
+# add_executable(kitti_loop_close src/kitti_loop_close.cpp)
+# target_link_libraries(kitti_loop_close ${PROJECT_NAME} 
+#    ${PCL_FILTERS_LIBRARIES}
+#    ${LINK_LIBS}
+#	)
+
 include_directories(
 	include
 	${catkin_INCLUDE_DIRS}
@@ -89,11 +109,11 @@ include_directories(
 	${EIGEN3_INCLUDE_DIR}
 	${ROS_REQUIRED_DIRS}
 	${PCL_INCLUDE_DIRS})
-add_executable(simple_registration src/simple_registration.cpp)
-target_link_libraries(simple_registration ${PROJECT_NAME}
-        ${LINK_LIBS}
-        ${ROS_REQUIRED_LIBS}
-        )
+#add_executable(simple_registration src/simple_registration.cpp)
+#target_link_libraries(simple_registration ${PROJECT_NAME}
+#        ${LINK_LIBS}
+#        ${ROS_REQUIRED_LIBS}
+#        )
 if(WITH_ROS)
     add_executable(ros_register src/ros_register.cpp)
     add_dependencies(ros_register ${catkin_EXPORTED_TARGETS})

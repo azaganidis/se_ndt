@@ -32,11 +32,13 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#pragma once
 #ifndef NDT_HISTOGRAM_HH
 #define NDT_HISTOGRAM_HH
 
 #include <ndt_map/ndt_map.h>
 #include <vector>
+#include <mutex>
 
 namespace perception_oru{
 
@@ -55,6 +57,7 @@ namespace perception_oru{
    */
   class NDTHistogram{
   private:
+      mutable std::mutex cerr_mutex;
       Eigen::MatrixXi histogramBinsFlat; ///< The flat (planar, according to the planarity threshold) histogram bins.
       Eigen::MatrixXi histogramBinsLine; ///< The linear (according to the linearity threshold) histogram bins.
       Eigen::MatrixXi histogramBinsSphere; ///< The histogram bins that are not "linear" or "flat".

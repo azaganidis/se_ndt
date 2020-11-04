@@ -318,8 +318,6 @@ int main(int argc, char** argv)
         //sor.setInputCloud(_remove_class);
         //sor.filter(*cloud_filtered);
 
-        pcl::transformPointCloud(*cloud_filtered, *cloud_filtered, calib);
-        //pcl::transformPointCloud(*_remove_class, *_remove_class, calib);
         clock_t begin_time = clock();
 		Td=matcher.matchFaster(Td,cloud_filtered);
 //        Td=matcher2.matchFaster(Td,cloud_filtered);

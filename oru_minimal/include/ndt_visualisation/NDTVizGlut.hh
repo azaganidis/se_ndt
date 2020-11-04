@@ -145,7 +145,6 @@ public:
     m_antiAliasing = true;
   }
   void draw() {
-
 	glPushAttrib( GL_COLOR_BUFFER_BIT | GL_LINE_BIT );
 	if (m_antiAliasing)
       glEnable(GL_LINE_SMOOTH);

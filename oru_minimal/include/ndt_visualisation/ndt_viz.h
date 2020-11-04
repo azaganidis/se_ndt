@@ -131,20 +131,16 @@ class NDTViz {
           win3D->addObject(&gl_polygonboundary);
         }
 
-        void addPathLine(std::vector<Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > &pts, double R=1.0, double G=1.0, double B=1.0)  {
+        void addPoseGraph(std::vector<std::pair<double*,double*> > &path){
           gl_pathline.clear();
-          if (pts.size() < 2)
-            return;
-          for (unsigned int i = 0; i < pts.size()-1; i++) {
-            unsigned int j = i+1;
-            gl_pathline.appendLine(pts[i](0),pts[i](1),0.,
-                                   pts[j](0),pts[j](1),0.);
+          for (auto pr : path) {
+            gl_pathline.appendLine(pr.first[0],pr.first[1],pr.first[2],
+                    pr.second[0],pr.second[1],pr.second[2]);
           }
-          gl_pathline.setColor(R,G,B);
+          gl_pathline.setColor4(1.0,1.0,1.0,1.0);
           gl_pathline.setThickness(5.);
           win3D->addObject(&gl_pathline);
         }
-
 
 
 	void addPointCloud(pcl::PointCloud<pcl::PointXYZ> &cloud, double R=1.0,double G=1.0,double B=1.0){

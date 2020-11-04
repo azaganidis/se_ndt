@@ -34,7 +34,7 @@
  */
 #ifndef NDT_CELL_HH
 #define NDT_CELL_HH
-
+#define BIN_ARCHIVE
 #include <ndt_map/impl/EventCounterData.hpp>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -46,7 +46,11 @@
 #include "boost/serialization/serialization.hpp"
 #include <boost/serialization/array.hpp>
 #include <boost/serialization/wrapper.hpp>
+#ifdef BIN_ARCHIVE
+#include <boost/archive/binary_oarchive.hpp>
+#else
 #include <boost/archive/text_oarchive.hpp>
+#endif
 /// A rather unsophisticated way of determining the
 /// update method for a cell
 /// Covariance intersection based on estimation
