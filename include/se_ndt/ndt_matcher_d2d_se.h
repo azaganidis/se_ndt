@@ -38,12 +38,7 @@
 #include "ndt_map/ndt_map.h"
 #include "ndt_registration/ndt_matcher_d2d.h"
 #include "pcl/point_cloud.h"
-#include "Eigen/Core"
 #include <profiler.hpp>
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
 
 namespace perception_oru
 {

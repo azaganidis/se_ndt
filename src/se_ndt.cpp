@@ -1,3 +1,4 @@
+#include <ndt_map/pointcloud_utils.h>//P
 #include <Eigen/QR>
 #include <Eigen/StdVector>
 #include <se_ndt/se_ndt.hpp>
@@ -145,7 +146,7 @@ Eigen::Matrix<double, 7,7> NDTMatch_SE::getPoseInformation(Eigen::Affine3d T, pe
     Eigen::Matrix<double, 7,7> QCov=JI.transpose()*Covariance*JI; 
 	return QCov;
 }
-bool NDTMatch_SE::matchToSaved(Eigen::Affine3d &Td_, Eigen::Vector3d &pose_ref, int start_index, int iP, Eigen::Matrix<double,7,7> &Ccl,int stop_index, int target_index)
+bool NDTMatch_SE::matchToSaved(Eigen::Affine3d &Td_, Eigen::Vector3d &pose_ref, int start_index, Eigen::Matrix<double,7,7> &Ccl,int stop_index, int target_index)
 {
     ofstream pose_out("LC.txt",std::ofstream::out|std::ofstream::app);
     bool result=true;
@@ -168,22 +169,16 @@ bool NDTMatch_SE::matchToSaved(Eigen::Affine3d &Td_, Eigen::Vector3d &pose_ref, 
         }
             }
     }
-    bool good_registration=true;
+    bool is_bad=true;
     for(auto i:resolutions_order)
     {
         matcher.current_resolution=resolutions.at(i);
-        if(!matcher.match(mapT[i],map[i],Td_,true))
-            good_registration=true;
-        if(Td_.translation().norm()>(target_index-stop_index)*0.5)
-        {
-            good_registration=false;
-        }
+        is_bad&=matcher.match(mapT[i],map[i],Td_,true);
     }
-    pose_out<<"Loop closed. Score: "<<matcher.score_best<< " START: "<<start_index<<" STOP: "<<stop_index<<"\n\t";
-    if(matcher.score_best<COND_SCORE&&good_registration)
+    pose_out<<"MAP_REG Score: "<<matcher.score_best<< " START: "<<start_index<<" STOP: "<<stop_index<<"\n\t";
+    if(matcher.score_best<COND_SCORE&&!is_bad)
     {
         Ccl=getPoseInformation(Td, mapT,map,true);
-//        CovSum=covS[iP]+Ccl;
         for(unsigned int i=0;i<resolutions.size();i++)
             #pragma omp parallel num_threads(N_THREADS)
             {
@@ -193,13 +188,13 @@ bool NDTMatch_SE::matchToSaved(Eigen::Affine3d &Td_, Eigen::Vector3d &pose_ref, 
                     map[i][j]->transformNDTMap(Td_);
                 }
             }
-        pose_out<<"Transform :-) "<<Td_.translation().transpose()<<"\n\t";
+        pose_out<<"MAP_REG_SUCCESS "<<Td_.translation().transpose()<<std::endl;
     }
     else
     {
-        if(!good_registration)
+        if(is_bad)
             pose_out<<"NOT GOOD. \n\t";
-        pose_out<<"Transform :-( "<<Td_.translation().transpose()<<"\n\t";
+        pose_out<<"MAP_REG_FAIL "<<Td_.translation().transpose()<<std::endl;
         Td_.setIdentity();
         result=false;
     }
@@ -282,9 +277,8 @@ Eigen::Affine3d NDTMatch_SE::slam(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
     poseIdxSearch=pose_graph.get_in_range<perception_oru::NDTHistogram*>(key_hists,search_distance,100);
     if(poseIdxSearch.size()>0)
     {
-        std::vector<int> hist_id;
-        std::vector<Eigen::Affine3d, Eigen::aligned_allocator<Eigen::Affine3d> >
-            hist_rotations;
+        std::map<int, Eigen::Affine3d,std::less<int>,
+            Eigen::aligned_allocator<std::pair<const int, Eigen::Affine3d> > > hist_rotations;
         std::mutex result_mutex;
         #pragma omp parallel num_threads(N_THREADS)
         {
@@ -297,22 +291,26 @@ Eigen::Affine3d NDTMatch_SE::slam(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
                 double histogram_score = key_hists[*it]->getSimilarity(*hist,tmp_rotation);
                 if(histogram_score<=SIMILARITY_THRESHOLD)
                 {
+                    hist_rotations[*it]=tmp_rotation;
                     const std::lock_guard<std::mutex> lock(result_mutex);
-                    hist_rotations.push_back(tmp_rotation);
-                    hist_id.push_back(*it);
-                    std::cout<<histogram_score<<std::endl;
+                    pose_out<<"HIST_SCORE_G: "<<histogram_score<<std::endl;
+                }
+                else
+                {
+                    const std::lock_guard<std::mutex> lock(result_mutex);
+                    pose_out<<"HIST_SCORE_L: "<<histogram_score<<std::endl;
                 }
             }
         }
-        for(int i=0;i<hist_id.size();i++)
+        for(const auto& it:hist_rotations)
         {
-            int id = hist_id[i];
-            int loadStartIndex=find_start(key_hists.find(id), max_size);
+            int id = it.first;
+            int loadID=find_start(key_hists.find(id), max_size);
             Eigen::Matrix<double, 7,7> Ccl;
             T_prev=pose_graph.getT(id).inverse()*T;
-            T_prev.matrix().block<3,3>(0,0)=hist_rotations[i].matrix().block<3,3>(0,0);
+            T_prev.matrix().block<3,3>(0,0)=it.second.matrix().block<3,3>(0,0);
             Eigen::Vector3d pose_ref = pose_graph.get(id);
-            bool matched= matchToSaved(T_prev,pose_ref, loadStartIndex, id, Ccl,id,num_clouds);
+            bool matched= matchToSaved(T_prev,pose_ref, loadID,Ccl,id,num_clouds);
             if(matched)
             {
                 pose_graph.addConstraint(T_prev,id, num_clouds,Ccl);

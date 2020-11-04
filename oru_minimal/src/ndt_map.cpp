@@ -1,3 +1,16 @@
+#include <set>
+#include <cstdlib>
+
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include "sstream"
+#include "string"
+#include "iostream"
+#include "boost/serialization/serialization.hpp"
+#include "boost/serialization/base_object.hpp"
+#include "boost/shared_ptr.hpp"
+#include "boost/serialization/vector.hpp"
+
 #include <Eigen/Eigen>
 #include <pcl/point_cloud.h>
 //#include <pcl/features/feature.h>
@@ -8,8 +21,6 @@
 
 //#include <ndt_map/oc_tree.h>
 #include <ndt_map/ndt_map.h>
-#include <ndt_map/lazy_grid.h>
-#include <ndt_map/cell_vector.h>
 
 #include <cstring>
 #include <cstdio>
@@ -2478,6 +2489,7 @@ NDTCell* NDTMap::getCellAtID(int x,int y,int z) const {
 bool NDTMap::insertCell(NDTCell cell){
     LazyGrid* gr = dynamic_cast<LazyGrid*>(index_);
     gr->insertCell(*cell.copy());
+    return true;
 }
 std::string NDTMap::ToString(){
    std::stringstream ss;

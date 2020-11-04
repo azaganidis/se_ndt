@@ -40,18 +40,6 @@
 #include <ndt_map/lazy_grid.h>
 #include <ndt_map/cell_vector.h>
 
-#include <set>
-#include <cstdlib>
-
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include "sstream"
-#include "string"
-#include "iostream"
-#include "boost/serialization/serialization.hpp"
-#include "boost/serialization/base_object.hpp"
-#include "boost/shared_ptr.hpp"
-#include "boost/serialization/vector.hpp"
 
 namespace perception_oru
 {

@@ -36,10 +36,6 @@
 #ifndef NDT_HISTOGRAM_HH
 #define NDT_HISTOGRAM_HH
 
-#include <ndt_map/ndt_map.h>
-#include <vector>
-#include <mutex>
-
 namespace perception_oru{
 
   /**

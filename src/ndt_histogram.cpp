@@ -1,3 +1,6 @@
+#include <vector>
+#include <mutex>
+#include <ndt_map/ndt_map.h>
 #include <ndt_map/pointcloud_utils.h>
 #include <pcl/registration/transformation_estimation_svd.h>
 #include <se_ndt/ndt_histogram.h>

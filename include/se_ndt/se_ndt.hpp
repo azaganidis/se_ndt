@@ -1,16 +1,9 @@
 #pragma once
 #ifndef SE_NDT
 #define SE_NDT
-#include <pcl/point_cloud.h>
-#include <pcl/common/io.h>
-#include <pcl/common/geometry.h>
 #include <ndt_map/ndt_map.h>
-#include <ndt_map/lazy_grid.h>
-#include <ndt_map/ndt_cell.h>
-#include <ndt_map/pointcloud_utils.h>
 #include "se_ndt/ndt_matcher_d2d_se.h"
 #include "se_ndt/ndt_histogram.h"
-#include <Eigen/StdVector>
 #include "pose_optimizer.h"
 #ifdef GL_VISUALIZE
     #include "ndt_visualisation/ndt_viz.h"
@@ -26,7 +19,7 @@ class NDTMatch_SE{
 
         Eigen::Affine3d slam(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud);
         bool matchToSaved(Eigen::Affine3d &Td_,
-                Eigen::Vector3d &pose_ref, int start_index, int iP,
+                Eigen::Vector3d &pose_ref, int start_index,
                 Eigen::Matrix<double,7,7> &Ccl, int stop_index, int target_index);
         int find_start(std::map<int,perception_oru::NDTHistogram*>::iterator pi, float max_size);
 

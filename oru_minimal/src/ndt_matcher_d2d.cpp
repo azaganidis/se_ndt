@@ -1,5 +1,3 @@
-#include "ndt_map/ndt_cell.h"
-#include "ndt_map/lazy_grid.h"
 #include "ndt_map/pointcloud_utils.h"
 #include "ndt_registration/ndt_matcher_d2d.h"
 

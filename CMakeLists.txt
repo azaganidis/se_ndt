@@ -5,7 +5,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 ##set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS "-Wno-ignored-attributes -Wno-deprecated-declarations -Wno-narrowing")
+set(CMAKE_CXX_FLAGS "-Wno-dev -Wno-ignored-attributes -Wno-deprecated-declarations -Wno-narrowing")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
@@ -29,25 +29,20 @@ link_directories ( ${Boost_LIBRARY_DIRS} ${G2O_LIBRARY_DIRS}
 include(pcl_find_sse.cmake)
 PCL_CHECK_FOR_SSE()
 
-set (NDT_LIB_SRCS
+set (${PROJECT_NAME}_LIB_SRCS
 	oru_minimal/src/ndt_map.cpp
 	oru_minimal/src/lazy_grid.cpp
 	oru_minimal/src/ndt_matcher_d2d.cpp
-	oru_minimal/src/ndt_matcher_d2d_2d.cpp
 	oru_minimal/src/ndt_cell.cpp
 	oru_minimal/src/cell_vector.cpp
-)
-set(${PROJECT_NAME}_LIB_SRCS
 	src/ndt_matcher_d2d_se.cpp
-	src/ndt_matcher_p2d_se.cpp
-    )
-
+)
 
 add_library(pose_optimizer src/pose_graph_3d.cc)
 target_link_libraries(pose_optimizer ${EIGEN3_LIBRARIES} ${CERES_LIBRARIES})
 
-add_library(ndt_libs ${NDT_LIB_SRCS})
-target_link_libraries(ndt_libs ${Boost_LIBRARIES})
+add_library(ndt_libs ${${PROJECT_NAME}_LIB_SRCS})
+target_link_libraries(ndt_libs ${Boost_LIBRARIES} ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES})
 
 add_library(other_fin src/other.cpp)
 target_link_libraries(other_fin ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
@@ -55,11 +50,8 @@ target_link_libraries(other_fin ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES
 add_library(histogram src/ndt_histogram.cpp)
 target_link_libraries(histogram ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
 
-add_library(se_matcher ${${PROJECT_NAME}_LIB_SRCS})
-target_link_libraries(se_matcher ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
-
 add_library(${PROJECT_NAME} src/se_ndt.cpp)
-target_link_libraries(${PROJECT_NAME} histogram other_fin se_matcher pose_optimizer ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
+target_link_libraries(${PROJECT_NAME} histogram other_fin pose_optimizer ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
 
 
 option(WITH_ROS "Enable/Disable ROS" ON)
@@ -78,6 +70,7 @@ if(WITH_ROS)
 	catkin_package(CATKIN_DEPENDS pcl_ros rosconsole roscpp tf2_ros tf_conversions)
 endif()
 
+set(OpenGL_GL_PREFERENCE "GLVND")
 option(WITH_GL "Enable/Disable OpenGL visualization of distributions" OFF)
 if(WITH_GL)
     add_definitions(-DGL_VISUALIZE)
