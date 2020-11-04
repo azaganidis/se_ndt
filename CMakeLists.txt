@@ -49,11 +49,17 @@ target_link_libraries(pose_optimizer ${EIGEN3_LIBRARIES} ${CERES_LIBRARIES})
 add_library(ndt_libs ${NDT_LIB_SRCS})
 target_link_libraries(ndt_libs ${Boost_LIBRARIES})
 
+add_library(other_fin src/other.cpp)
+target_link_libraries(other_fin ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
+
+add_library(histogram src/ndt_histogram.cpp)
+target_link_libraries(histogram ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
+
 add_library(se_matcher ${${PROJECT_NAME}_LIB_SRCS})
 target_link_libraries(se_matcher ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
 
-add_library(${PROJECT_NAME} src/se_ndt.cpp src/ndt_histogram.cpp)
-target_link_libraries(${PROJECT_NAME} se_matcher pose_optimizer ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
+add_library(${PROJECT_NAME} src/se_ndt.cpp)
+target_link_libraries(${PROJECT_NAME} histogram other_fin se_matcher pose_optimizer ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
 
 
 option(WITH_ROS "Enable/Disable ROS" ON)

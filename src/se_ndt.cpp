@@ -2,6 +2,11 @@
 #include <Eigen/StdVector>
 #include <se_ndt/se_ndt.hpp>
 #include <numeric>
+#include <other.hpp>
+#include <thread>
+#include <profiler.hpp>
+#include <vector>
+#include <csignal>
 #define COND_SCORE -10000
 #define HIST_BINS1 9
 #define HIST_BINS2 9
@@ -13,40 +18,6 @@
 
 using namespace std;
 
-void NDTMatch_SE::loadMap(perception_oru::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range)
-{
-    #pragma omp parallel num_threads(N_THREADS)
-    {
-        #pragma omp for
-        for(size_t i=0;i<input_clouds.size();i++)
-        {
-            map[i]->loadPointCloud(*input_clouds[i],sensor_range);
-            map[i]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
-        }
-    }
-}
-Eigen::Matrix<double,6,6> getHes(Eigen::Matrix<double,6,6> Hessian,Eigen::Matrix<double,6,1> score_gradient)
-{
-        Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double,6,6> > Sol (Hessian);
-        Eigen::Matrix<double,6,1> evals = Sol.eigenvalues().real();
-        double minCoeff = evals.minCoeff();
-        double maxCoeff = evals.maxCoeff();
-        if(minCoeff < 0)  //|| evals.minCoeff()) // < 10e-5*evals.maxCoeff()) 
-		{
-			Eigen::Matrix<double,6,6> evecs = Sol.eigenvectors().real();
-			double regularizer = score_gradient.norm();
-			regularizer = regularizer + minCoeff > 0 ? regularizer : 0.001*maxCoeff - minCoeff;
-			//double regularizer = 0.001*maxCoeff - minCoeff;
-			Eigen::Matrix<double,6,1> reg;
-			//ugly
-			reg<<regularizer,regularizer,regularizer,regularizer,regularizer,regularizer;
-			evals += reg;
-			Eigen::Matrix<double,6,6> Lam;
-			Lam = evals.asDiagonal();
-			Hessian = evecs*Lam*(evecs.transpose());
-		}
-		return Hessian;
-}
 
 NDTMatch_SE::NDTMatch_SE(initializer_list<float> b,initializer_list<int> c,initializer_list<float> d,int nIn,int max_iter):resolutions(b),resolutions_order(c),size(d),NumInputs(nIn)
 {
@@ -151,29 +122,6 @@ void NDTMatch_SE::visualize_thread()
     }
 }
 #endif
-vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> NDTMatch_SE::getSegmentsFast(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn)
-{
-	int cloudSize = laserCloudIn->points.size();
-	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud;
-	for(int i=0;i<NumInputs;i++)
-	{
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloudT(new pcl::PointCloud<pcl::PointXYZ>);
-		laserCloud.push_back(cloudT);
-	}
-	for(int i=0;i<cloudSize;i++)
-	{
-            auto pnt=laserCloudIn->points[i];
-            int atr = round(pnt.intensity);
-            if(NumInputs==1)
-                atr=0;
-            pcl::PointXYZ point;
-            point.x=pnt.x;
-            point.y=pnt.y;
-            point.z=pnt.z;
-            laserCloud[atr]->points.push_back(point);
-    }
-	return laserCloud;
-}
 
 int NDTMatch_SE::find_start(std::map<int,perception_oru::NDTHistogram*>::iterator pi, float max_size)
 {
@@ -184,6 +132,18 @@ int NDTMatch_SE::find_start(std::map<int,perception_oru::NDTHistogram*>::iterato
         if((df.cwiseAbs().array()>max_size).any())
             return si->first;
     }
+    return key_hists.begin()->first;
+}
+
+Eigen::Matrix<double, 7,7> NDTMatch_SE::getPoseInformation(Eigen::Affine3d T, perception_oru::NDTMap*** m1, perception_oru::NDTMap*** m2, bool inverse=false)
+{
+	Eigen::MatrixXd Covariance(6,6);
+	matcher.covariance(m1,m2,T,resolutions,Covariance, true);
+    Eigen::Vector3d ea = T.rotation().matrix().eulerAngles(0,1,2);
+    Eigen::MatrixXd J=getJacobian(ea);
+    Eigen::MatrixXd JI=Eigen::CompleteOrthogonalDecomposition<Eigen::MatrixXd>(J).pseudoInverse();
+    Eigen::Matrix<double, 7,7> QCov=JI.transpose()*Covariance*JI; 
+	return QCov;
 }
 bool NDTMatch_SE::matchToSaved(Eigen::Affine3d &Td_, Eigen::Vector3d &pose_ref, int start_index, int iP, Eigen::Matrix<double,7,7> &Ccl,int stop_index, int target_index)
 {
@@ -261,7 +221,7 @@ bool NDTMatch_SE::matchToSaved(Eigen::Affine3d &Td_, Eigen::Vector3d &pose_ref, 
 Eigen::Affine3d NDTMatch_SE::slam(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
 {
     //Profiler pr;
-	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegmentsFast(cloud);
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr >laserCloud=getSegmentsFast(cloud,NumInputs);
 	for(unsigned int i=0;i<resolutions.size();i++)
 		loadMap(mapLocal[i],laserCloud);
     Eigen::Affine3d T_prev= T;
@@ -362,7 +322,7 @@ Eigen::Affine3d NDTMatch_SE::slam(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
             }
         }
     }
-    if(pose_graph.distance(num_clouds)>HIST_FREQ_METER)
+    if(pose_graph.distance(key_hists.rbegin()->first)>HIST_FREQ_METER)
     {
         key_hists[num_clouds]=hist;
     }
@@ -373,96 +333,3 @@ Eigen::Affine3d NDTMatch_SE::slam(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
 }
 
 
-Eigen::Matrix<double, 7,7> NDTMatch_SE::getPoseInformation(Eigen::Affine3d T, perception_oru::NDTMap*** m1, perception_oru::NDTMap*** m2, bool inverse=false)
-{
-	Eigen::MatrixXd Covariance(6,6);
-	matcher.covariance(m1,m2,T,resolutions,Covariance, true);
-    Eigen::Vector3d ea = T.rotation().matrix().eulerAngles(0,1,2);
-    Eigen::MatrixXd J=getJacobian(ea);
-    Eigen::MatrixXd JI=Eigen::CompleteOrthogonalDecomposition<Eigen::MatrixXd>(J).pseudoInverse();
-    Eigen::Matrix<double, 7,7> QCov=JI.transpose()*Covariance*JI; 
-	return QCov;
-}
-
-Eigen::Matrix<double,7,6> getJacobian(Eigen::VectorXd v)
-{
-	Eigen::Matrix<double,7,6> m;
-	double x=v(0)/2;
-	double y=v(1)/2;
-	double z=v(2)/2;
-	double cx=cos(x);
-	double cy=cos(y);
-	double cz=cos(z);
-	double sx=sin(x);
-	double sy=sin(y);
-	double sz=sin(z);
-	m(0,3)=0;
-	m(1,3)=0;
-	m(2,3)=0;
-	m(3,3)=-sx*sy*cz+cx*cy*sz;
-	m(4,3)=-sx*cy*sz-cx*sy*cz;
-	m(5,3)=+cx*cy*cz+sx*sy*sz;
-	m(6,3)=-sx*cy*cz+cx*sy*sz;
-
-	m(0,4)=0;
-	m(1,4)=0;
-	m(2,4)=0;
-	m(3,4)=+cx*cy*cz-sx*sy*sz;
-	m(4,4)=-cx*sy*sz-sx*cy*cz;
-	m(5,4)=-sx*sy*cz-cx*cy*sz;
-	m(6,4)=-cx*sy*cz+sx*cy*sz;
-
-	m(0,5)=0;
-	m(1,5)=0;
-	m(2,5)=0;
-	m(3,5)=-cx*sy*sz+sx*cy*cz;
-	m(4,5)=+cx*cy*cz+sx*sy*sz;
-	m(5,5)=-sx*cy*sz-cx*sy*cz;
-	m(6,5)=-cx*cy*sz+sx*sy*cz;
-
-	m=m/2;
-
-	m(0,0)=1;//1
-	m(1,0)=0;
-	m(2,0)=0;
-	m(3,0)=0;
-	m(4,0)=0;
-	m(5,0)=0;
-	m(6,0)=0;
-
-	m(0,1)=0;
-	m(1,1)=1;//1	
-	m(2,1)=0;
-	m(3,1)=0;
-	m(4,1)=0;
-	m(5,1)=0;
-	m(6,1)=0;
-
-	m(0,2)=0;
-	m(1,2)=0;
-	m(2,2)=1;//1
-	m(3,2)=0;
-	m(4,2)=0;
-	m(5,2)=0;
-	m(6,2)=0;
-
-	return m;
-}
-
-/*
-void NDTMatch_SE::print_vals()
-{
-    std::ofstream fout("similarityLog.txt");
-    int n_poses=hists.size();
-    for(int i=0;i<n_poses;i++)
-        for(int j=i+1;j<n_poses;j++)
-        {
-            fout<<j-i<<" ";
-            fout<<pcl::geometry::distance(poses->at(j), poses->at(i))<<" ";
-            fout<<hists[i]->getSimilarity(*hists[j])<<" ";
-            //fout<<(gfeat[poses->at(j).label]-gfeat[poses->at(i).label]).norm()/1024<<" ";
-            fout<<std::endl;
-        }
-    fout.close();
-};
-*/

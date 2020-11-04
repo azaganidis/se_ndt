@@ -14,23 +14,23 @@ class PoseOptimizer{
         bool write(const std::string& filename);
         Eigen::Vector3d get();
         Eigen::Affine3d getT();
-        std::vector<int> get_in_range(std::vector<int> &key_poses, float meters,int idiff);
-template<typename T>
-std::vector<int> get_in_range(std::map<int,T> &key_hists, float meters,int idiff)
-{
-    std::vector<int> result;
-    int idlast=poses.rbegin()->first;
-    for(auto it=key_hists.begin(); it!=key_hists.end();++it)
-    {
-        int i=it->first;
-        if(idlast-i<idiff)
-            break;
-        float distance= poses[idlast].distance(poses[i]);
-        if(distance<meters)
-            result.push_back(i);
-    }
-    return result;
-}
+        template<typename T>
+        std::vector<int> get_in_range(std::map<int,T> &key_hists,
+                float meters,int idiff) {
+            std::vector<int> result;
+            int idlast=poses.rbegin()->first;
+            for(auto it=key_hists.begin(); it!=key_hists.end();++it)
+            {
+                int i=it->first;
+                if(idlast-i<idiff)
+                    break;
+                float distance= poses[idlast].distance(poses[i]);
+                if(distance<meters)
+                    result.push_back(i);
+            }
+            return result;
+        }
+
         float distance(int i);
         Eigen::Vector3d get(int i);
         std::vector<std::pair<double*,double*> > forGL;
