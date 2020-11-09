@@ -255,11 +255,7 @@ protected:
 
     virtual bool checkCellforNDT(int indX, int indY, int indZ, bool checkForGaussian=true);
 private:
-#ifdef BIN_ARCHIVE
     void dealocateCells(int i, int d, boost::archive::binary_oarchive& oa, unsigned int &min_index);
-#else
-    void dealocateCells(int i, int d, boost::archive::text_oarchive& oa, unsigned int &min_index);
-#endif
     LazyGrid(){InitializeDefaultValues();}
 
     friend class boost::serialization::access;

@@ -3,8 +3,10 @@
 #include <map>
 #include <fstream>
 #include <boost/program_options.hpp>
+#include <thread>
 #include <se_ndt/se_ndt.hpp>
 #include <ctime>
+#include <boost/filesystem.hpp>
 #define PI 3.14159265
 std::map<int,int> get_label_map(){
     std::map<int,int> lm;
@@ -102,7 +104,9 @@ int main(int argc, char** argv)
 	pointcloud_files= vm["pointclouds"].as<vector<string> >();
 	vector<string> label_files;
 	label_files= vm["labels"].as<vector<string> >();
+//boost::filesystem::remove_all("/tmp/maps");
     NDTMatch_SE matcher ({4,0.8},{0,1},{80,80},12,50);
+    std::thread *tp=NULL;
     if(vm.count("visualize"))
         matcher.visualize();
 
@@ -110,8 +114,13 @@ int main(int argc, char** argv)
 	for(int t=0; t<s_point; t++)
 	{
 		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_mv = getB(pointcloud_files[t], label_files[t], label_map);
-		matcher.slam(cloud_mv);
+        auto t_start=std::chrono::high_resolution_clock::now();
+		matcher.slamSimple(cloud_mv);
+        auto t_end=std::chrono::high_resolution_clock::now();
+        float dt=std::chrono::duration<float,std::milli>(t_end-t_start).count();
+ //       std::cout<<"FPS: "<<1000.0/dt<<" Time: "<<dt<<" mS"<<std::endl;
     }
+    matcher.pose_graph.solve();
 	return 0;
 }
 

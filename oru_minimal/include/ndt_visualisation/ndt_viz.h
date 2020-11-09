@@ -20,6 +20,7 @@ class NDTViz {
         NDTVizGlutSetOfLines gl_grid;
         NDTVizGlutSetOfLines gl_polygonboundary;
         NDTVizGlutSetOfLines gl_pathline;
+        NDTVizGlutSetOfLines gl_looplines;
 
 	NDTViz(bool allocate_new_window=true)
 
@@ -141,7 +142,6 @@ class NDTViz {
           gl_pathline.setThickness(5.);
           win3D->addObject(&gl_pathline);
         }
-
 
 	void addPointCloud(pcl::PointCloud<pcl::PointXYZ> &cloud, double R=1.0,double G=1.0,double B=1.0){
 

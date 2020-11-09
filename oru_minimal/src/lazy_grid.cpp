@@ -3,11 +3,7 @@
 #include <cstdio>
 #include <ndt_map/lazy_grid.h>
 
-#ifdef BIN_ARCHIVE
 #include <boost/archive/binary_iarchive.hpp>
-#else
-#include <boost/archive/text_iarchive.hpp>
-#endif
 #include <boost/iostreams/filter/zlib.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #define JFFERR(x) std::cerr << x << std::endl; return -1;
@@ -199,7 +195,6 @@ void LazyGrid::loadCells(int index_start, int index_end)
         int t = stoi(fname.substr(0,fname.find('_')));
         if(t<=index_end&&t>=index_start)
         {
-#ifdef BIN_ARCHIVE
             std::ifstream ifs(it->path().string(),std::ios::binary);
             //std::cerr<<it->path().string()<<std::endl;
             assert(ifs.good());
@@ -216,12 +211,6 @@ void LazyGrid::loadCells(int index_start, int index_end)
             std::streampos strmEnd= ifs.seekg(0,std::ios_base::end).tellg();
             ifs.seekg(aOffset);
             while(ifs.tellg()<strmEnd)
-#else
-            std::ifstream ifs(it->path().string());
-            assert(ifs.good());
-            boost::archive::text_iarchive ia(ifs);
-            while(ifs.good())
-#endif
             {
                 NDTCell* cell = protoType->clone();
                 ia>>*cell;
@@ -244,11 +233,7 @@ void LazyGrid::deallocateCell(int i,int j, int k)
     dataArray.set(i,j,k, NULL);
  
 }
-#ifdef BIN_ARCHIVE
 void LazyGrid::dealocateCells(int dim_ind, int newP, boost::archive::binary_oarchive& oa, unsigned int &min_index)// newP only -1 or +1
-#else
-void LazyGrid::dealocateCells(int dim_ind, int newP, boost::archive::text_oarchive& oa, unsigned int &min_index)// newP only -1 or +1
-#endif
 {
     if(newP>0)
         newP=1;
@@ -310,7 +295,6 @@ void LazyGrid::setSensorPose(const double *pose)
     indPose[2] = floor(pose[2]/cellSizeZ);
     unsigned int min_index=UINT_MAX;
     std::string tmp_name  = finalpath+"/tmp_" + std::to_string(rand()%1000);
-#ifdef BIN_ARCHIVE
     std::ofstream ofs(tmp_name,std::ios::binary);
 
     /*
@@ -321,10 +305,6 @@ void LazyGrid::setSensorPose(const double *pose)
     */
 
     boost::archive::binary_oarchive oa(ofs);
-#else
-    std::ofstream ofs(tmp_name);
-    boost::archive::text_oarchive oa(ofs);
-#endif
     for(int i=0;i<3;i++)
         while(sensor_pose[i]!=indPose[i])
             dealocateCells(i, indPose[i]-sensor_pose[i], oa, min_index);

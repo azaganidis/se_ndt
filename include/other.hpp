@@ -1,6 +1,9 @@
 
 #ifndef OTHER_HPP
 #define OTHER_HPP
+std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegmentsFast(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn, int NumInputs);
+perception_oru::NDTMap*** allocateMap(std::vector<float> &resolutions, std::vector<float> &size,int nIn);
+void destroyMap(perception_oru::NDTMap ***map,unsigned int nRes,unsigned int nIn);
 void loadMap(perception_oru::NDTMap **map,
         std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,
         float sensor_range=100);

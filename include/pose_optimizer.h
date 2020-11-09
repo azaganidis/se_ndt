@@ -7,7 +7,7 @@ class PoseOptimizer{
     public:
         PoseOptimizer():quaternion_local_parameterization(new ceres::EigenQuaternionParameterization){};
         ~PoseOptimizer(){write("pose_graph_out.txt");};
-        void addPose(Eigen::Affine3d &T, int id);
+        void addPose(Eigen::Affine3d T, int id);
         void addConstraint(Eigen::Affine3d &Td, int id0,int id1,
                 Eigen::Matrix<double,7,7> infoM);
         bool solve();

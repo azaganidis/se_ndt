@@ -515,7 +515,7 @@ protected:
 private:
   friend class boost::serialization::access;
   template<class Archive>
-  void serialize(Archive & ar, const unsigned int version)//In order to clal this you need to register it to boost using "ar.template register_type<LazyGrid>();"
+  void serialize(Archive & ar, const unsigned int version)//In order to call this you need to register it to boost using "ar.template register_type<LazyGrid>();"
   {
     ar & is3D;
     ar.template register_type<LazyGrid>();

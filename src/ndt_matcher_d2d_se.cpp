@@ -29,7 +29,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
 
     Eigen::Transform<double,3,Eigen::Affine,Eigen::ColMajor> TR, Tbest;
     Eigen::Vector3d transformed_vec, mean;
-    bool ret = true;
+    bool ret = false;
     if(!useInitialGuess)
     {
         T.setIdentity();
@@ -83,7 +83,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
                 //de-alloc nextNDT
                 for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
                 delete[] nextNDT;
-                return true;
+                return ret;
             }
         }
         if (score_gradient.norm()<= DELTA_SCORE)
@@ -95,7 +95,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
             //de-alloc nextNDT
             for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
             delete[] nextNDT;
-            return true;
+            return ret;
         }
 
         pose_increment_v = -Hessian.ldlt().solve(score_gradient);
@@ -108,7 +108,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
             }
             for(int i=0;i<NumInputs;i++)while(nextNDT[i].size()){delete nextNDT[i].back();nextNDT[i].pop_back();}
             delete[] nextNDT;
-            return true;
+            return false;
         }
         //check direction here:
         if(step_control) 
@@ -141,6 +141,7 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
 				nextNDT[nS][i]->setCov(covC);
 			}
         }
+        ret=true;
 
         if(itr_ctr>0)
         {
@@ -149,7 +150,6 @@ bool NDTMatcherD2D_SE::match( NDTMap **targetNDT,
         if(itr_ctr>ITR_MAX)
         {
             convergence = true;
-            ret = false;
         }
         itr_ctr++;
     } 

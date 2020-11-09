@@ -41,6 +41,7 @@
 
 #include <ndt_map/ndt_cell.h>
 #include "boost/serialization/serialization.hpp"
+#include <boost/serialization/set.hpp>
 namespace perception_oru
 {
 

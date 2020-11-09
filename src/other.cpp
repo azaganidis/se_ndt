@@ -2,7 +2,7 @@
 #include <ndt_map/ndt_map.h>
 #include <pcl/point_cloud.h>
 #include <other.hpp>
-
+using namespace perception_oru;
 void loadMap(perception_oru::NDTMap **map,std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> input_clouds,float sensor_range)
 {
     #pragma omp parallel num_threads(N_THREADS)
@@ -125,6 +125,35 @@ std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegmentsFast(pcl::PointCloud
             laserCloud[atr]->points.push_back(point);
     }
 	return laserCloud;
+}
+NDTMap*** allocateMap(std::vector<float> &resolutions, std::vector<float> &size,int nIn,bool whatisthat)
+{
+    NDTMap ***map=new NDTMap **[resolutions.size()];
+    for(unsigned int i=0;i<resolutions.size();i++)
+    {
+        #pragma omp parallel num_threads(N_THREADS)
+        {
+            #pragma omp for
+            for(unsigned int j=0;j<nIn;j++)
+            {
+                LazyGrid *grid = new LazyGrid(resolutions.at(i));
+                grid->semantic_index=j;
+                map[i][j]=new NDTMap(grid,whatisthat);
+                map[i][j]->guessSize(0,0,0,size[i],size[i],size[i]);
+                map[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
+            }
+        }
+    }
+    return map;
+}
+void destroyMap(NDTMap ***map,unsigned int nRes,unsigned int nIn){
+    for(unsigned int i=0;i<nRes;i++)
+    {
+        for(unsigned int j=0;j<nIn;j++)
+            delete map[i][j];
+        delete[] map[i];
+    }
+    delete[] map;
 }
 /*
 void NDTMatch_SE::print_vals()

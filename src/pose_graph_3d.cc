@@ -6,7 +6,7 @@
 #include "pose_optimizer.h"
 
 
-void PoseOptimizer::addPose(Eigen::Affine3d &T,int id){
+void PoseOptimizer::addPose(Eigen::Affine3d T,int id){
     if (poses.find(id) != poses.end()) {
         std::cerr << "Duplicate vertex with ID: " << id;
         return;
@@ -37,6 +37,13 @@ void PoseOptimizer::addConstraint(Eigen::Affine3d &Td, int id0, int id1,
                                  quaternion_local_parameterization);
     problem.SetParameterization(pose_end_iter->second.q.coeffs().data(),
                                  quaternion_local_parameterization);
+    if(abs(id1-id0)>1)
+    {
+        Eigen::Vector3d *end_point = new Eigen::Vector3d;
+        *end_point=pose_begin_iter->second.p+Td.translation();
+        forGL.push_back(std::make_pair(pose_begin_iter->second.p.data(),
+                    end_point->data()));
+    }
     forGL.push_back(std::make_pair(pose_begin_iter->second.p.data(),
                 pose_end_iter->second.p.data()));
 }
