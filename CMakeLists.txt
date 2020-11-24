@@ -16,16 +16,14 @@ else()
 endif()
 find_package(Ceres REQUIRED)
 find_package(OpenMP REQUIRED)
-#find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -std=c++14")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 find_package(Boost REQUIRED COMPONENTS program_options system serialization
-    filesystem)
-link_directories ( ${Boost_LIBRARY_DIRS} ${G2O_LIBRARY_DIRS}
-    ${CERES_LIBRARY_DIRS})
+    filesystem iostreams)
+link_directories ( ${Boost_LIBRARY_DIRS} ${CERES_LIBRARY_DIRS})
 include(pcl_find_sse.cmake)
 PCL_CHECK_FOR_SSE()
 
@@ -53,26 +51,9 @@ target_link_libraries(histogram ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES
 add_library(${PROJECT_NAME} src/se_ndt.cpp)
 target_link_libraries(${PROJECT_NAME} histogram other_fin pose_optimizer ndt_libs ${PCL_COMMON_LIBRARIES} ${PCL_LIBRARIES} )
 
-
-option(WITH_ROS "Enable/Disable ROS" ON)
-option(WITH_TESTS "Enable/Disable TESTS" ON)
-
-if(WITH_ROS)
-    find_package(VTK REQUIRED)
-	find_package(catkin REQUIRED COMPONENTS pcl_ros rosconsole roscpp tf2_ros tf_conversions)
-    set(ROS_REQUIRED_LIBS
-        ${VTK_LIBRARIES}
-        )
-
-    set(ROS_REQUIRED_DIRS
-        ${VTK_INCLUDE_DIRS}
-        )
-	catkin_package(CATKIN_DEPENDS pcl_ros rosconsole roscpp tf2_ros tf_conversions)
-endif()
-
-set(OpenGL_GL_PREFERENCE "GLVND")
 option(WITH_GL "Enable/Disable OpenGL visualization of distributions" OFF)
 if(WITH_GL)
+    set(OpenGL_GL_PREFERENCE "GLVND")
     add_definitions(-DGL_VISUALIZE)
     find_package(GLUT REQUIRED)
     find_package(OpenGL REQUIRED)
@@ -82,72 +63,15 @@ if(WITH_GL)
     list(APPEND LINK_LIBS "NDTVizGlut")
 endif()
 
-# add_executable(semanticRegister src/semanticRegister.cpp)
-# target_link_libraries(semanticRegister ${PROJECT_NAME} 
-#    ${PCL_FILTERS_LIBRARIES}
-#    ${LINK_LIBS}
-#	)
-
- add_executable(kitti_slam src/kitti_slam.cpp)
- target_link_libraries(kitti_slam ${PROJECT_NAME} 
+add_executable(kitti_slam src/kitti_slam.cpp)
+target_link_libraries(kitti_slam ${PROJECT_NAME} other_fin
     ${PCL_FILTERS_LIBRARIES}
     ${LINK_LIBS}
 	)
 
-# add_executable(kitti_loop_close src/kitti_loop_close.cpp)
-# target_link_libraries(kitti_loop_close ${PROJECT_NAME} 
-#    ${PCL_FILTERS_LIBRARIES}
-#    ${LINK_LIBS}
-#	)
-
 include_directories(
 	include
-	${catkin_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIRS}
 	${PROJECT_SOURCE_DIR}/oru_minimal/include
 	${EIGEN3_INCLUDE_DIR}
-	${ROS_REQUIRED_DIRS}
 	${PCL_INCLUDE_DIRS})
-#add_executable(simple_registration src/simple_registration.cpp)
-#target_link_libraries(simple_registration ${PROJECT_NAME}
-#        ${LINK_LIBS}
-#        ${ROS_REQUIRED_LIBS}
-#        )
-if(WITH_ROS)
-    add_executable(ros_register src/ros_register.cpp)
-    add_dependencies(ros_register ${catkin_EXPORTED_TARGETS})
-    target_link_libraries(ros_register ${PROJECT_NAME} 
-	    ${PCL_COMMON_LIBRARIES}
-	    ${PCL_LIBRARIES}
-	    ${catkin_LIBRARIES}
-        ${LINK_LIBS}
-        ${ROS_REQUIRED_LIBS})
-install(TARGETS ${PROJECT_NAME} ros_register
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
-)
-
-    #add_executable(lt src/loader_test.cpp)
-    #target_link_libraries(lt ${PROJECT_NAME} 
-    #    ${LINK_LIBS}
-    #    ${ROS_REQUIRED_LIBS}
-    #    )
-    #add_executable(loader_test src/loader_test.cpp)
-    #target_link_libraries(loader_test ${PROJECT_NAME} 
-    #    ${LINK_LIBS}
-    #    ${ROS_REQUIRED_LIBS}
-    #    )
-
-    #    add_executable(ros_receive_tf src/ros_receive_tf.cpp)
-    #    target_link_libraries(ros_receive_tf ${PROJECT_NAME} 
-    #        ${LINK_LIBS}
-    #    ${ROS_REQUIRED_LIBS}
-    #    )
-
-    #add_executable(ros_d2dndt src/ros_register_d2d_ndt.cpp)
-    #target_link_libraries(ros_d2dndt ${PROJECT_NAME} 
-    #    ${LINK_LIBS}
-    #    ${ROS_REQUIRED_LIBS}
-    #    )
-endif()

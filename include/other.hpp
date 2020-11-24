@@ -1,6 +1,8 @@
 
 #ifndef OTHER_HPP
 #define OTHER_HPP
+void transformMap(perception_oru::NDTMap*** map, Eigen::Affine3d& Td,int nRes,int nIn);
+
 std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegmentsFast(pcl::PointCloud<pcl::PointXYZI>::Ptr laserCloudIn, int NumInputs);
 perception_oru::NDTMap*** allocateMap(std::vector<float> &resolutions, std::vector<float> &size,int nIn);
 void destroyMap(perception_oru::NDTMap ***map,unsigned int nRes,unsigned int nIn);

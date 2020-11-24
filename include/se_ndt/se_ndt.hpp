@@ -9,6 +9,8 @@
     #include "ndt_visualisation/ndt_viz.h"
 #endif
 #include <boost/archive/binary_iarchive.hpp>
+#include <boost/iostreams/filter/lzma.hpp>
+#include <boost/iostreams/filtering_streambuf.hpp>
 using namespace std;
 
 class NDTMatch_SE{
@@ -19,17 +21,16 @@ class NDTMatch_SE{
 		~NDTMatch_SE();
 
         void slamSimple(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud);
-        Eigen::Affine3d slam(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud);
-        bool matchToSaved(Eigen::Affine3d &Td_,
-                Eigen::Vector3d &pose_ref, int start_index,
-                Eigen::Matrix<double,7,7> &Ccl, int stop_index, int current);
+        void slam(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud);
+        bool matchToSaved(perception_oru::NDTMap ***M, Eigen::Affine3d &Td_, Eigen::Matrix<double,7,7> &Ccl, int id);
         int find_start(std::map<int,perception_oru::NDTHistogram*>::iterator pi, float max_size);
+        perception_oru::NDTMap*** allocateAndLoad(int start_id,int id,double *central_pose);
 
 
 		Eigen::Matrix<double,7,7> getPoseInformation(Eigen::Affine3d T,
                 perception_oru::NDTMap ***m1, perception_oru::NDTMap*** m2, bool inverse);
         unsigned int NumInputs;
-		perception_oru::NDTMap ***map;
+		perception_oru::NDTMap ***map_;
 		perception_oru::NDTMap ***mapLocal_prev;
 		perception_oru::NDTMap ***mapLocal;
 		vector<float> resolutions,size;
@@ -44,7 +45,6 @@ class NDTMatch_SE{
         PoseOptimizer pose_graph;
     private:
         int last_loop_close_id=0;
-		bool firstRun;
 #ifdef GL_VISUALIZE
     public:
         NDTViz *viewer = NULL;
@@ -56,6 +56,10 @@ class NDTMatch_SE{
 void save_map(int index, perception_oru::NDTMap ***map_)
 {
         std::ofstream ofs("/tmp/maps/"+std::to_string(index),std::ios::binary);
+        /*boost::iostreams::filtering_ostreambuf fos;
+        fos.push(boost::iostreams::lzma_compressor());
+        fos.push(ofs);
+        boost::archive::binary_oarchive oa(fos);*/
         boost::archive::binary_oarchive oa(ofs);
         for(unsigned int i=0;i<resolutions.size();i++)
             for(size_t j=0;j<NumInputs;j++)
@@ -68,6 +72,10 @@ void save_map(int index, perception_oru::NDTMap ***map_)
 void load_map(int index, perception_oru::NDTMap ***map_)
 {
         std::ifstream ifs("/tmp/maps/"+std::to_string(index),std::ios::binary);
+        /*boost::iostreams::filtering_istreambuf fis;
+        fis.push(boost::iostreams::lzma_decompressor());
+        fis.push(ifs);
+        boost::archive::binary_iarchive ia(fis);*/
         boost::archive::binary_iarchive ia(ifs);
         for(unsigned int i=0;i<resolutions.size();i++)
             for(size_t j=0;j<NumInputs;j++)

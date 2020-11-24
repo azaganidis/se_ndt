@@ -1503,7 +1503,7 @@ void NDTMap::computeNDTCells(int cellupdatemode, unsigned int maxnumpoints, floa
 
     typename std::set<NDTCell*>::iterator it = update_set.begin();
     unsigned int num_updates=update_set.size();
-#pragma omp parallel num_threads(12)
+#pragma omp parallel num_threads(N_THREADS)
 {
     #pragma omp for
     for(int i=0;i<num_updates;i++)

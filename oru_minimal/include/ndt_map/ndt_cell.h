@@ -93,7 +93,7 @@ public:
   void InitializeVariables(){
     cl_=UNKNOWN;
     hasGaussian_=false;
-    R=G=B     =0;
+    R=G=B=C     =0;
     N         =0;
     occ       =0;   			///Occupancy value stored as "Log odds" (if you wish)
     emptyval  =0;			///The number of times a cell was observed empty (using ray casting)
@@ -146,6 +146,7 @@ public:
     this->ysize_ = other.ysize_;
     this->zsize_ = other.zsize_;
     this->hasGaussian_ = other.hasGaussian_;
+    this->C = other.C;//Point class
     this->R = other.R;
     this->G = other.G;
     this->B = other.B;
@@ -468,6 +469,7 @@ private:
   int emptyval;			///The number of times a cell was observed empty (using ray casting)
   double emptylik;
   double emptydist;
+  int C;//Class
   float R,G,B; 			///RGB values [0..1] - Special implementations for PointXYZRGB & PointXYZI
   float occ;   			///Occupancy value stored as "Log odds" (if you wish)
   float max_occu_;
@@ -518,7 +520,7 @@ private:
     ar & emptyval;
     ar & emptylik;
     ar & emptydist;
-    ar & R & G & B;
+    ar & C & R & G & B;
     ar & occ & max_occu_;
     //ar & edata;
     ar & cl_;

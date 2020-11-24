@@ -6,7 +6,7 @@
 class PoseOptimizer{
     public:
         PoseOptimizer():quaternion_local_parameterization(new ceres::EigenQuaternionParameterization){};
-        ~PoseOptimizer(){write("pose_graph_out.txt");};
+        ~PoseOptimizer(){solve();write("pose_graph_out.txt");};
         void addPose(Eigen::Affine3d T, int id);
         void addConstraint(Eigen::Affine3d &Td, int id0,int id1,
                 Eigen::Matrix<double,7,7> infoM);
@@ -31,6 +31,16 @@ class PoseOptimizer{
             return result;
         }
 
+void constantPose(int i)
+{
+    problem.SetParameterBlockConstant(poses[i].p.data());
+    problem.SetParameterBlockConstant(poses[i].q.coeffs().data());
+}
+void variablePose(int i)
+{
+    problem.SetParameterBlockVariable(poses[i].p.data());
+    problem.SetParameterBlockVariable(poses[i].q.coeffs().data());
+}
         float distance(int i);
         Eigen::Vector3d get(int i);
         std::vector<std::pair<double*,double*> > forGL;

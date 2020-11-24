@@ -126,22 +126,33 @@ std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> getSegmentsFast(pcl::PointCloud
     }
 	return laserCloud;
 }
-NDTMap*** allocateMap(std::vector<float> &resolutions, std::vector<float> &size,int nIn,bool whatisthat)
+void transformMap(NDTMap*** map, Eigen::Affine3d& Td,int nRes,int nIn)
 {
-    NDTMap ***map=new NDTMap **[resolutions.size()];
-    for(unsigned int i=0;i<resolutions.size();i++)
+    for(unsigned int i=0;i<nRes;i++)
     {
         #pragma omp parallel num_threads(N_THREADS)
         {
             #pragma omp for
             for(unsigned int j=0;j<nIn;j++)
             {
-                LazyGrid *grid = new LazyGrid(resolutions.at(i));
-                grid->semantic_index=j;
-                map[i][j]=new NDTMap(grid,whatisthat);
-                map[i][j]->guessSize(0,0,0,size[i],size[i],size[i]);
-                map[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
+                map[i][j]->transformNDTMap(Td);
             }
+        }
+    }
+}
+NDTMap*** allocateMap(std::vector<float> &resolutions, std::vector<float> &size,int nIn)
+{
+    NDTMap ***map=new NDTMap **[resolutions.size()];
+    for(unsigned int i=0;i<resolutions.size();i++)
+    {
+        map[i]= new perception_oru::NDTMap * [nIn];
+        for(unsigned int j=0;j<nIn;j++)
+        {
+            LazyGrid *grid = new LazyGrid(resolutions.at(i));
+            grid->semantic_index=j;
+            map[i][j]=new NDTMap(grid);
+            map[i][j]->guessSize(0,0,0,size[i],size[i],size[i]);
+            map[i][j]->computeNDTCells(CELL_UPDATE_MODE_SAMPLE_VARIANCE);
         }
     }
     return map;
@@ -149,8 +160,12 @@ NDTMap*** allocateMap(std::vector<float> &resolutions, std::vector<float> &size,
 void destroyMap(NDTMap ***map,unsigned int nRes,unsigned int nIn){
     for(unsigned int i=0;i<nRes;i++)
     {
-        for(unsigned int j=0;j<nIn;j++)
-            delete map[i][j];
+        #pragma omp parallel num_threads(N_THREADS)
+        {
+            #pragma omp for
+            for(unsigned int j=0;j<nIn;j++)
+                delete map[i][j];
+        }
         delete[] map[i];
     }
     delete[] map;

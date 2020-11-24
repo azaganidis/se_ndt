@@ -39,8 +39,9 @@ void PoseOptimizer::addConstraint(Eigen::Affine3d &Td, int id0, int id1,
                                  quaternion_local_parameterization);
     if(abs(id1-id0)>1)
     {
+        Eigen::Affine3d eT=pose_begin_iter->second.getT()*Td;
         Eigen::Vector3d *end_point = new Eigen::Vector3d;
-        *end_point=pose_begin_iter->second.p+Td.translation();
+        *end_point=eT.translation();
         forGL.push_back(std::make_pair(pose_begin_iter->second.p.data(),
                     end_point->data()));
     }
@@ -50,6 +51,8 @@ void PoseOptimizer::addConstraint(Eigen::Affine3d &Td, int id0, int id1,
 
 // Returns true if the solve was successful.
 bool PoseOptimizer::solve() {
+    std::string fname="pose_graph_out_"+std::to_string(poses.rbegin()->first)+".txt";
+    write(fname);
     if(isFirst){
         isFirst=false;
         MapOfPoses::iterator pose_start_iter = poses.begin();
@@ -73,7 +76,6 @@ bool PoseOptimizer::solve() {
 
 bool PoseOptimizer::write(const std::string& filename) 
 {
-    solve();
     std::fstream outfile;
     outfile.open(filename.c_str(), std::istream::out);
     if (!outfile) {

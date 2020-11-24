@@ -104,7 +104,8 @@ int main(int argc, char** argv)
 	pointcloud_files= vm["pointclouds"].as<vector<string> >();
 	vector<string> label_files;
 	label_files= vm["labels"].as<vector<string> >();
-//boost::filesystem::remove_all("/tmp/maps");
+    boost::filesystem::remove_all("/tmp/maps");
+    boost::filesystem::remove_all("LC.txt");
     NDTMatch_SE matcher ({4,0.8},{0,1},{80,80},12,50);
     std::thread *tp=NULL;
     if(vm.count("visualize"))
@@ -115,7 +116,7 @@ int main(int argc, char** argv)
 	{
 		pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_mv = getB(pointcloud_files[t], label_files[t], label_map);
         auto t_start=std::chrono::high_resolution_clock::now();
-		matcher.slamSimple(cloud_mv);
+		matcher.slam(cloud_mv);
         auto t_end=std::chrono::high_resolution_clock::now();
         float dt=std::chrono::duration<float,std::milli>(t_end-t_start).count();
  //       std::cout<<"FPS: "<<1000.0/dt<<" Time: "<<dt<<" mS"<<std::endl;
