@@ -1,7 +1,7 @@
-#Semantic assisted Normal Distributions Transform 
+# Semantic assisted Normal Distributions Transform 
 Point cloud registration and loop closure detection.
 
-##How to run the code.
+## How to run the code.
 Dependencies: Boost, Eigen, PCL, Ceres solver
 
 Build with:
@@ -20,8 +20,8 @@ Example use on [KITTI](http://www.cvlibs.net/download.php?file=data_odometry_vel
 To visualize the map, press any key in the NDTVizGlut window. Exit with `q`.
 The mapping results are written in `pose_graph_out.txt`.
 
----------------
-##Relevant papers:
+-----
+## Relevant papers:
 For registration and loop closure detection:
 ```
 @inproceedings{Zaganidis2019,
