@@ -22,7 +22,7 @@ class NDTMatch_SE{
 
         void slamSimple(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud);
         void slam(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud);
-        bool matchToSaved(perception_oru::NDTMap ***M, Eigen::Affine3d &Td_, Eigen::Matrix<double,7,7> &Ccl, int id);
+        bool matchToSaved(perception_oru::NDTMap ***M, Eigen::Affine3d &Td_, Eigen::Matrix<double,7,7> &Ccl, int id,float* score);
         int find_start(std::map<int,perception_oru::NDTHistogram*>::iterator pi, float max_size);
         perception_oru::NDTMap*** allocateAndLoad(int start_id,int id,double *central_pose);
 

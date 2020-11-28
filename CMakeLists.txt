@@ -63,6 +63,9 @@ if(WITH_GL)
     list(APPEND LINK_LIBS "NDTVizGlut")
 endif()
 
+add_executable(opo src/offline_graph_opt.cpp)
+target_link_libraries(opo pose_optimizer)
+
 add_executable(kitti_slam src/kitti_slam.cpp)
 target_link_libraries(kitti_slam ${PROJECT_NAME} other_fin
     ${PCL_FILTERS_LIBRARIES}

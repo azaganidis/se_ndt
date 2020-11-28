@@ -5,6 +5,9 @@
 #include <omp.h>
 #include <sys/time.h>
 #define NUM_MAX 50
+map<int, float> StaticProfiler::stats_sum;
+map<int, int> StaticProfiler::stats_count;
+mutex StaticProfiler::mtx_;
 namespace perception_oru
 {
 
@@ -175,8 +178,6 @@ double NDTMatcherD2D_SE::derivativesNDT(
     bool init_hessian_gradient
 )
 {
-//Profiler pr;
-//pr.start();
 //    struct timeval tv_start, tv_end;
     double score_here = 0;
     int n_dimensions = score_gradient.rows();
@@ -211,8 +212,12 @@ double NDTMatcherD2D_SE::derivativesNDT(
         #pragma omp for
         for(unsigned int i=0; i<sourceNDT.size(); i++)
         {
-	    if(sourceNDT[i] == NULL) continue;
-	    if(!sourceNDT[i]->hasGaussian_) continue;
+            if(sourceNDT[i] == NULL) continue;
+            if(!sourceNDT[i]->hasGaussian_) continue;
+
+//StaticProfiler pr;
+//pr.start();
+//pr.elapsed(0);
             pcl::PointXYZ point;
             Eigen::Vector3d transformed;
             Eigen::Vector3d meanMoving, meanFixed;
@@ -303,7 +308,6 @@ double NDTMatcherD2D_SE::derivativesNDT(
 		HessianF=Hessian;
 		score_gradientF=score_gradient;
     }
-//pr.check(1);
     return score_here;
 }
 
