@@ -43,7 +43,7 @@ CellVector::~CellVector()
     }
 }
 
-NDTCell* CellVector::getCellForPoint(const double* const &point)
+NDTCell* CellVector::getCellForPoint(const double* const point)
 {
     NDTCell* ret = NULL;
     if (treeUpdated)
@@ -76,7 +76,7 @@ NDTCell* CellVector::getCellForPoint(const double* const &point)
     return ret;
 }
 
-NDTCell* CellVector::addPoint(const pcl::PointXYZ &point)
+NDTCell* CellVector::addPoint(const double* const point)
 {
     return NULL;
     // Do nothing...
@@ -151,7 +151,7 @@ SpatialIndex* CellVector::copy() const
     return ret;
 }
 
-void CellVector::getNeighbors(const pcl::PointXYZ &point, const double &radius, std::vector<NDTCell*> &cells)
+void CellVector::getNeighbors(const double* const point, const double &radius, std::vector<NDTCell*> &cells)
 {
 
     if (treeUpdated)
@@ -229,7 +229,7 @@ NDTCell* CellVector::getClosestNDTCell(const double* const point)
     return getCellForPoint(point);
 }
 
-std::vector<NDTCell*> CellVector::getClosestNDTCells(const pcl::PointXYZ &point, double &radius)
+std::vector<NDTCell*> CellVector::getClosestNDTCells(const double* const point, double &radius)
 {
     std::vector<NDTCell*> ret;
     getNeighbors(point, radius, ret);

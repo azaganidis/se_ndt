@@ -185,7 +185,7 @@ public:
       cell = dataArray(indX,indY,indZ);
     }
   
-    virtual inline void getCellAt(const double* const t, NDTCell* &cell){
+    virtual inline void getCellAt(const double* const pt, NDTCell* &cell){
        int indX,indY,indZ;
        this->getIndexForPoint(pt,indX,indY,indZ);
        this->getCellAt(indX,indY,indZ,cell);
@@ -199,7 +199,7 @@ public:
     virtual inline void getNDTCellAt(int indX, int indY, int indZ, NDTCell* &cell){
         cell = (dataArray(indX,indY,indZ));
     }
-    virtual inline void getNDTCellAt(const double* const t, NDTCell* &cell){
+    virtual inline void getNDTCellAt(const double* const pt, NDTCell* &cell){
 			int indX,indY,indZ;
 			this->getIndexForPoint(pt,indX,indY,indZ);
 			this->getNDTCellAt(indX,indY,indZ,cell);

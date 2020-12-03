@@ -186,6 +186,11 @@ public:
     return center_;
   }
 
+  inline const double* const getCenterAddr() const
+  {
+    return center_.data();
+  }
+
   inline void getCenter(double &cx,double &cy,double &cz) const
   {
     cx=center_(0);

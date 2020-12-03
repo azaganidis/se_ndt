@@ -54,7 +54,7 @@ public:
     CellVector(const CellVector& other);
     virtual ~CellVector();
 
-    virtual NDTCell* addPoint(const pcl::PointXYZ &point);
+    virtual NDTCell* addPoint(double* const point);
     virtual NDTCell* getCellForPoint(const double* const point);
     void addCellPoints(pcl::PointCloud<pcl::PointXYZ> pc, const std::vector<size_t> &indices);
     
@@ -73,7 +73,7 @@ public:
     virtual SpatialIndex* copy() const;
 
     ///method to return all cells within a certain radius from a point
-    virtual void getNeighbors(const pcl::PointXYZ &point, const double &radius, std::vector<NDTCell*> &cells);
+    virtual void getNeighbors(const double* const point, const double &radius, std::vector<NDTCell*> &cells);
 
     ///sets the cell factory type
     virtual void setCellType(NDTCell *type);
@@ -82,7 +82,7 @@ public:
     void initKDTree();
 
     NDTCell* getClosestNDTCell(const double* const pt);
-    std::vector<NDTCell*> getClosestNDTCells(const pcl::PointXYZ &point, double &radius);
+    std::vector<NDTCell*> getClosestNDTCells(const double* const point, double &radius);
     NDTCell* getCellIdx(unsigned int idx) const;
 
     void cleanCellsAboveSize(double size);

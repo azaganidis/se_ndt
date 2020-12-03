@@ -205,13 +205,13 @@ public:
       * @param maxz threshold for the maximum z-coordinate value for the measurement point_cloud
       * @param sensor_noise The expected standard deviation of the sensor noise
       */
-  virtual void addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<pcl::PointXYZ> &pc, double classifierTh=0.06,
+  virtual void addPointCloud(const Eigen::Vector3d &origin, const std::vector<const double* const> &pc, double classifierTh=0.06,
                              double maxz = 100.0, double sensor_noise = 0.25, double occupancy_limit = 255);
 
   /**
     * This interface updates only the end points into the map without raytracing
     */
-  void addPointCloudSimple(const pcl::PointCloud<pcl::PointXYZ> &pc,double maxz=100.0);
+  void addPointCloudSimple(const std::vector<const double* const> &pc,double maxz=100.0);
 
 
   /**
@@ -230,7 +230,7 @@ public:
      * @param sensor_noise The expected standard deviation of the sensor noise
      */
   virtual void    addPointCloudMeanUpdate(const Eigen::Vector3d &origin,
-                                          const pcl::PointCloud<pcl::PointXYZ> &pc,
+                                          const std::vector<const double* const> &pc,
                                           const Eigen::Vector3d &localmapsize,
                                           unsigned int maxnumpoints = 1e9, float occupancy_limit=255 ,double maxz = 100.0, double sensor_noise = 0.25);
 
@@ -239,7 +239,7 @@ public:
     * @return true if an inconsistency was detected
     */
 
-  virtual bool addMeasurement(const Eigen::Vector3d &origin,const double* const endpoint, double classifierTh, double maxz, double sensor_noise);
+  virtual bool addMeasurement(const Eigen::Vector3d &origin,Eigen::Vector3d endpoint, double classifierTh, double maxz, double sensor_noise);
 
 
   /**
@@ -263,7 +263,7 @@ public:
     * \param pc the PointCloud that is to be loaded
     * \note every subsequent call will destroy the previous map!
     */
-  virtual void loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, double range_limit = -1);
+  virtual void loadPointCloud(const std::vector<const double* const> &pc, double range_limit = -1);
   /// each entry in the indices vector contains a set of indices to a NDC cell.
 
 
@@ -274,7 +274,7 @@ public:
       * \param &indices a vector of the indeces that will be added for each cell. We add indices.size() number of cells,
       * each cell c[i] contains the points, indexed by the vector indices[i]
       */
-  void loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, const std::vector<std::vector<size_t> > &indices);
+  void loadPointCloud(const std::vector<const double* const> &pc, const std::vector<std::vector<size_t> > &indices);
 
   /**
      * loadPointCloudCentroid - A special load function to enable the matching of centroids (create alligned maps)
@@ -286,7 +286,7 @@ public:
      * \param range_limit The maximum range value for measurements
      * \note every subsequent call will destroy the previous map!
      */
-  void loadPointCloudCentroid(const pcl::PointCloud<pcl::PointXYZ> &pc, const Eigen::Vector3d &origin, const Eigen::Vector3d &old_centroid, const Eigen::Vector3d &map_size, double range_limit);
+  void loadPointCloudCentroid(const std::vector<const double* const> &pc, const Eigen::Vector3d &origin, const Eigen::Vector3d &old_centroid, const Eigen::Vector3d &map_size, double range_limit);
 
 
 
@@ -301,20 +301,20 @@ public:
      * \param &ranges The used ranges (from the pc), along with the ranges computed from the ML estimate.
      */
   void computeMaximumLikelihoodPointCloudWithRangePairs(const Eigen::Vector3d &origin,
-                                                        const pcl::PointCloud<pcl::PointXYZ> &pc,
+                                                        const std::vector<const double* const> &pc,
                                                         const Eigen::Vector3d &virtualOrigin,
-                                                        pcl::PointCloud<pcl::PointXYZ> &pc_out,
+                                                        std::vector<Eigen::Vector3d> &pc_out,
                                                         std::vector<std::pair<double, double> > &ranges,
                                                         double max_range) const;
 
   void computeConflictingPoints(const Eigen::Vector3d &origin,
-                                const pcl::PointCloud<pcl::PointXYZ> &pc,
-                                pcl::PointCloud<pcl::PointXYZ> &pc_out,
-                                pcl::PointCloud<pcl::PointXYZ> &pc2_out,
+                                const std::vector<const double* const> &pc,
+                                std::vector<double*> &pc_out,
+                                std::vector<double*> &pc2_out,
                                 double likelihoodFactor) const;
 
   void computeMaximumLikelihoodPointRangesForPoseSet(const std::vector<Eigen::Affine3d> &poses,
-                                                     const pcl::PointCloud<pcl::PointXYZ> &pc,
+                                                     const std::vector<const double* const> &pc,
                                                      const Eigen::Vector3d &virtualOrigin,
                                                      Eigen::MatrixXd &predictedRanges,
                                                      Eigen::VectorXd &rawRanges) const;

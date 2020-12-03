@@ -67,9 +67,9 @@ public:
     {
     }
 
-    virtual NDTCell* getCellForPoint(const pcl::PointXYZ &point) = 0;
+    virtual NDTCell* getCellForPoint(const double* const point) = 0;
     ///add a point and get back the pointer to the cell in which it ended up
-    virtual NDTCell* addPoint(const pcl::PointXYZ &point) = 0;
+    virtual NDTCell* addPoint(const double* const point) = 0;
 
     ///iterator through all cells in index, points at the begining
     virtual CellVectorItr begin() = 0;
@@ -95,7 +95,7 @@ public:
     virtual void setSize(const double &sx, const double &sy, const double &sz) {}
 
     ///method to return all cells within a certain radius from a point
-    virtual void getNeighbors(const pcl::PointXYZ &point, const double &radius, std::vector<NDTCell*> &cells)= 0;
+    virtual void getNeighbors(const double* const point, const double &radius, std::vector<NDTCell*> &cells)= 0;
 
     ///sets the cell factory type
     virtual void setCellType(NDTCell *type) = 0;

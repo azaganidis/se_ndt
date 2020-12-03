@@ -27,6 +27,10 @@
 
 namespace perception_oru
 {
+inline bool isnan(const double* const pt)
+{
+     return std::isnan(pt[0]) ||std::isnan(pt[1]) ||std::isnan(pt[2]);
+}
 /**
 * loadPointCloud - You can call this if you are only interested in dealing with one scan
 * without need for fusing several ones or representing empty space and occupancy
@@ -78,11 +82,14 @@ void NDTMap::loadPointCloud(const std::vector<const double* const> &pc, double r
 
 	Eigen::Vector3d centroid(0,0,0);
 	int npts = 0;
-	while(it!=pc.points.end())
+	while(it!=pc.end())
 	{
-	    if(std::isnan(it[0]) ||std::isnan(it[1]) ||std::isnan(it[2])){
-            it++; continue;}
-        Eigen::Map<Eigen::Vector3d> d(*it);
+	    if(isnan(*it))
+        {
+            it++;
+            continue;
+        }
+        Eigen::Map<const Eigen::Vector3d> d(*it);
 	    if(range_limit>0)
             if(d.norm()>range_limit){
                 it++;continue;}
@@ -100,13 +107,18 @@ void NDTMap::loadPointCloud(const std::vector<const double* const> &pc, double r
 	it = pc.begin();
 	while(it!=pc.end())
 	{
-	    if(std::isnan(it[0]) ||std::isnan(it[1]) ||std::isnan(it[2])){
-            it++; continue;}
-        Eigen::Map<Eigen::Vector3d> d(*it);
+	    if(isnan(*it))
+        {
+            it++;
+            continue;
+        }
+        Eigen::Map<const Eigen::Vector3d> d(*it);
 	    if(range_limit>0)
             if(d.norm()>range_limit){
-                it++; continue;}
-        Eigen::Vector dist_v=centroid-d;
+                it++;
+                continue;
+            }
+        Eigen::Vector3d dist_v=centroid-d;
 	    double dist = dist_v.norm();
 	    maxDist = (dist > maxDist) ? dist : maxDist;
 	    maxz = (dist_v(2) > maxz) ? dist_v(2) : maxz;
@@ -144,18 +156,17 @@ void NDTMap::loadPointCloud(const std::vector<const double* const> &pc, double r
     //    ROS_INFO("centroid is %f,%f,%f", centroid(0),centroid(1),centroid(2));
     //    ROS_INFO("maxDist is %lf", maxDist);
 
-    it = pc.points.begin();
-    while(it!=pc.points.end())
+    it = pc.begin();
+    while(it!=pc.end())
     {
-        Eigen::Vector3d d;
-        if(std::isnan(it->x) ||std::isnan(it->y) ||std::isnan(it->z))
+        Eigen::Map<const Eigen::Vector3d> d(*it);
+        if(isnan(*it))
         {
             it++;
             continue;
         }
         if(range_limit>0)
         {
-            d << it->x, it->y, it->z;
             if(d.norm()>range_limit)
             {
                 it++;
@@ -182,7 +193,7 @@ void NDTMap::loadPointCloud(const std::vector<const double* const> &pc, double r
 * \param pc the PointCloud that is to be loaded
 * \note every subsequent call will destroy the previous map!
 */
-void NDTMap::loadPointCloudCentroid(const pcl::PointCloud<pcl::PointXYZ> &pc, const Eigen::Vector3d &origin,
+void NDTMap::loadPointCloudCentroid(const std::vector<const double* const> &pc, const Eigen::Vector3d &origin,
 	const Eigen::Vector3d &old_centroid,const Eigen::Vector3d &map_size, double range_limit){
     
     if(index_ != NULL){
@@ -214,10 +225,8 @@ void NDTMap::loadPointCloudCentroid(const pcl::PointCloud<pcl::PointXYZ> &pc, co
     lz->getCellSize(cx, cy, cz);
 
     ///How many cell to each direction is the new origin from old one
-    Eigen::Vector3d centroid;
-    centroid(0) = old_centroid(0) + floor(diff(0) / cx) * cx;
-    centroid(1) = old_centroid(1) + floor(diff(1) / cy) * cy;
-    centroid(2) = old_centroid(2) + floor(diff(2) / cz) * cz;
+    Eigen::Vector3d centroid(cx,cy,cz);
+    centroid=old_centroid+floor(diff/centroid)*centroid;
 
     index_->setCenter(centroid.data());
     //index_->setCenter(origin(0),origin(1),origin(2));
@@ -228,58 +237,55 @@ void NDTMap::loadPointCloudCentroid(const pcl::PointCloud<pcl::PointXYZ> &pc, co
     // ROS_INFO("centroid is %f,%f,%f", centroid(0),centroid(1),centroid(2));
     // ROS_INFO("maxDist is %lf", maxDist);
 
-    pcl::PointCloud<pcl::PointXYZ>::const_iterator it = pc.points.begin();
-
-    while(it!=pc.points.end())
+    std::vector<const double* const>::const_iterator it = pc.begin();
+    while(it!=pc.end())
     {
-	Eigen::Vector3d d;
-	if(std::isnan(it->x) ||std::isnan(it->y) ||std::isnan(it->z))
-	{
-	    it++;
-	    continue;
-	}
-	
-        //        std::cout << "centoroid add point [" << it->x << "," << it->y << "," <<it->z <<std::endl;
-
-	if(range_limit>0)
-	{
-	    d << it->x, it->y, it->z;
-	    d = d-origin;
-	    if(d.norm()>range_limit)
-	    {
-		it++;
-		continue;
-            }
-	}
-	
-	//fprintf(stderr,"HEP!");
-	index_->addPoint(*it);
-	NDTCell *ptCell=NULL;
-	lz->getNDTCellAt(*it,ptCell);
-#ifdef REFACTORED
-	if(ptCell!=NULL) {
-          update_set.insert(ptCell);
-          //          std::cout << "insert" << std::endl;
-        }
-        // else {
-        //   std::cout << "invalid cell..." << *it << std::endl;
-        //   int indX, indY, indZ;
-        //   lz->getIndexForPoint(*it, indX, indY, indZ);
-        //   std::cout << "ind : " << indX << "," << indY << "," << indZ << std::endl;
-        // }
+        Eigen::Map<Eigen::Vector3d> d;
+        if(isnan(*it))
         {
-          // int indX, indY, indZ;
-          // lz->getIndexForPoint(*it, indX, indY, indZ);
-          // //          std::cout << "ind : " << indX << "," << indY << "," << indZ << std::endl;
-          // double dx,dy,dz;
-          // lz->getCenter(dx,dy,dz);
-          // //          std::cout << "center : " << dx << "," << dy << "," << dz << std::endl;
-          // int indX, indY, indZ;
-          // lz->getGridSize(indX, indY, indZ);
-          // //          std::cout << "gridsize : " << indX << "," << indY << "," << indZ << std::endl;
+            it++;
+            continue;
         }
+        
+            //        std::cout << "centoroid add point [" << it->x << "," << it->y << "," <<it->z <<std::endl;
+
+        if(range_limit>0)
+        {
+            if((d-origin).norm()>range_limit)
+            {
+            it++;
+            continue;
+                }
+        }
+        
+        //fprintf(stderr,"HEP!");
+        index_->addPoint(*it);
+        NDTCell *ptCell=NULL;
+        lz->getNDTCellAt(*it,ptCell);
+#ifdef REFACTORED
+        if(ptCell!=NULL) {
+              update_set.insert(ptCell);
+              //          std::cout << "insert" << std::endl;
+            }
+            // else {
+            //   std::cout << "invalid cell..." << *it << std::endl;
+            //   int indX, indY, indZ;
+            //   lz->getIndexForPoint(*it, indX, indY, indZ);
+            //   std::cout << "ind : " << indX << "," << indY << "," << indZ << std::endl;
+            // }
+            {
+              // int indX, indY, indZ;
+              // lz->getIndexForPoint(*it, indX, indY, indZ);
+              // //          std::cout << "ind : " << indX << "," << indY << "," << indZ << std::endl;
+              // double dx,dy,dz;
+              // lz->getCenter(dx,dy,dz);
+              // //          std::cout << "center : " << dx << "," << dy << "," << dz << std::endl;
+              // int indX, indY, indZ;
+              // lz->getGridSize(indX, indY, indZ);
+              // //          std::cout << "gridsize : " << indX << "," << indY << "," << indZ << std::endl;
+            }
 #endif
-	it++;
+        it++;
     }
 
     isFirstLoad_ = false;
@@ -290,7 +296,7 @@ void NDTMap::loadPointCloudCentroid(const pcl::PointCloud<pcl::PointXYZ> &pc, co
 /**
  * Just adds the points, without raytracing and such
  */
-void NDTMap::addPointCloudSimple(const pcl::PointCloud<pcl::PointXYZ> &pc,double maxz)
+void NDTMap::addPointCloudSimple(const std::vector<const double* const> &pc,double maxz)
 {
     if(isFirstLoad_)
     {
@@ -298,8 +304,8 @@ void NDTMap::addPointCloudSimple(const pcl::PointCloud<pcl::PointXYZ> &pc,double
         return;
     }
 
-    pcl::PointCloud<pcl::PointXYZ>::const_iterator it = pc.points.begin();
-    it = pc.points.begin();
+    std::vector<const double* const>::const_iterator it = pc.begin();
+    it = pc.begin();
     LazyGrid *lz = dynamic_cast<LazyGrid*>(index_);
     if(lz == NULL)
     {
@@ -307,9 +313,9 @@ void NDTMap::addPointCloudSimple(const pcl::PointCloud<pcl::PointXYZ> &pc,double
 	exit(1);
     }
 
-    while(it!=pc.points.end())
+    while(it!=pc.end())
     {
-        if(std::isnan(it->x) ||std::isnan(it->y) ||std::isnan(it->z))
+        if(isnan(*it))
         {
             it++;
             continue;
@@ -422,7 +428,7 @@ bool NDTMap::getCellAtAllocate(const pcl::PointXYZ &refPoint, NDTCell *&cell) co
 /**
  * Adds a new cloud: NDT-OM update step
  */
-void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<pcl::PointXYZ> &pc, double classifierTh, double maxz, 
+void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const std::vector<const double* const> &pc, double classifierTh, double maxz, 
 	double sensor_noise, double occupancy_limit)
 {
 // 	std::cout << "Good function: addPointCloud" << std::endl;
@@ -437,7 +443,7 @@ void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<
 			//ERR("Problem creating index, unimplemented method\n");
 			return;
     }
-    pcl::PointCloud<pcl::PointXYZ>::const_iterator it = pc.points.begin();
+    std::vector<const double* const>::const_iterator it = pc.begin();
 
     LazyGrid *lz = dynamic_cast<LazyGrid*>(index_);
     if(lz==NULL)
@@ -455,16 +461,16 @@ void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<
     bool updatePositive = true;
     double max_range = 200.;
 
-    while(it!=pc.points.end())
+    while(it!=pc.end())
     {
-			if(std::isnan(it->x) ||std::isnan(it->y) ||std::isnan(it->z))
+            Eigen::Map<const Eigen::Vector3d> pt(*it);
+			if(isnan(*it))
 			{
 					it++;
 					continue;
 			}
 
-			Eigen::Vector3d diff;
-			diff << it->x-origin(0), it->y-origin(1), it->z-origin(2);
+            Eigen::Vector3d diff=pt-origin;
 			double l = diff.norm();
 
 			if(l>max_range)
@@ -491,29 +497,29 @@ void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<
 					{
 				double l2target = 0;
 				if(ptCell->hasGaussian_)
-				{
-						Eigen::Vector3d out, pend,vpt;
-						pend << it->x,it->y,it->z;
-						double lik = ptCell->computeMaximumLikelihoodAlongLine(origin.data(), *it, out);
-						l2target = (out-pend).norm();
+                {
+                    Eigen::Map<const Eigen::Vector3d> pend(*it);
+                    Eigen::Vector3d out, vpt;
+                    double lik = ptCell->computeMaximumLikelihoodAlongLine(origin.data(), *it, out);
+                    l2target = (out-pend).norm();
 
-						double dist = (origin-out).norm();
-						if(dist > l) continue; ///< don't accept points further than the measurement
+                    double dist = (origin-out).norm();
+                    if(dist > l) continue; ///< don't accept points further than the measurement
 
-						l2target = (out-pend).norm(); ///<distance to endpoint
+                    l2target = (out-pend).norm(); ///<distance to endpoint
 
-						double sigma_dist = 0.5 * (dist/30.0); ///test for distance based sensor noise
-						double snoise = sigma_dist + sensor_noise;
-						double thr =exp(-0.5*(l2target*l2target)/(snoise*snoise)); ///This is the probability of max lik point being endpoint
-						lik *= (1.0-thr);
-						if(lik<0.3) continue;
-						lik = 0.1*lik+0.5; ///Evidence value for empty - alpha * p(x);
-						double logoddlik = log( (1.0-lik)/(lik) );
-						//ptCell->updateEmpty(logoddlik,l2target);
-						//fprintf(stderr,"[E=%.2lf] ", logoddlik);
-						ptCell->updateOccupancy(logoddlik, occupancy_limit);
-						if(ptCell->getOccupancy()<=0) ptCell->hasGaussian_ = false; 
-				}
+                    double sigma_dist = 0.5 * (dist/30.0); ///test for distance based sensor noise
+                    double snoise = sigma_dist + sensor_noise;
+                    double thr =exp(-0.5*(l2target*l2target)/(snoise*snoise)); ///This is the probability of max lik point being endpoint
+                    lik *= (1.0-thr);
+                    if(lik<0.3) continue;
+                    lik = 0.1*lik+0.5; ///Evidence value for empty - alpha * p(x);
+                    double logoddlik = log( (1.0-lik)/(lik) );
+                    //ptCell->updateEmpty(logoddlik,l2target);
+                    //fprintf(stderr,"[E=%.2lf] ", logoddlik);
+                    ptCell->updateOccupancy(logoddlik, occupancy_limit);
+                    if(ptCell->getOccupancy()<=0) ptCell->hasGaussian_ = false; 
+                }
 				else
 				{
 					 // ptCell->updateEmpty(-0.2,l2target); ///The cell does not have gaussian, so we mark that we saw it empty...
@@ -550,9 +556,9 @@ void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<
 
     double resolution = std::min(min1,min2); ///Select the smallest resolution
 
-    while(it!=pc.points.end())
+    while(it!=pc.end())
     {
-        if(std::isnan(it->x) ||std::isnan(it->y) ||std::isnan(it->z))
+        if(isnan(*it))
         {
             it++;
             continue;
@@ -689,7 +695,7 @@ void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<
 * @param sensor_noise The expected standard deviation of the sensor noise
 */
 void  NDTMap::addPointCloudMeanUpdate(const Eigen::Vector3d &origin, 
-	const pcl::PointCloud<pcl::PointXYZ> &pc, 
+	const std::vector<const double* const> &pc, 
 	const Eigen::Vector3d &localmapsize,
 	unsigned int maxnumpoints, float occupancy_limit,double maxz, double sensor_noise){
 
@@ -827,16 +833,15 @@ void  NDTMap::addPointCloudMeanUpdate(const Eigen::Vector3d &origin,
 		double l2target = 0;
 		if(ptCell->hasGaussian_)
 		{
-		    Eigen::Vector3d out, pend,vpt;
-		    pend = m;
+		    Eigen::Vector3d out, vpt;
 
 		    double lik = ptCell->computeMaximumLikelihoodAlongLine(origin.data(), pt.data(), out);
-		    l2target = (out-pend).norm();
+		    l2target = (out-m).norm();
 
 		    double dist = (origin-out).norm();
 		    if(dist > l) continue; ///< don't accept points further than the measurement
 
-		    l2target = (out-pend).norm(); ///<distance to endpoint
+		    l2target = (out-m).norm(); ///<distance to endpoint
 
 		    double sigma_dist = 0.5 * (dist/30.0); ///test for distance based sensor noise
 		    //double sigma_dist = 0;
@@ -881,7 +886,7 @@ void  NDTMap::addPointCloudMeanUpdate(const Eigen::Vector3d &origin,
  * Adds one measurement to the map using NDT-OM update step
  * @return true if an inconsistency was detected
  */
-bool NDTMap::addMeasurement(const Eigen::Vector3d &origin, pcl::PointXYZ endpoint, double classifierTh, double maxz, double sensor_noise)
+bool NDTMap::addMeasurement(const Eigen::Vector3d &origin, Eigen::Vector3d endpoint, double classifierTh, double maxz, double sensor_noise)
 {
 
     if(index_ == NULL)
@@ -915,8 +920,7 @@ bool NDTMap::addMeasurement(const Eigen::Vector3d &origin, pcl::PointXYZ endpoin
 
     Eigen::Matrix<double,3,1> pt;
 
-    Eigen::Vector3d diff;
-    diff << endpoint.x-origin(0), endpoint.y-origin(1), endpoint.z-origin(2);
+    Eigen::Vector3d diff=endpoint-origin;
 
 
     double l = diff.norm();
@@ -936,7 +940,7 @@ bool NDTMap::addMeasurement(const Eigen::Vector3d &origin, pcl::PointXYZ endpoin
     diff = diff/(float)NN;
     //fprintf(stderr," (N=%d) ",NN);
     bool updatePositive = true;
-    if(endpoint.z>maxz)
+    if(endpoint(2)>maxz)
     {
         return false;
     }
@@ -980,15 +984,13 @@ bool NDTMap::addMeasurement(const Eigen::Vector3d &origin, pcl::PointXYZ endpoin
 
             if(ptCell->hasGaussian_)
             {
-                Eigen::Vector3d out, pend,vpt;
-
-                pend << endpoint.x,endpoint.y,endpoint.z; ///< endpoint
+                Eigen::Vector3d out,vpt;
 
                 double lik = ptCell->computeMaximumLikelihoodAlongLine(origin.data(), pt.data(), out);
                 double dist = (origin-out).norm();
                 if(dist > l) continue; ///< don't accept points further than the measurement
 
-                l2target = (out-pend).norm(); ///<distance to endpoint
+                l2target = (out-endpoint).norm(); ///<distance to endpoint
                 //double thr =exp(-0.5*(l2target*l2target)/(sensor_noise*sensor_noise)); ///This is the probability of max lik point being endpoint
                 //ptCell->updateEmpty(lik*(1-thr),l2target);
 
@@ -1098,7 +1100,7 @@ double NDTMap::getDepthSmooth(Eigen::Vector3d origin,
     {
 	if(cells[i]->hasGaussian_)
 	{
-	    surr = lz->getClosestNDTCells(cells[i]->getCenter(), n_neigh, true);
+	    surr = lz->getClosestNDTCells(cells[i]->getCenterAddr(), n_neigh, true);
 	    double like = cells[i]->computeMaximumLikelihoodAlongLine(origin.data(), ray_endpos.data(), out);
 	    for (unsigned int k = 1u; k < surr.size(); ++k)
 	    {
@@ -1129,7 +1131,7 @@ double NDTMap::getDepthSmooth(Eigen::Vector3d origin,
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void NDTMap::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, const std::vector<std::vector<size_t> > &indices)
+void NDTMap::loadPointCloud(const std::vector<const double* const> &pc, const std::vector<std::vector<size_t> > &indices)
 {
 
   //    loadPointCloud(pc);
@@ -1152,7 +1154,7 @@ void NDTMap::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, const std:
 void NDTMap::computeMaximumLikelihoodPointCloudWithRangePairs(const Eigen::Vector3d &origin, 
                                                               const std::vector<const double* const> &pc,
                                                               const Eigen::Vector3d &virtualOrigin,
-                                                              pcl::PointCloud<pcl::PointXYZ> &pc_out,
+                                                              std::vector<Eigen::Vector3d> &pc_out,
                                                               std::vector<std::pair<double,double> > &ranges,
                                                               double max_range = 130.) const
 {
@@ -1161,7 +1163,7 @@ void NDTMap::computeMaximumLikelihoodPointCloudWithRangePairs(const Eigen::Vecto
     {
         return;
     }
-    pcl::PointCloud<pcl::PointXYZ>::const_iterator it = pc.begin();
+    std::vector<const double* const>::const_iterator it = pc.begin();
 
     LazyGrid *lz = dynamic_cast<LazyGrid*>(index_);
     if(lz==NULL)
@@ -1177,14 +1179,13 @@ void NDTMap::computeMaximumLikelihoodPointCloudWithRangePairs(const Eigen::Vecto
 
     while(it!=pc.end())
     {
-        if(std::isnan(it->x) ||std::isnan(it->y) ||std::isnan(it->z))
+        Eigen::Map<const Eigen::Vector3d> pt(*it);
+        if(isnan(*it))
         {
             it++;
             continue;
         }
-        
-        Eigen::Vector3d diff;
-        diff << it->x-origin(0), it->y-origin(1), it->z-origin(2);
+        Eigen::Vector3d diff=pt-origin;
         double l = diff.norm();
         
         cells.clear();
@@ -1192,7 +1193,7 @@ void NDTMap::computeMaximumLikelihoodPointCloudWithRangePairs(const Eigen::Vecto
         // Trace line uses the diff to check that we never go beyond the diff value...
         // Hacky for now but force the diff to be a bit larger -> 3 meters...
         diff *= ((l+3.)/l);
-        if(!lz->traceLine(virtualOrigin,*it,diff,1000.0,cells)) {
+        if(!lz->traceLine(virtualOrigin,pt,diff,1000.0,cells)) {
             it++;
             continue;
         }
@@ -1210,7 +1211,7 @@ void NDTMap::computeMaximumLikelihoodPointCloudWithRangePairs(const Eigen::Vecto
                     //std::cerr << "lik : " << lik << std::endl;
                     if (lik > 0.) {
                         ranges.push_back(std::pair<double,double>(l, (out-origin).norm()));
-                        pc_out.push_back(pcl::PointXYZ(out[0], out[1], out[2]));
+                        pc_out.push_back(out);
                     }
                 }
             }
