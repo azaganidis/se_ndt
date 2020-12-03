@@ -36,7 +36,7 @@ namespace perception_oru
 * \param pc the PointCloud that is to be loaded
 * \note every subsequent call will destroy the previous map!
 */
-void NDTMap::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, double range_limit)
+void NDTMap::loadPointCloud(const std::vector<const double* const> &pc, double range_limit)
 {
     if(index_ != NULL)
     {
@@ -71,7 +71,7 @@ void NDTMap::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, double ran
         return;
     }
 
-    pcl::PointCloud<pcl::PointXYZ>::const_iterator it = pc.points.begin();
+    std::vector<const double* const>::const_iterator it = pc.begin();
     if(guess_size_) 
     {
 	double maxDist = 0;//, distCeil = 200;
@@ -80,21 +80,12 @@ void NDTMap::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, double ran
 	int npts = 0;
 	while(it!=pc.points.end())
 	{
-	    Eigen::Vector3d d;
-	    if(std::isnan(it->x) ||std::isnan(it->y) ||std::isnan(it->z))
-	    {
-		it++;
-		continue;
-	    }
-	    d << it->x, it->y, it->z;
+	    if(std::isnan(it[0]) ||std::isnan(it[1]) ||std::isnan(it[2])){
+            it++; continue;}
+        Eigen::Map<Eigen::Vector3d> d(*it);
 	    if(range_limit>0)
-	    {
-		if(d.norm()>range_limit)
-		{
-		    it++;
-		    continue;
-		}
-	    }
+            if(d.norm()>range_limit){
+                it++;continue;}
 	    centroid += d;
 	    it++;
 	    npts++;
@@ -106,36 +97,27 @@ void NDTMap::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, double ran
 	//pcl::compute3DCentroid(pc,centroid);
 
 	//compute distance to furthest point
-	it = pc.points.begin();
-	while(it!=pc.points.end())
+	it = pc.begin();
+	while(it!=pc.end())
 	{
-	    Eigen::Vector3d d;
-	    if(std::isnan(it->x) ||std::isnan(it->y) ||std::isnan(it->z))
-	    {
-		it++;
-		continue;
-	    }
+	    if(std::isnan(it[0]) ||std::isnan(it[1]) ||std::isnan(it[2])){
+            it++; continue;}
+        Eigen::Map<Eigen::Vector3d> d(*it);
 	    if(range_limit>0)
-	    {
-		d << it->x, it->y, it->z;
-		if(d.norm()>range_limit)
-		{
-		    it++;
-		    continue;
-		}
-	    }
-	    d << centroid(0)-it->x, centroid(1)-it->y, centroid(2)-it->z;
-	    double dist = d.norm();
+            if(d.norm()>range_limit){
+                it++; continue;}
+        Eigen::Vector dist_v=centroid-d;
+	    double dist = dist_v.norm();
 	    maxDist = (dist > maxDist) ? dist : maxDist;
-	    maxz = ((centroid(2)-it->z) > maxz) ? (centroid(2)-it->z) : maxz;
-	    minz = ((centroid(2)-it->z) < minz) ? (centroid(2)-it->z) : minz;
+	    maxz = (dist_v(2) > maxz) ? dist_v(2) : maxz;
+	    minz = (dist_v(2) < minz) ? dist_v(2) : minz;
 	    it++;
 	}
 	// cout<<"Points = " <<pc.points.size()<<" maxDist = "<<maxDist<<endl;
 	NDTCell *ptCell = new NDTCell();
 	index_->setCellType(ptCell);
 	delete ptCell;
-	index_->setCenter(centroid(0),centroid(1),centroid(2));
+	index_->setCenter(centroid.data());
 
 	if(map_sizex >0 && map_sizey >0 && map_sizez >0)
 	{
@@ -237,7 +219,7 @@ void NDTMap::loadPointCloudCentroid(const pcl::PointCloud<pcl::PointXYZ> &pc, co
     centroid(1) = old_centroid(1) + floor(diff(1) / cy) * cy;
     centroid(2) = old_centroid(2) + floor(diff(2) / cz) * cz;
 
-    index_->setCenter(centroid(0),centroid(1),centroid(2));
+    index_->setCenter(centroid.data());
     //index_->setCenter(origin(0),origin(1),origin(2));
     index_->setSize(map_size(0),map_size(1),map_size(2));
     //lz->initializeAll();
@@ -465,8 +447,7 @@ void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<
     }
     //auto cA=lz->size();
     lz->setSensorPose(origin.data());
-    pcl::PointXYZ po, pt;
-    po.x = origin(0); po.y = origin(1); po.z = origin(2);
+    pcl::PointXYZ pt;
     NDTCell* ptCell = NULL; 
 
 #ifdef REFACTORED
@@ -513,7 +494,7 @@ void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<
 				{
 						Eigen::Vector3d out, pend,vpt;
 						pend << it->x,it->y,it->z;
-						double lik = ptCell->computeMaximumLikelihoodAlongLine(po, *it, out);
+						double lik = ptCell->computeMaximumLikelihoodAlongLine(origin.data(), *it, out);
 						l2target = (out-pend).norm();
 
 						double dist = (origin-out).norm();
@@ -655,7 +636,7 @@ void NDTMap::addPointCloud(const Eigen::Vector3d &origin, const pcl::PointCloud<
                 {
                     Eigen::Vector3d out, pend,vpt;
                     pend << it->x,it->y,it->z;
-                    double lik = ptCell->computeMaximumLikelihoodAlongLine(po, pt, out);
+                    double lik = ptCell->computeMaximumLikelihoodAlongLine(origin.data(), pt, out);
                     l2target = (out-pend).norm();
 
                     double dist = (origin-out).norm();
@@ -760,9 +741,7 @@ void  NDTMap::addPointCloudMeanUpdate(const Eigen::Vector3d &origin,
 		//fprintf(stderr,"2(%u):",ndts.size());
     NDTCell *ptCell=NULL;
 
-    pcl::PointXYZ pt;
-    pcl::PointXYZ po;
-    po.x = origin(0); po.y = origin(1); po.z = origin(2);
+    Eigen::Matrix<double,3,1> pt;
     //fprintf(stderr,"NUM = %d\n",ndts.size());
     int num_high = 0;
     for(unsigned int it=0;it<ndts.size();it++)
@@ -816,14 +795,12 @@ void  NDTMap::addPointCloudMeanUpdate(const Eigen::Vector3d &origin,
 	int idxo=0, idyo=0,idzo=0;
 	for(int i=0; i<NN-2; i++)  
 	{
-	    pt.x = origin(0) + ((float)(i+1)) *diff(0);
-	    pt.y = origin(1) + ((float)(i+1)) *diff(1);
-	    pt.z = origin(2) + ((float)(i+1)) *diff(2);
+        pt=origin+ ((float)(i+1)) *diff;
 	    int idx,idy,idz;
 
-	    idx = (int)(((pt.x - centerX)/cellSizeX+0.5) + sizeX/2.0);
-	    idy = (int)(((pt.y - centerY)/cellSizeY+0.5) + sizeY/2.0);
-	    idz = (int)(((pt.z - centerZ)/cellSizeZ+0.5) + sizeZ/2.0);
+	    idx = (int)(((pt(0) - centerX)/cellSizeX+0.5) + sizeX/2.0);
+	    idy = (int)(((pt(1) - centerY)/cellSizeY+0.5) + sizeY/2.0);
+	    idz = (int)(((pt(2) - centerZ)/cellSizeZ+0.5) + sizeZ/2.0);
 
 
 	    ///We only want to check every cell once, so
@@ -853,7 +830,7 @@ void  NDTMap::addPointCloudMeanUpdate(const Eigen::Vector3d &origin,
 		    Eigen::Vector3d out, pend,vpt;
 		    pend = m;
 
-		    double lik = ptCell->computeMaximumLikelihoodAlongLine(po, pt, out);
+		    double lik = ptCell->computeMaximumLikelihoodAlongLine(origin.data(), pt.data(), out);
 		    l2target = (out-pend).norm();
 
 		    double dist = (origin-out).norm();
@@ -880,7 +857,7 @@ void  NDTMap::addPointCloudMeanUpdate(const Eigen::Vector3d &origin,
 		    //ptCell->updateEmpty(-0.2*numpoints,l2target); ///The cell does not have gaussian, so we mark that we saw it empty...
 		}
 	    }else{
-		ptCell = dynamic_cast<NDTCell*>(index_->addPoint(pt)); ///Add fake point to initialize!
+		ptCell = dynamic_cast<NDTCell*>(index_->addPoint(pt.data())); ///Add fake point to initialize!
 	    }
 	}
 	if(updatePositive){
@@ -936,9 +913,7 @@ bool NDTMap::addMeasurement(const Eigen::Vector3d &origin, pcl::PointXYZ endpoin
     }
     NDTCell *ptCell=NULL;
 
-    pcl::PointXYZ pt;
-    pcl::PointXYZ po;
-    po.x = origin(0),origin(1),origin(2);
+    Eigen::Matrix<double,3,1> pt;
 
     Eigen::Vector3d diff;
     diff << endpoint.x-origin(0), endpoint.y-origin(1), endpoint.z-origin(2);
@@ -969,14 +944,12 @@ bool NDTMap::addMeasurement(const Eigen::Vector3d &origin, pcl::PointXYZ endpoin
     int idxo=0, idyo=0,idzo=0;
     for(int i=0; i<NN-2; i++)
     {
-        pt.x = origin(0) + ((float)(i+1)) *diff(0);
-        pt.y = origin(1) + ((float)(i+1)) *diff(1);
-        pt.z = origin(2) + ((float)(i+1)) *diff(2);
+        pt = origin + ((float)(i+1)) *diff;
         int idx,idy,idz;
 
-        idx = (int)(((pt.x - centerX)/cellSizeX+0.5) + sizeX/2);
-        idy = (int)(((pt.y - centerY)/cellSizeY+0.5) + sizeY/2);
-        idz = (int)(((pt.z - centerZ)/cellSizeZ+0.5) + sizeZ/2);
+        idx = (int)(((pt(0) - centerX)/cellSizeX+0.5) + sizeX/2);
+        idy = (int)(((pt(1) - centerY)/cellSizeY+0.5) + sizeY/2);
+        idz = (int)(((pt(2) - centerZ)/cellSizeZ+0.5) + sizeZ/2);
 
 
         ///We only want to check every cell once, so
@@ -1011,7 +984,7 @@ bool NDTMap::addMeasurement(const Eigen::Vector3d &origin, pcl::PointXYZ endpoin
 
                 pend << endpoint.x,endpoint.y,endpoint.z; ///< endpoint
 
-                double lik = ptCell->computeMaximumLikelihoodAlongLine(po, pt, out);
+                double lik = ptCell->computeMaximumLikelihoodAlongLine(origin.data(), pt.data(), out);
                 double dist = (origin-out).norm();
                 if(dist > l) continue; ///< don't accept points further than the measurement
 
@@ -1041,7 +1014,7 @@ bool NDTMap::addMeasurement(const Eigen::Vector3d &origin, pcl::PointXYZ endpoin
         }
         else
         {
-            index_->addPoint(pt); ///Add fake point to initialize!
+            index_->addPoint(pt.data()); ///Add fake point to initialize!
         }
     }
 
@@ -1063,10 +1036,6 @@ double NDTMap::getDepth(Eigen::Vector3d origin, Eigen::Vector3d dir, double maxD
 	std::vector< NDTCell*> cells; 
 	
 	Eigen::Vector3d diff = ray_endpos - origin;
-	pcl::PointXYZ endP;
-	endP.x = ray_endpos(0);
-	endP.y = ray_endpos(1);
-	endP.z = ray_endpos(2);
 	
 	LazyGrid *lz = dynamic_cast<LazyGrid*>(index_);
 	if(lz==NULL){
@@ -1074,21 +1043,17 @@ double NDTMap::getDepth(Eigen::Vector3d origin, Eigen::Vector3d dir, double maxD
 		exit(1);
 	}
 	
-	if(!lz->traceLine(origin, endP,diff,1000.0, cells)){
+	if(!lz->traceLine(origin, ray_endpos,diff,1000.0, cells)){
 		return maxDepth+1.0;
 	}
 	//fprintf(stderr,"Got trace with %d Cells (%lf)\n",cells.size(),(ray_endpos-origin).norm());
-	pcl::PointXYZ po;
-	po.x = origin(0);
-	po.y = origin(1);
-	po.z = origin(2);
 	
 	Eigen::Vector3d out;
 	bool hasML = false;
 	
 	for(unsigned int i=0;i<cells.size();i++){
 		 if(cells[i]->hasGaussian_){
-			double lik = cells[i]->computeMaximumLikelihoodAlongLine(po, endP, out);
+			double lik = cells[i]->computeMaximumLikelihoodAlongLine(origin.data(), ray_endpos.data(), out);
 			if(lik>0.1){
 				//fprintf(stderr,"Got ML %lf (%lf)\n",lik,(out-origin).norm());
 				hasML = true;
@@ -1115,10 +1080,6 @@ double NDTMap::getDepthSmooth(Eigen::Vector3d origin,
     std::vector< NDTCell*> cells, surr; 
 
     Eigen::Vector3d diff = ray_endpos - origin;
-    pcl::PointXYZ endP;
-    endP.x = ray_endpos(0);
-    endP.y = ray_endpos(1);
-    endP.z = ray_endpos(2);
 
     LazyGrid *lz = dynamic_cast<LazyGrid*>(index_);
     if(lz==NULL){
@@ -1126,14 +1087,9 @@ double NDTMap::getDepthSmooth(Eigen::Vector3d origin,
 	exit(1);
     }
 
-    if(!lz->traceLine(origin, endP,diff,1000.0, cells)){
+    if(!lz->traceLine(origin, ray_endpos,diff,1000.0, cells)){
 	return maxDepth+1.0;
     }
-
-    pcl::PointXYZ startP, p;
-    startP.x = origin(0);
-    startP.y = origin(1);
-    startP.z = origin(2);
 
     Eigen::Vector3d out;
     bool hasML = false;
@@ -1143,13 +1099,10 @@ double NDTMap::getDepthSmooth(Eigen::Vector3d origin,
 	if(cells[i]->hasGaussian_)
 	{
 	    surr = lz->getClosestNDTCells(cells[i]->getCenter(), n_neigh, true);
-	    double like = cells[i]->computeMaximumLikelihoodAlongLine(startP, endP, out);
-	    p.x = out(0);
-	    p.y = out(1);
-	    p.z = out(2);
+	    double like = cells[i]->computeMaximumLikelihoodAlongLine(origin.data(), ray_endpos.data(), out);
 	    for (unsigned int k = 1u; k < surr.size(); ++k)
 	    {
-		like += weight * surr[k]->getLikelihood(p);
+		like += weight * surr[k]->getLikelihood(out.data());
 	    }			
 	    if(like > threshold)
 	    {
@@ -1197,7 +1150,7 @@ void NDTMap::loadPointCloud(const pcl::PointCloud<pcl::PointXYZ> &pc, const std:
 }
 
 void NDTMap::computeMaximumLikelihoodPointCloudWithRangePairs(const Eigen::Vector3d &origin, 
-                                                              const pcl::PointCloud<pcl::PointXYZ> &pc,
+                                                              const std::vector<const double* const> &pc,
                                                               const Eigen::Vector3d &virtualOrigin,
                                                               pcl::PointCloud<pcl::PointXYZ> &pc_out,
                                                               std::vector<std::pair<double,double> > &ranges,
@@ -1208,7 +1161,7 @@ void NDTMap::computeMaximumLikelihoodPointCloudWithRangePairs(const Eigen::Vecto
     {
         return;
     }
-    pcl::PointCloud<pcl::PointXYZ>::const_iterator it = pc.points.begin();
+    pcl::PointCloud<pcl::PointXYZ>::const_iterator it = pc.begin();
 
     LazyGrid *lz = dynamic_cast<LazyGrid*>(index_);
     if(lz==NULL)
@@ -1216,15 +1169,13 @@ void NDTMap::computeMaximumLikelihoodPointCloudWithRangePairs(const Eigen::Vecto
         fprintf(stderr,"NOT LAZY GRID!!!\n");
         exit(1);
     }
-    pcl::PointXYZ po;
-    po.x = origin(0); po.y = origin(1); po.z = origin(2);
     NDTCell* ptCell = NULL; 
 
     // Step through the points, compute the directions and for now do the full line tracing...
     std::vector< NDTCell*> cells; 
     bool updatePositive = true;
 
-    while(it!=pc.points.end())
+    while(it!=pc.end())
     {
         if(std::isnan(it->x) ||std::isnan(it->y) ||std::isnan(it->z))
         {
@@ -1255,7 +1206,7 @@ void NDTMap::computeMaximumLikelihoodPointCloudWithRangePairs(const Eigen::Vecto
                 if(ptCell->hasGaussian_)
                 {
                     Eigen::Vector3d out;
-                    double lik = ptCell->computeMaximumLikelihoodAlongLine(po, *it, out);
+                    double lik = ptCell->computeMaximumLikelihoodAlongLine(origin.data(), *it, out);
                     //std::cerr << "lik : " << lik << std::endl;
                     if (lik > 0.) {
                         ranges.push_back(std::pair<double,double>(l, (out-origin).norm()));
@@ -1268,6 +1219,7 @@ void NDTMap::computeMaximumLikelihoodPointCloudWithRangePairs(const Eigen::Vecto
     }
 }
 
+/*
 void NDTMap::computeConflictingPoints(const Eigen::Vector3d &origin,
                               const pcl::PointCloud<pcl::PointXYZ> &pc,
                               pcl::PointCloud<pcl::PointXYZ> &pc_out,
@@ -1346,6 +1298,7 @@ void NDTMap::computeConflictingPoints(const Eigen::Vector3d &origin,
         it++;
     }
 }
+*/
 
 
 #if 0
@@ -1438,8 +1391,6 @@ void NDTMap::computeMaximumLikelihoodRanges(const Eigen::Vector3d &origin,
         fprintf(stderr,"NOT LAZY GRID!!!\n");
         exit(1);
     }
-    pcl::PointXYZ po;
-    po.x = origin(0); po.y = origin(1); po.z = origin(2);
     NDTCell* ptCell = NULL; 
 
     // Step through the points, compute the directions and for now do the full line tracing...
@@ -1524,12 +1475,7 @@ void NDTMap::computeNDTCells(int cellupdatemode, unsigned int maxnumpoints, floa
             {
                 // Set the mean to the cell's centre.
                 Eigen::Vector3d mean = cell->getMean();
-                pcl::PointXYZ pt;
-                pt.x = mean[0];
-                pt.y = mean[1];
-                pt.z = mean[2];
-
-                cell->setCenter(pt);
+                cell->setCenter(mean.data());
             }
         }
     }
@@ -1564,12 +1510,7 @@ void NDTMap::computeNDTCellsSimple(bool keepPoints)
             {
                 // Set the mean to the cell's centre.
                 Eigen::Vector3d mean = cell->getMean();
-                pcl::PointXYZ pt;
-                pt.x = mean[0];
-                pt.y = mean[1];
-                pt.z = mean[2];
-
-                cell->setCenter(pt);
+                cell->setCenter(mean.data());
             }
         }
         else
@@ -1984,7 +1925,7 @@ int NDTMap::getMyIndexInt() const
 }
 
 //computes the *negative log likelihood* of a single observation
-double NDTMap::getLikelihoodForPoint(pcl::PointXYZ pt)
+double NDTMap::getLikelihoodForPoint(const double * const pt)
 {
     //assert(false);
     double uniform=0.00100;
@@ -2185,7 +2126,7 @@ double NDTMap<PointT>::getLikelihoodForPointWithInterpolation(PointT pt) {
 }
 */
 
-std::vector<NDTCell*> NDTMap::getInitializedCellsForPoint(const pcl::PointXYZ pt) const
+std::vector<NDTCell*> NDTMap::getInitializedCellsForPoint(const double* const pt) const
 {
     std::vector<NDTCell*> cells;
     LazyGrid *gr = dynamic_cast<LazyGrid*>(index_);
@@ -2199,7 +2140,7 @@ std::vector<NDTCell*> NDTMap::getInitializedCellsForPoint(const pcl::PointXYZ pt
 
 }
 
-std::vector<NDTCell*> NDTMap::getCellsForPoint(const pcl::PointXYZ pt, int n_neigh, bool checkForGaussian) const
+std::vector<NDTCell*> NDTMap::getCellsForPoint(const double* const pt, int n_neigh, bool checkForGaussian) const
 {
     //assert(false);
     std::vector<NDTCell*> cells;
@@ -2217,7 +2158,7 @@ std::vector<NDTCell*> NDTMap::getCellsForPoint(const pcl::PointXYZ pt, int n_nei
     //}
 }
 
-bool NDTMap::getCellForPoint(const pcl::PointXYZ &pt, NDTCell* &out_cell, bool checkForGaussian) const
+bool NDTMap::getCellForPoint(const double* const pt, NDTCell* &out_cell, bool checkForGaussian) const
 {
 
     out_cell = NULL;
@@ -2254,14 +2195,9 @@ void NDTMap::transformNDTMap(Eigen::Transform<double, 3, Eigen::Affine, Eigen::C
     for(std::vector<NDTCell*>::iterator it=previous_cells.begin();it!=previous_cells.end();++it)
     {
         NDTCell* cell = (*it);
-        pcl::PointXYZ center=cell->getCenter();
-        Eigen::Vector3d centerV;
-        centerV<<center.x, center.y, center.z;
-        centerV=T*centerV;
-        center.x=centerV(0);
-        center.y=centerV(1);
-        center.z=centerV(2);
-        cell->setCenter(center);
+        Eigen::Vector3d center=cell->getCenter();
+        center=T*center;
+        cell->setCenter(center.data());
         lz->addNDTCell(cell);
     }
 }

@@ -103,11 +103,11 @@ public:
     emptydist =0;
     max_occu_ =1;
     consistency_score=0;
-    center_.x = center_.y = center_.z =0;
     xsize_    = ysize_    = zsize_    =0;
     cov_   =  Eigen::MatrixXd::Identity(3, 3);
     icov_  =  Eigen::MatrixXd::Identity(3, 3);
     evecs_ =  Eigen::MatrixXd::Identity(3, 3);
+    center_=  Eigen::Vector3d(0,0,0);
     mean_  =  Eigen::Vector3d(0,0,0);
     evals_ =  Eigen::Vector3d(0,0,0);
     d1_= d2_  =0;
@@ -128,7 +128,7 @@ public:
     points_.clear();
   }
 
-  NDTCell(pcl::PointXYZ &center, double &xsize, double &ysize, double &zsize)
+  NDTCell(Eigen::Vector3d &center, double &xsize, double &ysize, double &zsize)
   {
     InitializeVariables();
     center_ = center;
@@ -170,9 +170,9 @@ public:
   virtual NDTCell* clone() const;
   virtual NDTCell* copy() const;
 
-  inline void setCenter(const pcl::PointXYZ &cn)
+  inline void setCenter(const double* const cn)
   {
-    center_ = cn;
+      std::copy(cn,cn+3,center_.data());
   }
   inline void setDimensions(const double &xs, const double &ys, const double &zs)
   {
@@ -181,16 +181,16 @@ public:
     zsize_ = zs;
   }
 
-  inline pcl::PointXYZ getCenter() const
+  inline Eigen::Vector3d getCenter() const
   {
     return center_;
   }
 
   inline void getCenter(double &cx,double &cy,double &cz) const
   {
-    cx=center_.x;
-    cy=center_.y;
-    cz=center_.z;
+    cx=center_(0);
+    cy=center_(1);
+    cz=center_(2);
 
   }
 
@@ -203,17 +203,17 @@ public:
     ys = ysize_;
     zs = zsize_;
   }
-  inline bool isInside(const pcl::PointXYZ pt) const
+  inline bool isInside(const Eigen::Vector3d& pt) const
   {
-    if(pt.x < center_.x-xsize_/2 || pt.x > center_.x+xsize_/2)
+    if(pt(0) < center_(0)-xsize_/2 || pt(0) > center_(0)+xsize_/2)
     {
       return false;
     }
-    if(pt.y < center_.y-ysize_/2 || pt.y > center_.y+ysize_/2)
+    if(pt(1) < center_(1)-ysize_/2 || pt(1) > center_(1)+ysize_/2)
     {
       return false;
     }
-    if(pt.z < center_.z-zsize_/2 || pt.z > center_.z+zsize_/2)
+    if(pt(2) < center_(2)-zsize_/2 || pt(2) > center_(2)+zsize_/2)
     {
       return false;
     }
@@ -326,7 +326,7 @@ public:
     /**
     * Get likelihood for a given point
     */
-  double getLikelihood(const pcl::PointXYZ &pt) const;
+  double getLikelihood(const double* const pt) const;
 
   /**
     * Adds a new point to distribution (does not update the distribution)
@@ -438,18 +438,16 @@ public:
     * @param p2 second point along the ray (it must hold that p1 != p2);
     * @param &out Gives out the exact maximum likelihood point
     */
-  double computeMaximumLikelihoodAlongLine(const pcl::PointXYZ &p1, const pcl::PointXYZ &p2, Eigen::Vector3d &out);
+  double computeMaximumLikelihoodAlongLine(const double* const p1, const double* p2, Eigen::Vector3d &out);
 
   double computeMaximumLikelihoodAlongLine(const Eigen::Vector3d &ep1, const Eigen::Vector3d &ep2, Eigen::Vector3d &out) {
-    pcl::PointXYZ p1(ep1(0), ep1(1), ep1(2));
-    pcl::PointXYZ p2(ep2(0), ep2(1), ep2(2));
-    return computeMaximumLikelihoodAlongLine(p1, p2, out);
+    return computeMaximumLikelihoodAlongLine(ep1.data(), ep2.data(), out);
   }
 
 
   std::string ToString();
 private:
-  pcl::PointXYZ center_;
+  Eigen::Vector3d center_;
   double xsize_, ysize_, zsize_;
   Eigen::Matrix3d cov_;		/// Contains the covariance of the normal distribution
   Eigen::Matrix3d icov_;  /// Precomputed inverse covariance (updated every time the cell is updated)
@@ -504,7 +502,7 @@ private:
     ar & cost; 	/// ndt_wavefront planner
     ar & isEmpty;	///<based on the most recent observation, is the cell seen empty (1), occupied (-1) or not at all (0)
     ar & consistency_score;
-    ar & center_.x & center_.y & center_.z;
+    ar & boost::serialization::make_array(center_.data(), 3);
     ar & xsize_ & ysize_ & zsize_;
     ar & boost::serialization::make_array(cov_.data(), 9);
     ar & boost::serialization::make_array(icov_.data(), 9);

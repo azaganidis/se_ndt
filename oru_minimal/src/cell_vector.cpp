@@ -43,7 +43,7 @@ CellVector::~CellVector()
     }
 }
 
-NDTCell* CellVector::getCellForPoint(const pcl::PointXYZ &point)
+NDTCell* CellVector::getCellForPoint(const double* const &point)
 {
     NDTCell* ret = NULL;
     if (treeUpdated)
@@ -224,7 +224,7 @@ void CellVector::setCellType(NDTCell *type)
     }
 }
 
-NDTCell* CellVector::getClosestNDTCell(const pcl::PointXYZ &point)
+NDTCell* CellVector::getClosestNDTCell(const double* const point)
 {
     return getCellForPoint(point);
 }

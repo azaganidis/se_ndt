@@ -239,7 +239,7 @@ public:
     * @return true if an inconsistency was detected
     */
 
-  virtual bool addMeasurement(const Eigen::Vector3d &origin,pcl::PointXYZ endpoint, double classifierTh, double maxz, double sensor_noise);
+  virtual bool addMeasurement(const Eigen::Vector3d &origin,const double* const endpoint, double classifierTh, double maxz, double sensor_noise);
 
 
   /**
@@ -359,7 +359,7 @@ public:
     int getMyIndexInt() const;
 
     //computes the likelihood of a single observation
-    virtual double getLikelihoodForPoint(pcl::PointXYZ pt);
+    virtual double getLikelihoodForPoint(const double * const pt);
 
     ///Get the cell for which the point fall into (not the closest cell)
     virtual bool getCellAtPoint(const pcl::PointXYZ &refPoint, NDTCell *&cell);
@@ -371,16 +371,16 @@ public:
      * returns the closest cell to refPoint
      * Does not work with NDT-OM
      */
-  virtual bool getCellForPoint(const pcl::PointXYZ &refPoint, NDTCell *&cell, bool checkForGaussian=true) const;
+  virtual bool getCellForPoint(const double* const refPoint, NDTCell *&cell, bool checkForGaussian=true) const;
   /**
      * Returns all the cells within radius
      * Does not work with NDT-OM
      */
-  virtual std::vector<NDTCell*> getCellsForPoint(const pcl::PointXYZ pt, int n_neighbours, bool checkForGaussian=true) const;
+  virtual std::vector<NDTCell*> getCellsForPoint(const double* const pt, int n_neighbours, bool checkForGaussian=true) const;
   /**
      * Returns all the cells within radius
      */
-  virtual std::vector<NDTCell*> getInitializedCellsForPoint(const pcl::PointXYZ pt) const;
+  virtual std::vector<NDTCell*> getInitializedCellsForPoint(const double* const pt) const;
 
 
   ///return the cell using a specific index (not available for all spatialindexes), will return NULL if the idx is not valid.

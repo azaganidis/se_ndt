@@ -1090,7 +1090,7 @@ void NDTCell::classify()
     }
 }
 
-double NDTCell::getLikelihood(const pcl::PointXYZ &pt) const
+double NDTCell::getLikelihood(const double* const  pt) const
 {
     //compute likelihood
     if(!hasGaussian_) return -1;
@@ -1138,12 +1138,8 @@ double NDTCell::computeMaximumLikelihoodAlongLine(const pcl::PointXYZ &p1, const
 
     Eigen::Vector3d X = L*t+v2; ///X marks the spot
 
-    pcl::PointXYZ p;
-    p.x = X(0);
-    p.y = X(1);
-    p.z = X(2);
     out = X;
-    return getLikelihood(p);
+    return getLikelihood(X.data());
 
 }
 

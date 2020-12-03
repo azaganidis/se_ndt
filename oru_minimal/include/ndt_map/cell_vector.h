@@ -55,7 +55,7 @@ public:
     virtual ~CellVector();
 
     virtual NDTCell* addPoint(const pcl::PointXYZ &point);
-    virtual NDTCell* getCellForPoint(const pcl::PointXYZ &point);
+    virtual NDTCell* getCellForPoint(const double* const point);
     void addCellPoints(pcl::PointCloud<pcl::PointXYZ> pc, const std::vector<size_t> &indices);
     
     void addCell(NDTCell* cell);
@@ -81,7 +81,7 @@ public:
 
     void initKDTree();
 
-    NDTCell* getClosestNDTCell(const pcl::PointXYZ &pt);
+    NDTCell* getClosestNDTCell(const double* const pt);
     std::vector<NDTCell*> getClosestNDTCells(const pcl::PointXYZ &point, double &radius);
     NDTCell* getCellIdx(unsigned int idx) const;
 

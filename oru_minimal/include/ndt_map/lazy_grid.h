@@ -49,7 +49,6 @@
 #include <boost/serialization/split_member.hpp>
 #include <boost/filesystem.hpp>
 #include <set>
-#include <pcl/common/geometry.h>
 namespace perception_oru
 {
 class CellVector3d {
@@ -110,9 +109,9 @@ public:
              NDTCell *cellPrototype );
     virtual ~LazyGrid();
 
-    bool isValid(const pcl::PointXYZ &p, NDTCell* cell);
-    virtual NDTCell* getCellForPoint(const pcl::PointXYZ &point);
-    virtual NDTCell* addPoint(const pcl::PointXYZ &point);
+    bool isValid(const double* const p, NDTCell* cell);
+    virtual NDTCell* getCellForPoint(const double* const point);
+    virtual NDTCell* addPoint(const double* const point);
     void clearCells();
 
     struct Darray
@@ -149,7 +148,7 @@ public:
         }
     };
     void setSensorPose(const double *pose);
-    bool inRange(const pcl::PointXYZ& p);
+    bool inRange(const double* const p);
  
     //these two don't make much sense...
     ///iterator through all cells in index, points at the begining
@@ -166,9 +165,9 @@ public:
     virtual SpatialIndex* copy() const;
 
     ///method to return all cells within a certain radius from a point
-    virtual void getNeighbors(const pcl::PointXYZ &point, const double &radius, std::vector<NDTCell*> &cells);
+    virtual void getNeighbors(const double* const point, const double &radius, std::vector<NDTCell*> &cells);
 	///method to return all cells within a certain radius from a point. Clone the cell once and the return shared pointers.
-    virtual void getNeighborsShared(const pcl::PointXYZ &point, const double &radius, std::vector<boost::shared_ptr< NDTCell > > &cells);
+    virtual void getNeighborsShared(const double* const point, const double &radius, std::vector<boost::shared_ptr< NDTCell > > &cells);
 
     ///sets the cell factory type
     virtual void setCellType(NDTCell *type);
@@ -177,16 +176,16 @@ public:
     virtual void setSize(const double &sx, const double &sy, const double &sz);
     bool insertCell(NDTCell cell);
 
-    virtual NDTCell* getClosestNDTCell(const pcl::PointXYZ &pt, bool checkForGaussian=true);
-    virtual std::vector<NDTCell*> getClosestNDTCells(const pcl::PointXYZ &pt, int &n_neigh, bool checkForGaussian=true);
-    virtual std::vector<boost::shared_ptr< NDTCell > > getClosestNDTCellsShared(const pcl::PointXYZ &pt, int &n_neigh, bool checkForGaussian=true);
-    virtual std::vector<NDTCell*> getClosestCells(const pcl::PointXYZ &pt);
+    virtual NDTCell* getClosestNDTCell(const double * const pt, bool checkForGaussian=true);
+    virtual std::vector<NDTCell*> getClosestNDTCells(const double* const pt, int n_neigh, bool checkForGaussian=true);
+    virtual std::vector<boost::shared_ptr< NDTCell > > getClosestNDTCellsShared(const double* const pt, int n_neigh, bool checkForGaussian=true);
+    virtual std::vector<NDTCell*> getClosestCells(const double* const pt);
 
     virtual inline void getCellAt(int indX, int indY, int indZ, NDTCell* &cell){
       cell = dataArray(indX,indY,indZ);
     }
   
-    virtual inline void getCellAt(const pcl::PointXYZ& pt, NDTCell* &cell){
+    virtual inline void getCellAt(const double* const t, NDTCell* &cell){
        int indX,indY,indZ;
        this->getIndexForPoint(pt,indX,indY,indZ);
        this->getCellAt(indX,indY,indZ,cell);
@@ -194,13 +193,13 @@ public:
 
 
   ///automatically allocate the cell if needed (checks that the indexes etc. are correct).
-  virtual bool getCellAtAllocate(const pcl::PointXYZ& pt, NDTCell* &cell);
+  virtual bool getCellAtAllocate(const double* const t, NDTCell* &cell);
 
     //FIXME: these two are now not needed anymore
     virtual inline void getNDTCellAt(int indX, int indY, int indZ, NDTCell* &cell){
         cell = (dataArray(indX,indY,indZ));
     }
-    virtual inline void getNDTCellAt(const pcl::PointXYZ& pt, NDTCell* &cell){
+    virtual inline void getNDTCellAt(const double* const t, NDTCell* &cell){
 			int indX,indY,indZ;
 			this->getIndexForPoint(pt,indX,indY,indZ);
 			this->getNDTCellAt(indX,indY,indZ,cell);
@@ -210,7 +209,7 @@ public:
     void getGridSize(int &cx, int &cy, int &cz);
     void getGridSizeInMeters(double &cx, double &cy, double &cz);
     void getCenter(double &cx, double &cy, double &cz);
-    virtual void getIndexForPoint(const pcl::PointXYZ& pt, int &idx, int &idy, int &idz);
+    virtual void getIndexForPoint(const double* const t, int &idx, int &idy, int &idz);
     NDTCell* getProtoType()
     {
         return protoType;
@@ -225,14 +224,8 @@ public:
 
     ///reads map contents from .jff file
     virtual int loadFromJFF(FILE * jffin);
-    bool traceLine(const Eigen::Vector3d &origin, const pcl::PointXYZ &endpoint, const Eigen::Vector3d &diff, const double& maxz, std::vector<NDTCell*> &cells);
+    bool traceLine(const Eigen::Vector3d &origin, const Eigen::Vector3d &endpoint, const Eigen::Vector3d &diff, const double& maxz, std::vector<NDTCell*> &cells);
     
-    bool traceLine(const Eigen::Vector3d &origin, const Eigen::Vector3d &endpoint, const Eigen::Vector3d &diff, const double& maxz, std::vector<NDTCell*> &cells) {
-        pcl::PointXYZ ep;
-        ep.x = endpoint(0); ep.y = endpoint(1); ep.z = endpoint(2);
-        return traceLine(origin, ep, diff, maxz, cells);
-    }
-
     void loadCells(int index_start, int index_end);
     void InitializeDefaultValues();
     std::string GetDataString();

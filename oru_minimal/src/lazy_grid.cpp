@@ -166,7 +166,7 @@ LazyGrid::~LazyGrid()
 }
 void LazyGrid::addNDTCell(NDTCell* cell)
 {
-    pcl::PointXYZ cellCenter = cell->getCenter();
+    Eigen::Vector3d cellCenter = cell->getCenter();
     if(inRange(cellCenter))
     {
         //std::cout<<".";
@@ -324,14 +324,14 @@ void LazyGrid::setSensorPose(const double *pose)
     //loadCells(0, cloud_index);
 
 }
-bool LazyGrid::isValid(const pcl::PointXYZ &p, NDTCell* cell)
+bool LazyGrid::isValid(const double* const p, NDTCell* cell)
 {
     auto c = cell->getCenter();
     if(abs(c.x-p.x)>cellSizeX ||abs(c.y-p.y)>cellSizeY ||abs(c.z-p.z)>cellSizeZ)
         return false;
     return true;
 }
-NDTCell* LazyGrid::getCellForPoint(const pcl::PointXYZ &point)
+NDTCell* LazyGrid::getCellForPoint(const double &point)
 {
 
     int indX,indY,indZ;
@@ -348,23 +348,21 @@ NDTCell* LazyGrid::getCellForPoint(const pcl::PointXYZ &point)
 }
 
 
-bool LazyGrid::getCellAtAllocate(const pcl::PointXYZ &pt, NDTCell* &cell)//RETURNS TRUE IF CELL ALLOCATED
+bool LazyGrid::getCellAtAllocate(const double* const pt, NDTCell* &cell)//RETURNS TRUE IF CELL ALLOCATED
 {
     bool allocated=false;
     if(!inRange(pt))
         return allocated;
     cell = NULL;
-    pcl::PointXYZ point = pt;
-    if(std::isnan(point.x) ||std::isnan(point.y) ||std::isnan(point.z))
+    Eigen::Map<Eigen::Vector3d> point(pt);
+    if(std::isnan(point[0]) ||std::isnan(point[1]) ||std::isnan(point[2]))
     {
         return allocated;
     }
     int indX,indY,indZ;
     this->getIndexForPoint(point,indX,indY,indZ);
-    pcl::PointXYZ centerCell;
-    centerCell.x = floor(pt.x/cellSizeX)*cellSizeX + cellSizeX/2;
-    centerCell.y = floor(pt.y/cellSizeY)*cellSizeY + cellSizeY/2;
-    centerCell.z = floor(pt.z/cellSizeZ)*cellSizeZ + cellSizeZ/2;
+    Eigen::Vector3d cellSize(cellSizeX,cellSizeY,cellSizeZ);
+    Eigen::Vector3d centerCell = floor(point/cellSize)*cellSize + cellSize/2;
 
     //if(indX >= sizeX || indY >= sizeY || indZ >= sizeZ || indX<0 || indY<0 || indZ<0)
 
@@ -402,7 +400,7 @@ bool LazyGrid::getCellAtAllocate(const pcl::PointXYZ &pt, NDTCell* &cell)//RETUR
 }
 
 
-NDTCell* LazyGrid::addPoint(const pcl::PointXYZ &point_c)
+NDTCell* LazyGrid::addPoint(const double* const point_c)
 {
   NDTCell* cell=NULL;
   this->getCellAtAllocate(point_c, cell);
@@ -459,7 +457,7 @@ SpatialIndex* LazyGrid::copy() const
     return ret;
 }
 
-void LazyGrid::getNeighbors(const pcl::PointXYZ &point, const double &radius, std::vector<NDTCell*> &cells)
+void LazyGrid::getNeighbors(const double* const point, const double &radius, std::vector<NDTCell*> &cells)
 {
     ///NOT TESTED, not modified
     std::cerr<<"OH NO! SHOULDNT BE HERE! LazyGrid:N4578"<<std::endl;
@@ -488,7 +486,7 @@ void LazyGrid::getNeighbors(const pcl::PointXYZ &point, const double &radius, st
 
 }
 
-void LazyGrid::getNeighborsShared(const pcl::PointXYZ &point, const double &radius, std::vector<boost::shared_ptr< NDTCell > > &cells)
+void LazyGrid::getNeighborsShared(const double* const point, const double &radius, std::vector<boost::shared_ptr< NDTCell > > &cells)
 {
     ///NOT TESTED, not modified
     std::cerr<<"OH NO! SHOULDNT BE HERE! LazyGrid:N4579"<<std::endl;
@@ -518,27 +516,27 @@ void LazyGrid::getNeighborsShared(const pcl::PointXYZ &point, const double &radi
     }
 
 }
-bool LazyGrid::inRange(const pcl::PointXYZ& p)
+bool LazyGrid::inRange(const double &p)
 {
-    if( p.x < (sensor_pose[0]+sizeX/2)*cellSizeX &&
-        p.x > (sensor_pose[0]-sizeX/2)*cellSizeX &&
-        p.y < (sensor_pose[1]+sizeY/2)*cellSizeY &&
-        p.y > (sensor_pose[1]-sizeY/2)*cellSizeY &&
-        p.z < (sensor_pose[2]+sizeZ/2)*cellSizeZ &&
-        p.z > (sensor_pose[2]-sizeZ/2)*cellSizeZ )
+    if( p[0] < (sensor_pose[0]+sizeX/2)*cellSizeX &&
+        p[0] > (sensor_pose[0]-sizeX/2)*cellSizeX &&
+        p[1] < (sensor_pose[1]+sizeY/2)*cellSizeY &&
+        p[1] > (sensor_pose[1]-sizeY/2)*cellSizeY &&
+        p[2] < (sensor_pose[2]+sizeZ/2)*cellSizeZ &&
+        p[2] > (sensor_pose[2]-sizeZ/2)*cellSizeZ )
         return true;
     else
         return false;
 }
 
-void LazyGrid::getIndexForPoint(const pcl::PointXYZ& point, int &indX, int &indY, int &indZ)
+void LazyGrid::getIndexForPoint(const double &point, int &indX, int &indY, int &indZ)
 {
-    indX = floor(point.x/cellSizeX);
-    indY = floor(point.y/cellSizeY);
-    indZ = floor(point.z/cellSizeZ);
+    indX = floor(point[0]/cellSizeX);
+    indY = floor(point[1]/cellSizeY);
+    indZ = floor(point[2]/cellSizeZ);
 }
 
-std::vector<NDTCell*> LazyGrid::getClosestCells(const pcl::PointXYZ &pt)
+std::vector<NDTCell*> LazyGrid::getClosestCells(const double &pt)
 {
     int indXn,indYn,indZn;
     int indX,indY,indZ;
@@ -568,8 +566,9 @@ std::vector<NDTCell*> LazyGrid::getClosestCells(const pcl::PointXYZ &pt)
     return cells;
 }
 
-std::vector< NDTCell* > LazyGrid::getClosestNDTCells(const pcl::PointXYZ &point, int &n_neigh, bool checkForGaussian)
+std::vector< NDTCell* > LazyGrid::getClosestNDTCells(const double &point, int n_neigh, bool checkForGaussian)
 {
+    Eigen::Map<Eigen::Vector3d> pt(point);
     std::vector<NDTCell*> cells;
     if(!inRange(point))
         return cells;
@@ -595,7 +594,7 @@ std::vector< NDTCell* > LazyGrid::getClosestNDTCells(const pcl::PointXYZ &point,
                 indZn = (z%2 == 0) ? indZ+z/2 : indZ-z/2;
                 if(checkCellforNDT(indXn,indYn,indZn,checkForGaussian))
                 {
-                    if(pcl::geometry::distance(point, dataArray(indXn,indYn,indZn)->getCenter())<(1+n_neigh)*cellSizeX)
+                    if((pt-dataArray(indXn,indYn,indZn)->getCenter()).norm()<(1+n_neigh)*cellSizeX)
                         cells.push_back(dataArray(indXn,indYn,indZn));
                 }
             }
@@ -605,9 +604,9 @@ std::vector< NDTCell* > LazyGrid::getClosestNDTCells(const pcl::PointXYZ &point,
     return cells;
 }
 
-std::vector<boost::shared_ptr< NDTCell > > LazyGrid::getClosestNDTCellsShared(const pcl::PointXYZ &point, int &n_neigh, bool checkForGaussian)
+std::vector<boost::shared_ptr< NDTCell > > LazyGrid::getClosestNDTCellsShared(const double* const point, int n_neigh, bool checkForGaussian)
 {
-
+    Eigen::Map<Eigen::Vector3d> pt(point);
     int indXn,indYn,indZn;
     int indX,indY,indZ;
     this->getIndexForPoint(point,indX,indY,indZ);
@@ -629,7 +628,7 @@ std::vector<boost::shared_ptr< NDTCell > > LazyGrid::getClosestNDTCellsShared(co
             {
                 indZn = (z%2 == 0) ? indZ+z/2 : indZ-z/2;
                 if(checkCellforNDT(indXn,indYn,indZn,checkForGaussian))
-                    if(pcl::geometry::distance(point, dataArray(indXn,indYn,indZn)->getCenter())<(1+n_neigh)*cellSizeX)
+                    if((pt - dataArray(indXn,indYn,indZn)->getCenter()).norm()<(1+n_neigh)*cellSizeX)
                     {
                         NDTCell* nd = dataArray(indXn,indYn,indZn)->copy();
                         boost::shared_ptr< NDTCell > smart_pointer(nd);
@@ -642,22 +641,26 @@ std::vector<boost::shared_ptr< NDTCell > > LazyGrid::getClosestNDTCellsShared(co
     return cells;
 }
 
-NDTCell* LazyGrid::getClosestNDTCell(const pcl::PointXYZ &point, bool checkForGaussian)
+NDTCell* LazyGrid::getClosestNDTCell(const double * const point, bool checkForGaussian)
 {
+    Eigen::Map<Eigen::Vector3d> pt(point);
     int indXn,indYn,indZn;
     int indX,indY,indZ;
     this->getIndexForPoint(point,indX,indY,indZ);
     NDTCell *ret = NULL;
     std::vector<NDTCell*> cells;
+    float pnt[3];
 
     if(!checkForGaussian)
     {
         //just give me whatever is in this cell
         if(checkCellforNDT(indX,indY,indZ,checkForGaussian))
-            if(pcl::geometry::distance(point, dataArray(indX,indY,indZ)->getCenter())<(2)*cellSizeX)
-            {
+        {
+            dataArray(indX,indY,indZ)->getCenter(pnt);
+            float dist=sqrt(pow(pnt[0]-point[0],2)+pow(pnt[1]-point[1],2)+pow(pnt[2]-point[2],2));
+            if(dist<(2)*cellSizeX)
                 ret = (dataArray(indX,indY,indZ));
-            }
+        }
         return ret;
     }
 
@@ -677,7 +680,7 @@ NDTCell* LazyGrid::getClosestNDTCell(const pcl::PointXYZ &point, bool checkForGa
             {
                 indZn = (z%2 == 0) ? indZ+z/2 : indZ-z/2;
                 if(checkCellforNDT(indXn,indYn,indZn))
-                    if(pcl::geometry::distance(point, dataArray(indXn,indYn,indZn)->getCenter())<(2*i+2)*cellSizeX)
+                    if((pt-dataArray(indXn,indYn,indZn)->getCenter()).norm()<(2*i+2)*cellSizeX)
                     {
                         ret = (dataArray(indXn,indYn,indZn));
                         cells.push_back(ret);
@@ -687,14 +690,11 @@ NDTCell* LazyGrid::getClosestNDTCell(const pcl::PointXYZ &point, bool checkForGa
     }
 
     double minDist = INT_MAX;
-    Eigen::Vector3d tmean;
-    pcl::PointXYZ pt = point;
     for(unsigned int i=0; i<cells.size(); i++)
     {
-        tmean = cells[i]->getMean();
-        tmean(0) -= pt.x;
-        tmean(1) -= pt.y;
-        tmean(2) -= pt.z;
+        Eigen::Map<Eigen::Vector3d> pt(point);
+        Eigen::Vector3d tmean = cells[i]->getMean();
+        tmean -= pt;
         double d = tmean.norm();
         if(d<minDist)
         {
@@ -804,7 +804,6 @@ int LazyGrid::loadFromJFF(FILE * jffin)
     this->setCenter(lazyGridData[6], lazyGridData[7], lazyGridData[8]);
 
     int indX, indY, indZ;
-    pcl::PointXYZ centerCell;
 
     // load all cells
     while (1)
@@ -822,7 +821,7 @@ int LazyGrid::loadFromJFF(FILE * jffin)
         }
 
         if(feof(jffin)) break;
-		centerCell = prototype_.getCenter();
+        Eigen::Vector3d centerCell = prototype_.getCenter();
         this->getIndexForPoint(centerCell, indX, indY, indZ);
 
         if(indX < 0 || indX >= sizeX) continue; 
@@ -839,13 +838,11 @@ int LazyGrid::loadFromJFF(FILE * jffin)
     return 0;
 }
 
-bool LazyGrid::traceLine(const Eigen::Vector3d &origin, const pcl::PointXYZ &endpoint,const Eigen::Vector3d &diff_ ,
+bool LazyGrid::traceLine(const Eigen::Vector3d &origin, const Eigen::Vector3d &endpoint,const Eigen::Vector3d &diff_ ,
 	const double& maxz, std::vector<NDTCell*> &cells)
 {
-	if(endpoint.z>maxz)
-	{
+	if(endpoint[3]>maxz)
 		return false;
-	}
 	
 	double min1 = std::min(cellSizeX,cellSizeY);
 	double min2 = std::min(cellSizeZ,cellSizeY);
@@ -865,17 +862,13 @@ bool LazyGrid::traceLine(const Eigen::Vector3d &origin, const pcl::PointXYZ &end
 	//}
 	
 	NDTCell* ptCell = NULL;    
-	pcl::PointXYZ pt;
-	pcl::PointXYZ po;
-	po.x = origin(0); po.y = origin(1); po.z = origin(2);
+    Eigen::Vector3d pt;
 	Eigen::Vector3d diff = diff_/(float)N;
 	
 	int idxo=0, idyo=0,idzo=0;
 	for(int i=0; i<N-2; i++)
 	{
-		pt.x = origin(0) + ((float)(i+1)) *diff(0);
-		pt.y = origin(1) + ((float)(i+1)) *diff(1);
-		pt.z = origin(2) + ((float)(i+1)) *diff(2);
+		pt = origin + ((float)(i+1)) *diff;
 		int idx,idy,idz;
         this->getIndexForPoint(pt, idx, idy, idz);
 		///We only want to check every cell once, so
@@ -904,7 +897,7 @@ bool LazyGrid::traceLine(const Eigen::Vector3d &origin, const pcl::PointXYZ &end
 
 
 bool LazyGrid::insertCell(NDTCell cell){
-    pcl::PointXYZ centerCell;
+    Eigen::Vector3d centerCell;
     int indX,indY,indZ;
     float r,g,b;
     double xs,ys,zs;
